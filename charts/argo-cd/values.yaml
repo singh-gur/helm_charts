@@ -10,7 +10,7 @@ argo-cd:
     ingress:
       enabled: true
       hosts:
-        argocd.gsingh.io
+        - argocd.gsingh.io
   configs:
     params:
       server.insecure: true
