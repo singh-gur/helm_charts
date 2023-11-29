@@ -9,8 +9,8 @@ argo-cd:
   server:
     ingress:
       enabled: true
-      paths:
-        - /argo-cd
+      hosts:
+        argocd.gsingh.io
   configs:
     params:
       server.insecure: true
