@@ -5,10 +5,11 @@ argo-cd:
     enabled: false
   applicationSet:
     enabled: false
-  ingress:
-    enabled: true
-    paths:
-      - /argo-cd
+
   server:
+    ingress:
+      enabled: true
+      paths:
+        - /argo-cd
     extraArgs:
       - --insecure
