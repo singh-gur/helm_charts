@@ -11,5 +11,3 @@ argo-cd:
       enabled: true
       paths:
         - /argo-cd
-    extraArgs:
-      - --insecure
