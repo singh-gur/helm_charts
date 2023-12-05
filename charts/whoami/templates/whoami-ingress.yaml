@@ -5,9 +5,10 @@ metadata:
 
 spec:
   rules:
-    - http:
+    - host: whoami.gursingh.com
+      http:
         paths:
-          - path: /whoami/knock
+          - path: /
             pathType: Prefix
             backend:
               service:
