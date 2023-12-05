@@ -11,6 +11,7 @@ argo-cd:
       enabled: true
       hosts:
         - argocd.gsingh.io
+        - argo.gursingh.com
   configs:
     params:
       server.insecure: true
