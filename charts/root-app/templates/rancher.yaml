@@ -7,9 +7,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://releases.rancher.com/server-charts/stable
+    repoURL: https://releases.rancher.com/server-charts/latest
     chart: rancher
-    targetRevision: stable
+    targetRevision: 2.7.9
     helm:
       values: |
         hostname: rancher.gsingh.io
