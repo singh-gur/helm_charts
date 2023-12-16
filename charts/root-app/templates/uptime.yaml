@@ -16,7 +16,9 @@ spec:
           enabled: true
           hosts:
             - host: uptime.gsingh.io
-              pathType: Prefix
+              paths:
+                - path: /
+                  pathType: Prefix
   destination:
     server: https://kubernetes.default.svc
     namespace: default
