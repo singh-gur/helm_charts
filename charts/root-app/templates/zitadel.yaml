@@ -27,6 +27,13 @@ spec:
                 MaxConnIdleTime: 5m
           configSecretName: zitadel-config-secrets
           configSecretKey: config.yaml
+        ingress:
+          enabled: true
+          hosts:
+            - host: auth.gsingh.io
+              paths:
+                - path: /
+                  pathType: Prefix
   destination:
     server: https://kubernetes.default.svc
     namespace: default
