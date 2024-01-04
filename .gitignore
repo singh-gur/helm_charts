@@ -1,3 +1,4 @@
 charts/**/charts
 .vscode
 */**/.ignore
+.ignore
