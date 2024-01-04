@@ -1,5 +1,5 @@
 zitadel:
-  masterkey: zitadel-masterkey
+  masterkeySecretName: zitadel-masterkey
   configmapConfig:
     ExternalSecure: false
     ExternalDomain: auth.gsingh.io
