@@ -1,5 +1,5 @@
 zitadel:
-  masterkey: 59Uv8buoCogfhghfghcwNcmxvuyBDLdb
+  masterkey: c9sTBIMkoJ5d26iBR6PtDw8ePsYIdq16
   # masterkeySecretName: zitadel-masterkey
   configmapConfig:
     ExternalSecure: false
