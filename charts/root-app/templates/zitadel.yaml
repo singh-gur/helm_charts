@@ -7,9 +7,26 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/singh-gur/helm_charts.git
-    path: charts/zitadel
-    targetRevision: HEAD
+    repoURL: https://charts.zitadel.com
+    chart: zitadel
+    targetRevision: 7.4.0
+    helm:
+      values: |
+        zitadel:
+          masterkeySecretName: zitadel-masterkey
+          configmapConfig:
+            ExternalSecure: false
+            ExternalDomain: auth.gsingh.io
+            TLS:
+              Enabled: false
+            Database:
+              Postgres:
+                MaxOpenConns: 20
+                MaxIdleConns: 10
+                MaxConnLifetime: 30m
+                MaxConnIdleTime: 5m
+          configSecretName: zitadel-config-secrets
+          configSecretKey: config.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: default
