@@ -5,7 +5,7 @@ metadata:
 
 spec:
   rules:
-    - host: whoami.gursingh.com
+    - host: whoami.gsingh.io
       http:
         paths:
           - path: /
