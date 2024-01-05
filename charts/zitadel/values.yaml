@@ -1,6 +1,5 @@
 zitadel:
-  masterkey: c9sTBIMkoJ5d26iBR6PtDw8ePsYIdq16
-  # masterkeySecretName: zitadel-masterkey
+  masterkeySecretName: zitadel-masterkey
   configmapConfig:
     ExternalSecure: false
     ExternalDomain: auth.gsingh.io
