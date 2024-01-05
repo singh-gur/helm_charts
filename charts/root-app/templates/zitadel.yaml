@@ -19,7 +19,7 @@ spec:
             ExternalSecure: true
             ExternalDomain: auth.gsingh.io
             TLS:
-              Enabled: true
+              Enabled: false
             Database:
               Cockroach:
                 MaxOpenConns: 20
@@ -40,9 +40,6 @@ spec:
               paths:
                 - path: /
                   pathType: Prefix
-          tls:
-            - hosts:
-              - auth.gsingh.io
   destination:
     server: https://kubernetes.default.svc
     namespace: default
