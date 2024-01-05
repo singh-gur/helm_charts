@@ -41,7 +41,8 @@ spec:
                 - path: /
                   pathType: Prefix
           tls:
-            - auth.gsingh.io
+            - hosts:
+              - auth.gsingh.io
   destination:
     server: https://kubernetes.default.svc
     namespace: default
