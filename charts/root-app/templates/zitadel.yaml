@@ -15,10 +15,11 @@ spec:
         zitadel:
           masterkeySecretName: zitadel-masterkey
           configmapConfig:
-            ExternalSecure: false
+            ExternalPort: 443
+            ExternalSecure: true
             ExternalDomain: auth.gsingh.io
             TLS:
-              Enabled: false
+              Enabled: true
             Database:
               Cockroach:
                 MaxOpenConns: 20
