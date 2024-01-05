@@ -26,6 +26,8 @@ spec:
                 MaxIdleConns: 10
                 MaxConnLifetime: 30m
                 MaxConnIdleTime: 5m
+          selfSignedCert:
+            enabled: true
           configSecretName: zitadel-config-secrets
           configSecretKey: config.yaml
           dbSslCaCrtSecret: zitadel-db-ca-secret
