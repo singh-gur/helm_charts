@@ -1,0 +1,34 @@
+coder:
+  env:
+    - name: CODER_ACCESS_URL
+      value: "https://coder.example.com"
+    - name: CODER_PG_CONNECTION_URL
+      valueFrom:
+        secretKeyRef:
+          name: coder-secrets
+          key: db-url
+    - name: CODER_OIDC_ISSUER_URL
+      valueFrom:
+        secretKeyRef:
+          name: coder-secrets
+          key: oidc-issuer-url
+    - name: CODER_OIDC_EMAIL_DOMAIN
+      valueFrom:
+        secretKeyRef:
+          name: coder-secrets
+          key: oidc-email-domains
+    - name: CODER_OIDC_CLIENT_ID
+      valueFrom:
+        secretKeyRef:
+          name: coder-secrets
+          key: oidc-client-id
+    - name: CODER_OIDC_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: coder-secrets
+          key: oidc-client-secret
+  ingress:
+    enable: true
+    host: ide.gsingh.io
+    tls:
+      enable: true
