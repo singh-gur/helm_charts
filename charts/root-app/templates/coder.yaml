@@ -41,6 +41,10 @@ spec:
                 secretKeyRef:
                   name: coder-secrets
                   key: oidc-client-secret
+            - name: CODER_OIDC_IGNORE_EMAIL_VERIFIED
+              value: true
+            - name: CODER_DISABLE_PASSWORD_AUTH
+              value: true
           ingress:
             enable: true
             host: ide.gsingh.io
