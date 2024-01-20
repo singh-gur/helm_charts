@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: https://helm.coder.com/v2
     chart: coder
-    targetRevision: 2.6.0
+    targetRevision: 2.7.0
     helm:
       values: |
         coder:
@@ -41,10 +41,6 @@ spec:
                 secretKeyRef:
                   name: coder-secrets
                   key: oidc-client-secret
-            - name: CODER_OIDC_IGNORE_EMAIL_VERIFIED
-              value: true
-            - name: CODER_DISABLE_PASSWORD_AUTH
-              value: true
           ingress:
             enable: true
             host: ide.gsingh.io
