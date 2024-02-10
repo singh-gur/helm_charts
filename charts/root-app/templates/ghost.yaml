@@ -15,6 +15,9 @@ spec:
         ingress:
           enabled: true
           hostname: blog.gsingh.io
+        ghostUsername: gurbakhshish
+        ghostEmail: hello@gsingh.io
+        existingSecret: ghost-secrets
   destination:
     server: https://kubernetes.default.svc
     namespace: default
