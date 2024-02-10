@@ -8,7 +8,7 @@ spec:
   project: default
   source:
     repoURL: https://charts.bitnami.com/bitnami
-    chart: bitnami/ghost
+    chart: ghost
     targetRevision: 19.8.7
     helm:
       values: |
