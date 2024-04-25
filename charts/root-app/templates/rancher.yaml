@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: https://releases.rancher.com/server-charts/latest
     chart: rancher
-    targetRevision: 2.8.2
+    targetRevision: 2.8.3
     helm:
       values: |
         hostname: rancher.gsingh.io
