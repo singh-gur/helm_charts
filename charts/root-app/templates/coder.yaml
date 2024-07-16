@@ -3,13 +3,13 @@ kind: Application
 metadata:
   name: coder
   finalizers:
-  - resources-finalizer.argocd.argoproj.io
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
     repoURL: https://helm.coder.com/v2
     chart: coder
-    targetRevision: 2.12.3
+    targetRevision: 2.13.0
     helm:
       values: |
         coder:
