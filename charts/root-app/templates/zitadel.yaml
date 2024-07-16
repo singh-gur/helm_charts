@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: zitadel
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://charts.zitadel.com
+    chart: zitadel
+    targetRevision: 7.15.0
+    helm:
+      values: |
+        zitadel:
+          masterkeySecretName: zitadel-masterkey
+          configmapConfig:
+            ExternalPort: 443
+            ExternalSecure: true
+            ExternalDomain: auth.gsingh.io
+            TLS:
+              Enabled: false
+            Database:
+              Cockroach:
+                MaxOpenConns: 20
+                MaxIdleConns: 10
+                MaxConnLifetime: 30m
+                MaxConnIdleTime: 5m
+          selfSignedCert:
+            enabled: true
+          configSecretName: zitadel-config-secrets
+          configSecretKey: config.yaml
+          dbSslCaCrtSecret: zitadel-db-ca-secret
+          dbSslAdminCrtSecret: zitadel-db-admin-secret
+          dbSslUserCrtSecret: zitadel-db-user-secret
+        ingress:
+          enabled: true
+          hosts:
+            - host: auth.gsingh.io
+              paths:
+                - path: /
+                  pathType: Prefix
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      selfHeal: true
