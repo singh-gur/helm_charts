@@ -3,9 +3,10 @@ kind: Service
 metadata:
   name: whoami
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
     - port: 5678
       targetPort: 80
+      nodePort: 30080
   selector:
     app: whoami
