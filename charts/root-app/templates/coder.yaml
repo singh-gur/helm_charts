@@ -9,10 +9,12 @@ spec:
   source:
     repoURL: https://helm.coder.com/v2
     chart: coder
-    targetRevision: 2.13.5
+    targetRevision: 2.15.0
     helm:
       values: |
         coder:
+          service:
+            loadBalancerIP: 8085
           env:
             - name: CODER_ACCESS_URL
               value: "https://ide.gsingh.io"
