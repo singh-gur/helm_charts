@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: https://charts.zitadel.com
     chart: zitadel
-    targetRevision: 7.15.0
+    targetRevision: 8.7.1
     helm:
       values: |
         zitadel:
