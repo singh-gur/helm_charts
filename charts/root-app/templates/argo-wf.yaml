@@ -22,10 +22,23 @@ spec:
           workflowNamespaces:
             - default
         server:
+          authModes:
+            - server
+            - sso
           ingress:
             enabled: true
             hosts:
               - argowf.gsingh.io
+          sso:
+            enabled: true
+            issuer: https://auth.gsingh.io
+            clientId:
+              name: argowf-secrets
+              key: client-id
+            clientSecret:
+              name: argowf-secrets
+              key: client-secret
+            redirectUrl: https://argowf.gsingh.io/oauth2/callback
   destination:
     server: https://kubernetes.default.svc
     namespace: default
