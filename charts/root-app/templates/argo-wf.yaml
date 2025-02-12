@@ -23,7 +23,6 @@ spec:
             - default
         server:
           authModes:
-            - server
             - sso
           ingress:
             enabled: true
