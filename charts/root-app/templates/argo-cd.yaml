@@ -10,6 +10,8 @@ spec:
     repoURL: https://github.com/singh-gur/helm_charts.git
     path: charts/argo-cd
     targetRevision: HEAD
+    secretRef:
+      secretName: argo-ssh-key
   destination:
     server: https://kubernetes.default.svc
     namespace: default
