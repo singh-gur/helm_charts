@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: https://helm.coder.com/v2
     chart: coder
-    targetRevision: 2.18.0
+    targetRevision: 2.19.0
     helm:
       values: |
         coder:
