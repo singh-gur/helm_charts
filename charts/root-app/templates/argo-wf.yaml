@@ -38,6 +38,8 @@ spec:
               name: argowf-secrets
               key: client-secret
             redirectUrl: https://argowf.gsingh.io/oauth2/callback
+            rbac:
+              ebabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: default
