@@ -16,16 +16,18 @@ spec:
           TZ: "America/New_York"
         service:
           main:
-          type: NodePort
+            type: NodePort
             ports:
               imap:
                 enabled: true
                 protocol: TCP
                 port: 143
+                nodePort: 30143
               smtp:
                 enabled: true
                 protocol: TCP
                 port: 25
+                nodePort: 3025
   destination:
     server: https://kubernetes.default.svc
     namespace: default
