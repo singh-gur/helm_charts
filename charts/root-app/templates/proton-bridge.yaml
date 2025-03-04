@@ -27,7 +27,7 @@ spec:
                 enabled: true
                 protocol: TCP
                 port: 25
-                nodePort: 3025
+                nodePort: 30025
   destination:
     server: https://kubernetes.default.svc
     namespace: default
