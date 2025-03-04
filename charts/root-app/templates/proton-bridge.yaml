@@ -14,6 +14,17 @@ spec:
       values: |
         env:
           TZ: "America/New_York"
+        service:
+          main:
+            ports:
+              imap:
+                enabled: true
+                protocol: TCP
+                port: 143
+              smtp:
+                enabled: true
+                protocol: TCP
+                port: 25
   destination:
     server: https://kubernetes.default.svc
     namespace: default
