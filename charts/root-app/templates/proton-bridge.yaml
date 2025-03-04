@@ -16,6 +16,7 @@ spec:
           TZ: "America/New_York"
         service:
           main:
+          type: NodePort
             ports:
               imap:
                 enabled: true
