@@ -22,7 +22,7 @@ spec:
         ghostBlogTitle: Gurbakhshish's Blog
   destination:
     server: https://kubernetes.default.svc
-    namespace: cattle-system
+    namespace: default
   syncPolicy:
     automated:
       prune: true
