@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ghost
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: ghost
+    targetRevision: 22.1.18
+    helm:
+      values: |
+        ghostHost: ghost.gsingh.io
+        ingress:
+          enabled: true
+          hostname: ghost.gsingh.io
+          ghostUsername: gurbakhshish
+          existingSecret: ghost-secrets
+          ghostEmail: hello@gsingh.io
+          ghostBlogTitle: Gurbakhshish's Blog
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cattle-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
