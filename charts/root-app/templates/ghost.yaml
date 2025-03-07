@@ -15,7 +15,7 @@ spec:
         ghostHost: ghost.gsingh.io
         ingress:
           enabled: true
-          hostname: ghost.gsingh.io
+          hostname: blog.gsingh.io
         ghostUsername: gurbakhshish
         existingSecret: ghost-secrets
         ghostEmail: hello@gsingh.io
