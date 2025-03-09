@@ -20,6 +20,13 @@ spec:
         existingSecret: ghost-secrets
         ghostEmail: hello@gsingh.io
         ghostBlogTitle: Gurbakhshish's Blog
+        mysql:
+          enabled: false
+        externalDatabase:
+          host: 192.168.20.96
+          user: ghostuser
+          database: ghostdb
+          existingSecret: ghost-secrets
   destination:
     server: https://kubernetes.default.svc
     namespace: default
