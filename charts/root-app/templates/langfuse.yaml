@@ -49,14 +49,12 @@ spec:
         clickhouse:
           auth:
             existingSecret: langfuse-secrets
-            secretKeys:
-              userPasswordKey: clickhouse-password
+            existingSecretKey: clickhouse-password
 
         redis:
           auth:
             existingSecret: langfuse-secrets
-            secretKeys:
-              userPasswordKey: reddis-password
+            existingSecretPasswordKey: reddis-password
 
         s3:
           deploy: false
