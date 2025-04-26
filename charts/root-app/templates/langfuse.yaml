@@ -35,8 +35,6 @@ spec:
               - path: /
                 pathType: Prefix
             annotations: []
-            tls:
-              enabled: true
 
         postgresql:
           deploy: false
