@@ -1,0 +1,86 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ghost
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: langfuse.github.io/langfuse-k8s
+    chart: langfuse
+    targetRevision: 1.2.5
+    helm:
+      values: |
+        # Optional, but highly recommended. Generate via `openssl rand -hex 32`.
+        langfuse:
+          encryptionKey:
+            secretKeyRef:
+              name: langfuse-secrets
+              key: encryption-key
+          salt:
+            secretKeyRef:
+              name: langfuse-secrets
+              key: salt
+          nextauth:
+            secret:
+              secretKeyRef:
+                name: langfuse-secrets
+                key: nextauth-secret
+          ingress:
+            enabled: true
+            hosts:
+            - host: langfuse.gsingh.io
+              paths:
+              - path: /
+                pathType: Prefix
+            annotations: []
+
+        postgresql:
+          deploy: false
+          host: 192.168.20.96
+          auth:
+            username: lfdbuser
+            database: langfuse
+            existingSecret: langfuse-secrets
+            secretKeys:
+              userPasswordKey: postgres-password
+
+        clickhouse:
+          auth:
+            existingSecret: langfuse-secrets
+            secretKeys:
+              userPasswordKey: clickhouse-password
+
+        redis:
+          auth:
+            existingSecret: langfuse-secrets
+            secretKeys:
+              userPasswordKey: reddis-password
+
+        s3:
+          deploy: false
+          endpoint: https://s3.gsingh.io
+          region: us-east-1
+          bucket: langfuse
+          eventUpload:
+            prefix: "events/"
+          batchExport:
+            prefix: "exports/"
+          mediaUpload:
+            prefix: "media/"
+          accessKeyId:
+            secretKeyRef:
+              name: langfuse-secrets
+              key: s3-access-key
+          secretAccessKey:
+            secretKeyRef:
+              name: langfuse-secrets
+              key: s3-secret-key
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
