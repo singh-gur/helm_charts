@@ -7,7 +7,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: langfuse.github.io/langfuse-k8s
+    repoURL: https://langfuse.github.io/langfuse-k8s
     chart: langfuse
     targetRevision: 1.2.5
     helm:
