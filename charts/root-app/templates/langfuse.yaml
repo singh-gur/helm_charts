@@ -58,9 +58,8 @@ spec:
 
         s3:
           deploy: false
-          endpoint: https://s3.gsingh.io
           region: us-east-1
-          bucket: langfuse
+          bucket: gsingh19-langfuse
           eventUpload:
             prefix: "events/"
           batchExport:
