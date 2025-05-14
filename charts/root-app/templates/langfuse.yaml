@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: https://langfuse.github.io/langfuse-k8s
     chart: langfuse
-    targetRevision: 1.2.5
+    targetRevision: 1.2.8
     helm:
       values: |
         # Optional, but highly recommended. Generate via `openssl rand -hex 32`.
