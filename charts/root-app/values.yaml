@@ -1,0 +1,8 @@
+
+lgtm:
+  version: 2.1.0
+  grafana:
+    enabled: true
+    ingress:
+      enabled: true
+      host: grafana.gsingh.io

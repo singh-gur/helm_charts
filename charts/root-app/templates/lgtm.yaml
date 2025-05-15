@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lgtm
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: lgtm-distributed
+    targetRevision: {{.Values.lgtm.version}}
+    helm:
+      values: |
+        grafana:
+          enabled: {{.Values.lgtm.grafana.enabled}}
+          ingress:
+            enabled: {{.Values.lgtm.grafana.ingress.enabled}}
+            hosts:
+              - {{.Values.lgtm.grafana.ingress.host}}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      selfHeal: true
