@@ -6,3 +6,5 @@ lgtm:
     ingress:
       enabled: true
       host: grafana.gsingh.io
+alloy:
+  version: 1.0.3
