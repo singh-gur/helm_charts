@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: https://dirsigler.github.io/uptime-kuma-helm
     chart: uptime-kuma
-    targetRevision: 2.21.2
+    targetRevision: 2.21.3
     helm:
       values: |
         ingress:
