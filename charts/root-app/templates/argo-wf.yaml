@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: https://argoproj.github.io/argo-helm
     chart: argo-workflows
-    targetRevision: {{.Values.argo-wf.version}}
+    targetRevision: {{.Values.argowf.version}}
     helm:
       values: |
         workflow:

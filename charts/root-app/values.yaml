@@ -8,7 +8,7 @@ lgtm:
       host: grafana.gsingh.io
 alloy:
   version: 1.0.3
-argo-wf:
+argowf:
   version: 0.45.6
 coder:
   version: 2.23.1
@@ -16,7 +16,7 @@ ghost:
   version: 23.0.19
 langfuse:
   version: 1.2.18
-proton-bridge:
+protonbridge:
   version: 5.4.2
 rancher:
   version: 2.11.2
