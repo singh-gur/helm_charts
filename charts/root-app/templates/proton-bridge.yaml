@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: https://k8s-at-home.com/charts
     chart: protonmail-bridge
-    targetRevision: 5.4.2
+    targetRevision: {{.Values.proton-bridge.version}}
     helm:
       values: |
         env:

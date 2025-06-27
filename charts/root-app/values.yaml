@@ -8,3 +8,19 @@ lgtm:
       host: grafana.gsingh.io
 alloy:
   version: 1.0.3
+argo-wf:
+  version: 0.45.6
+coder:
+  version: 2.23.1
+ghost:
+  version: 23.0.19
+langfuse:
+  version: 1.2.18
+proton-bridge:
+  version: 5.4.2
+rancher:
+  version: 2.11.2
+uptime:
+  version: 2.21.3
+zitadel:
+  version: 7.15.0
