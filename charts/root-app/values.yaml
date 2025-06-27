@@ -10,17 +10,37 @@ alloy:
   version: 1.0.3
 argowf:
   version: 0.45.6
+  ingress:
+    host: argowf.gsingh.io
+  sso:
+    issuer: https://auth.gsingh.io
+    redirectUrl: https://argowf.gsingh.io/oauth2/callback
 coder:
   version: 2.23.1
+  ingress:
+    host: ide.gsingh.io
+  accessUrl: https://ide.gsingh.io
 ghost:
   version: 23.0.19
+  ghostHost: ghost.gsingh.io
+  ingress:
+    hostname: blog.gsingh.io
+  ghostEmail: hello@gsingh.io
 langfuse:
   version: 1.2.18
+  ingress:
+    host: langfuse.gsingh.io
 protonbridge:
   version: 5.4.2
 rancher:
   version: 2.11.2
+  hostname: rancher.gsingh.io
 uptime:
   version: 2.21.3
+  ingress:
+    host: uptime.gsingh.io
 zitadel:
   version: 7.15.0
+  externalDomain: auth.gsingh.io
+  ingress:
+    host: auth.gsingh.io

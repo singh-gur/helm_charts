@@ -12,7 +12,7 @@ spec:
     targetRevision: {{.Values.rancher.version}}
     helm:
       values: |
-        hostname: rancher.gsingh.io
+        hostname: {{.Values.rancher.hostname}}
         ingress:
           tls:
             source: secret

@@ -17,7 +17,7 @@ spec:
             type: ClusterIP
           env:
             - name: CODER_ACCESS_URL
-              value: "https://ide.gsingh.io"
+              value: "{{.Values.coder.accessUrl}}"
             - name: CODER_PG_CONNECTION_URL
               valueFrom:
                 secretKeyRef:
@@ -45,7 +45,7 @@ spec:
                   key: oidc-client-secret
           ingress:
             enable: true
-            host: ide.gsingh.io
+            host: {{.Values.coder.ingress.host}}
             tls:
               enable: true
   destination:

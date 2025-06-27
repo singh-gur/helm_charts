@@ -12,13 +12,13 @@ spec:
     targetRevision: {{.Values.ghost.version}} 
     helm:
       values: |
-        ghostHost: ghost.gsingh.io
+        ghostHost: {{.Values.ghost.ghostHost}}
         ingress:
           enabled: true
-          hostname: blog.gsingh.io
+          hostname: {{.Values.ghost.ingress.hostname}}
         ghostUsername: gurbakhshish
         existingSecret: ghost-secrets
-        ghostEmail: hello@gsingh.io
+        ghostEmail: {{.Values.ghost.ghostEmail}}
         ghostBlogTitle: Gurbakhshish's Blog
         mysql:
           enabled: false

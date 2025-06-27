@@ -30,7 +30,7 @@ spec:
           ingress:
             enabled: true
             hosts:
-            - host: langfuse.gsingh.io
+            - host: {{.Values.langfuse.ingress.host}}
               paths:
               - path: /
                 pathType: Prefix

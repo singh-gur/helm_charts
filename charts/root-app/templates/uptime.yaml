@@ -15,7 +15,7 @@ spec:
         ingress:
           enabled: true
           hosts:
-            - host: uptime.gsingh.io
+            - host: {{.Values.uptime.ingress.host}}
               paths:
                 - path: /
                   pathType: Prefix

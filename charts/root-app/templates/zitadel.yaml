@@ -17,7 +17,7 @@ spec:
           configmapConfig:
             ExternalPort: 443
             ExternalSecure: true
-            ExternalDomain: auth.gsingh.io
+            ExternalDomain: {{.Values.zitadel.externalDomain}}
             TLS:
               Enabled: false
             Database:
@@ -36,7 +36,7 @@ spec:
         ingress:
           enabled: true
           hosts:
-            - host: auth.gsingh.io
+            - host: {{.Values.zitadel.ingress.host}}
               paths:
                 - path: /
                   pathType: Prefix

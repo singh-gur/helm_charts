@@ -27,17 +27,17 @@ spec:
           ingress:
             enabled: true
             hosts:
-              - argowf.gsingh.io
+              - {{.Values.argowf.ingress.host}}
           sso:
             enabled: true
-            issuer: https://auth.gsingh.io
+            issuer: {{.Values.argowf.sso.issuer}}
             clientId:
               name: argowf-secrets
               key: client-id
             clientSecret:
               name: argowf-secrets
               key: client-secret
-            redirectUrl: https://argowf.gsingh.io/oauth2/callback
+            redirectUrl: {{.Values.argowf.sso.redirectUrl}}
             rbac:
               ebabled: false
   destination:
