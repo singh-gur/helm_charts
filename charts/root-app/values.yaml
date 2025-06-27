@@ -1,5 +1,6 @@
 
 lgtm:
+  enabled: true
   version: 2.1.0
   grafana:
     enabled: true
@@ -7,39 +8,54 @@ lgtm:
       enabled: true
       host: grafana.gsingh.io
 alloy:
+  enabled: true
   version: 1.0.3
 argowf:
+  enabled: true
   version: 0.45.6
   ingress:
     host: argowf.gsingh.io
   sso:
     issuer: https://auth.gsingh.io
     redirectUrl: https://argowf.gsingh.io/oauth2/callback
+argocd:
+  enabled: true
 coder:
+  enabled: true
   version: 2.23.1
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
 ghost:
+  enabled: true
   version: 23.0.19
   ghostHost: ghost.gsingh.io
   ingress:
     hostname: blog.gsingh.io
   ghostEmail: hello@gsingh.io
 langfuse:
+  enabled: true
   version: 1.2.18
   ingress:
     host: langfuse.gsingh.io
 protonbridge:
+  enabled: true
   version: 5.4.2
 rancher:
+  enabled: true
   version: 2.11.2
   hostname: rancher.gsingh.io
+rootapp:
+  enabled: true
 uptime:
+  enabled: true
   version: 2.21.3
   ingress:
     host: uptime.gsingh.io
+whoami:
+  enabled: true
 zitadel:
+  enabled: true
   version: 7.15.0
   externalDomain: auth.gsingh.io
   ingress:
