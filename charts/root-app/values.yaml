@@ -53,7 +53,7 @@ uptime:
   ingress:
     host: uptime.gsingh.io
 whoami:
-  enabled: true
+  enabled: false
 zitadel:
   enabled: true
   version: 7.15.0
