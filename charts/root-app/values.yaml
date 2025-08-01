@@ -22,13 +22,13 @@ argocd:
   enabled: true
 coder:
   enabled: true
-  version: 2.24.1
+  version: 2.24.2
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
 ghost:
   enabled: true
-  version: 23.0.19
+  version: 24.0.1
   ghostHost: ghost.gsingh.io
   ingress:
     hostname: blog.gsingh.io
