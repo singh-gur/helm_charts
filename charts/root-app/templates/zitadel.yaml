@@ -1,3 +1,4 @@
+{{- if .Values.zitadel.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -9,7 +10,7 @@ spec:
   source:
     repoURL: https://charts.zitadel.com
     chart: zitadel
-    targetRevision: 7.15.0
+    targetRevision: {{.Values.zitadel.version}}
     helm:
       values: |
         zitadel:
@@ -17,7 +18,7 @@ spec:
           configmapConfig:
             ExternalPort: 443
             ExternalSecure: true
-            ExternalDomain: auth.gsingh.io
+            ExternalDomain: {{.Values.zitadel.externalDomain}}
             TLS:
               Enabled: false
             Database:
@@ -36,7 +37,7 @@ spec:
         ingress:
           enabled: true
           hosts:
-            - host: auth.gsingh.io
+            - host: {{.Values.zitadel.ingress.host}}
               paths:
                 - path: /
                   pathType: Prefix
@@ -46,3 +47,4 @@ spec:
   syncPolicy:
     automated:
       selfHeal: true
+{{- end }}

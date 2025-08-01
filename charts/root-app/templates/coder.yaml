@@ -1,3 +1,4 @@
+{{- if .Values.coder.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -9,7 +10,7 @@ spec:
   source:
     repoURL: https://helm.coder.com/v2
     chart: coder
-    targetRevision: 2.23.1
+    targetRevision: {{.Values.coder.version}}
     helm:
       values: |
         coder:
@@ -17,7 +18,7 @@ spec:
             type: ClusterIP
           env:
             - name: CODER_ACCESS_URL
-              value: "https://ide.gsingh.io"
+              value: "{{.Values.coder.accessUrl}}"
             - name: CODER_PG_CONNECTION_URL
               valueFrom:
                 secretKeyRef:
@@ -45,7 +46,7 @@ spec:
                   key: oidc-client-secret
           ingress:
             enable: true
-            host: ide.gsingh.io
+            host: {{.Values.coder.ingress.host}}
             tls:
               enable: true
   destination:
@@ -54,3 +55,4 @@ spec:
   syncPolicy:
     automated:
       selfHeal: true
+{{- end }}

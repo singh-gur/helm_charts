@@ -1,3 +1,4 @@
+{{- if .Values.uptime.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -9,13 +10,13 @@ spec:
   source:
     repoURL: https://dirsigler.github.io/uptime-kuma-helm
     chart: uptime-kuma
-    targetRevision: 2.21.3
+    targetRevision: {{.Values.uptime.version}}
     helm:
       values: |
         ingress:
           enabled: true
           hosts:
-            - host: uptime.gsingh.io
+            - host: {{.Values.uptime.ingress.host}}
               paths:
                 - path: /
                   pathType: Prefix
@@ -26,3 +27,4 @@ spec:
     automated:
       prune: true
       selfHeal: true
+{{- end }}

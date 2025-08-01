@@ -1,3 +1,4 @@
+{{- if .Values.ghost.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -9,16 +10,16 @@ spec:
   source:
     repoURL: registry-1.docker.io/bitnamicharts
     chart: ghost
-    targetRevision: 23.0.19 
+    targetRevision: {{.Values.ghost.version}} 
     helm:
       values: |
-        ghostHost: ghost.gsingh.io
+        ghostHost: {{.Values.ghost.ghostHost}}
         ingress:
           enabled: true
-          hostname: blog.gsingh.io
+          hostname: {{.Values.ghost.ingress.hostname}}
         ghostUsername: gurbakhshish
         existingSecret: ghost-secrets
-        ghostEmail: hello@gsingh.io
+        ghostEmail: {{.Values.ghost.ghostEmail}}
         ghostBlogTitle: Gurbakhshish's Blog
         mysql:
           enabled: false
@@ -34,3 +35,4 @@ spec:
     automated:
       prune: true
       selfHeal: true
+{{- end }}

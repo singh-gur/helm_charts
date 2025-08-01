@@ -1,3 +1,4 @@
+{{- if .Values.protonbridge.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -9,7 +10,7 @@ spec:
   source:
     repoURL: https://k8s-at-home.com/charts
     chart: protonmail-bridge
-    targetRevision: 5.4.2
+    targetRevision: {{.Values.protonbridge.version}}
     helm:
       values: |
         env:
@@ -35,3 +36,4 @@ spec:
     automated:
       prune: true
       selfHeal: true
+{{- end }}
