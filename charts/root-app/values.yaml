@@ -60,12 +60,10 @@ openproject:
   ingress:
     host: projects.gsingh.io
   postgresql:
+    bundled: false
     host: 192.168.20.96
     database: openproject
     username: openprojectuser
-  redis:
-    enabled: true  # Set to false to use external Redis
-    # host: redis.host  # Only used when enabled: false
   oidc:
     enabled: false  # Set to true to enable OIDC authentication
     provider: "Zitadel"
