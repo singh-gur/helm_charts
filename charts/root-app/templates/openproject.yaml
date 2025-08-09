@@ -1,0 +1,62 @@
+{{- if .Values.openproject.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openproject
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://charts.openproject.org
+    chart: openproject
+    targetRevision: {{.Values.openproject.version}}
+    helm:
+      values: |
+        ingress:
+          enabled: true
+          hosts:
+            - host: {{.Values.openproject.ingress.host}}
+              paths:
+                - path: /
+                  pathType: Prefix
+
+        postgresql:
+          deploy: false
+          host: {{.Values.openproject.postgresql.host}}
+          auth:
+            username: {{.Values.openproject.postgresql.username}}
+            database: {{.Values.openproject.postgresql.database}}
+            existingSecret: openproject-secrets
+            secretKeys:
+              adminPasswordKey: postgres-password
+
+        redis:
+          enabled: {{.Values.openproject.redis.enabled}}
+          {{- if not .Values.openproject.redis.enabled }}
+          host: {{.Values.openproject.redis.host}}
+          auth:
+            existingSecret: openproject-secrets
+            existingSecretPasswordKey: redis-password
+          {{- end }}
+
+        oidc:
+          enabled: {{.Values.openproject.oidc.enabled}}
+          {{- if .Values.openproject.oidc.enabled }}
+          provider: {{.Values.openproject.oidc.provider}}
+          displayName: {{.Values.openproject.oidc.displayName}}
+          host: {{.Values.openproject.oidc.host}}
+          scope: {{.Values.openproject.oidc.scope}}
+          existingSecret: openproject-secrets
+          secretKeys:
+            identifier: oidc-client-id
+            secret: oidc-client-secret
+          {{- end }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+{{- end }}

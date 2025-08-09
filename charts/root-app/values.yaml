@@ -54,6 +54,24 @@ uptime:
     host: uptime.gsingh.io
 whoami:
   enabled: false
+openproject:
+  enabled: false
+  version: 10.3.0
+  ingress:
+    host: projects.gsingh.io
+  postgresql:
+    host: 192.168.20.96
+    database: openproject
+    username: openprojectuser
+  redis:
+    enabled: true  # Set to false to use external Redis
+    # host: redis.host  # Only used when enabled: false
+  oidc:
+    enabled: false  # Set to true to enable OIDC authentication
+    provider: "Zitadel"
+    displayName: "Zitadel SSO"
+    host: "auth.gsingh.io"
+    scope: "[openid profile email]"
 zitadel:
   enabled: true
   version: 7.15.0
