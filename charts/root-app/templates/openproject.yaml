@@ -20,7 +20,6 @@ spec:
               paths:
                 - path: /
                   pathType: Prefix
-
         postgresql:
           bundled: {{.Values.openproject.postgresql.bundled}}
           connection:
