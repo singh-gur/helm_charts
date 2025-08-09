@@ -14,12 +14,8 @@ spec:
     helm:
       values: |
         ingress:
-          enabled: true
-          hosts:
-            - host: {{.Values.openproject.ingress.host}}
-              paths:
-                - path: /
-                  pathType: Prefix
+          enabled: {{.Values.openproject.ingress.enabled}}
+          host: {{.Values.openproject.ingress.host}}
         postgresql:
           bundled: {{.Values.openproject.postgresql.bundled}}
           connection:
