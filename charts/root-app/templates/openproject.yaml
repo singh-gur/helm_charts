@@ -27,6 +27,9 @@ spec:
             port: {{.Values.openproject.postgresql.port | default 5432}}
           auth:
             existingSecret: openproject-db-secrets
+            secretKeys:
+              adminPasswordKey: "postgres-password"
+              userPasswordKey: "password"
             username: {{.Values.openproject.postgresql.username}}
             database: {{.Values.openproject.postgresql.database}}
         openproject:
