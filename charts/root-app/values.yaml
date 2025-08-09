@@ -58,6 +58,7 @@ openproject:
   enabled: true
   version: 10.3.0
   ingress:
+    enabled: true
     host: projects.gsingh.io
   postgresql:
     bundled: false
