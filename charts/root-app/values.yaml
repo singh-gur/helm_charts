@@ -22,7 +22,7 @@ argocd:
   enabled: true
 coder:
   enabled: true
-  version: 2.24.2
+  version: 2.24.3
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
@@ -55,7 +55,7 @@ uptime:
 whoami:
   enabled: false
 openproject:
-  enabled: false
+  enabled: true
   version: 10.3.0
   ingress:
     host: projects.gsingh.io
