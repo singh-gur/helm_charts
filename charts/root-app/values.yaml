@@ -55,12 +55,12 @@ uptime:
 whoami:
   enabled: false
 openproject:
-  enabled: false
+  enabled: true
   s3:
     enabled: true
     existingSecret: openproject-s3-secrets
-    bucketName: openproject-bucket
-    endpoint: s3.gsingh.io
+    bucketName: openproject
+    endpoint: https://s3.gsingh.io
   appInit:
     resources:
       limits:
