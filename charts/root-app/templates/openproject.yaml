@@ -16,6 +16,8 @@ spec:
         ingress:
           enabled: {{.Values.openproject.ingress.enabled}}
           host: {{.Values.openproject.ingress.host}}
+        persistence:
+          enabled: false
         postgresql:
           bundled: {{.Values.openproject.postgresql.bundled}}
           {{- if not .Values.openproject.postgresql.bundled }}
