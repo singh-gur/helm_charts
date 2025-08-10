@@ -20,7 +20,8 @@ spec:
           enabled: false
         s3:
           enabled: {{.Values.openproject.s3.enabled}}
-          existingSecret: openproject-s3-secrets
+          auth:
+            existingSecret: {{.Values.openproject.s3.existingSecret}}
           bucketName: {{.Values.openproject.s3.bucketName}}
           endpoint: {{.Values.openproject.s3.endpoint}}
         postgresql:
