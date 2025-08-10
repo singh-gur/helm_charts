@@ -28,7 +28,14 @@ spec:
               userPasswordKey: "password"
             username: {{.Values.openproject.postgresql.username}}
             database: {{.Values.openproject.postgresql.database}}
+        appInit:
+          resources:
+            limits:
+              memory: {{.Values.openproject.appInit.resources.limits.memory | default "512Mi"}}
+            requests:
+              memory: {{.Values.openproject.appInit.resources.requests.memory | default "512Mi"}}
         openproject:
+          https: false
           oidc:
             enabled: {{.Values.openproject.oidc.enabled}}
             {{- if .Values.openproject.oidc.enabled }}
