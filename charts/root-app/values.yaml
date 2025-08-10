@@ -55,13 +55,13 @@ uptime:
 whoami:
   enabled: false
 openproject:
-appInit:
-  resources:
-    limits:
-      memory: "1Gi"
-    requests:
-      memory: "1Gi"
   enabled: true
+  appInit:
+    resources:
+      limits:
+        memory: "1Gi"
+      requests:
+        memory: "1Gi"
   version: 10.3.0
   ingress:
     enabled: true
