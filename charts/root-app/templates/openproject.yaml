@@ -18,6 +18,11 @@ spec:
           host: {{.Values.openproject.ingress.host}}
         persistence:
           enabled: false
+        s3:
+          enabled: {{.Values.openproject.s3.enabled}}
+          existingSecret: openproject-s3-secrets
+          bucketName: {{.Values.openproject.s3.bucketName}}
+          endpoint: {{.Values.openproject.s3.endpoint}}
         postgresql:
           bundled: {{.Values.openproject.postgresql.bundled}}
           {{- if not .Values.openproject.postgresql.bundled }}
