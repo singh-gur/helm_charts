@@ -18,6 +18,7 @@ spec:
           host: {{.Values.openproject.ingress.host}}
         postgresql:
           bundled: {{.Values.openproject.postgresql.bundled}}
+          {{- if not .Values.openproject.postgresql.bundled }}
           connection:
             host: {{.Values.openproject.postgresql.host}}
             port: {{.Values.openproject.postgresql.port | default 5432}}
@@ -28,6 +29,7 @@ spec:
               userPasswordKey: "password"
             username: {{.Values.openproject.postgresql.username}}
             database: {{.Values.openproject.postgresql.database}}
+          {{- end }}
         appInit:
           resources:
             limits:

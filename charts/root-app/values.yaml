@@ -67,7 +67,7 @@ appInit:
     enabled: true
     host: projects.gsingh.io
   postgresql:
-    bundled: false
+    bundled: true
     host: 192.168.20.96
     database: openproject
     username: openprojectuser
