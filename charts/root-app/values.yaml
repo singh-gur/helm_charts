@@ -55,7 +55,7 @@ uptime:
 whoami:
   enabled: false
 openproject:
-  enabled: true
+  enabled: false
   s3:
     enabled: true
     existingSecret: openproject-s3-secrets
