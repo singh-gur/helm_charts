@@ -48,7 +48,7 @@ spec:
             requests:
               memory: {{.Values.openproject.appInit.resources.requests.memory | default "512Mi"}}
         openproject:
-          https: false
+          https: true
           admin_user:
             password_reset: {{.Values.openproject.admin_user.password_reset}}
             name: {{.Values.openproject.admin_user.name}}
