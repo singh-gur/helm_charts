@@ -55,7 +55,7 @@ uptime:
 whoami:
   enabled: false
 openproject:
-  enabled: true
+  enabled: false
   admin_user:
     password_reset: false
     name: "gurbakhshish"
