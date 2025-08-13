@@ -16,14 +16,7 @@ test-render template_name:
 
 # Expand ArgoCD Application to full Kubernetes manifests
 expand-app app_name:
-    @echo "Expanding {{app_name}} to full Kubernetes manifests..."
-    @mkdir -p .test
-    # First render the ArgoCD Application CRD
-    helm template root-app charts/root-app --values charts/root-app/values.yaml --show-only templates/{{app_name}}.yaml > .test/{{app_name}}-app.yaml
-    # Then expand to actual Kubernetes resources using ArgoCD CLI
-    @echo "Expanding Application to full manifests..."
-    argocd app manifests {{app_name}} --local .test/{{app_name}}-app.yaml > .test/{{app_name}}-full-manifests.yaml
-    @echo "Full manifests saved to .test/{{app_name}}-full-manifests.yaml"
+    ./expand-app.sh {{app_name}}
 
 push message:
     @echo "Push changes to the repository"
