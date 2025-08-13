@@ -35,6 +35,16 @@ helm template argo-cd charts/argo-cd/ --values charts/argo-cd/values.yaml
 
 # Dry-run installation
 helm install --dry-run root-app charts/root-app/
+
+# Test individual template rendering (using justfile)
+just test-render <template_name>  # Renders specific template to .test/ directory
+```
+
+### Development Workflow
+```bash
+# Use justfile for common development tasks
+just test-render langfuse  # Test rendering a specific application template
+just test-render openproject  # Test complex application configurations
 ```
 
 ### Application Management
@@ -42,7 +52,13 @@ helm install --dry-run root-app charts/root-app/
 Applications are controlled via the `values.yaml` file in the root-app chart. Each application has:
 - `enabled`: Boolean to enable/disable the app
 - `version`: Helm chart version (for external charts)
-- `ingress.host`: Subdomain configuration
+- `ingress.host`: Subdomain configuration (e.g., `grafana.gsingh.io`, `ide.gsingh.io`)
+
+Key configuration patterns in `values.yaml`:
+- SSO integration with Zitadel for applications like Argo Workflows
+- External database connections (e.g., OpenProject uses external PostgreSQL at 192.168.20.96)
+- S3 storage configuration for applications like OpenProject
+- Resource limits and requests for memory-intensive applications
 
 ### Git Operations
 ```bash
@@ -65,6 +81,9 @@ The repository manages two types of applications:
 - Applications are deployed to the `default` namespace
 - The root-app references this Git repository (`https://github.com/singh-gur/helm_charts.git`)
 - Ingress configurations use individual subdomains (e.g., `grafana.gsingh.io`, `ide.gsingh.io`)
+- Template conditionals use `.Values.<app>.enabled` to control application deployment
+- External charts reference specific versions while custom charts use local paths
+- Complex applications may have multiple configuration sections (SSO, database, storage)
 
 ## Backup Directory
 

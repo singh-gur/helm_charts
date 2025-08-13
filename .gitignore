@@ -2,3 +2,4 @@ charts/**/charts
 .vscode
 */**/.ignore
 .ignore
+.test
