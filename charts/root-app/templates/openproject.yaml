@@ -23,7 +23,10 @@ spec:
           auth:
             existingSecret: {{.Values.openproject.s3.existingSecret}}
           bucketName: {{.Values.openproject.s3.bucketName}}
+          region: {{.Values.openproject.s3.region | default "us-east-1"}}
+          {{- if .Values.openproject.s3.endpoint }}
           endpoint: {{.Values.openproject.s3.endpoint}}
+          {{- end }}
         postgresql:
           bundled: {{.Values.openproject.postgresql.bundled}}
           {{- if not .Values.openproject.postgresql.bundled }}

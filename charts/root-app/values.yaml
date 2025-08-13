@@ -64,8 +64,8 @@ openproject:
   s3:
     enabled: true
     existingSecret: openproject-s3-secrets
-    bucketName: openproject
-    endpoint: https://s3.gsingh.io
+    bucketName: gsingh19-openproject
+    # endpoint: https://s3.gsingh.io
   appInit:
     resources:
       limits:
