@@ -56,6 +56,11 @@ whoami:
   enabled: false
 openproject:
   enabled: true
+  admin_user:
+    password_reset: false
+    name: "gurbakhshish"
+    mail: "hello@gsingh.io"
+    secret: openproject-admin-secrets
   s3:
     enabled: true
     existingSecret: openproject-s3-secrets
