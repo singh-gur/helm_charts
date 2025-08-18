@@ -93,3 +93,39 @@ zitadel:
   externalDomain: auth.gsingh.io
   ingress:
     host: auth.gsingh.io
+plane:
+  enabled: false
+  version: 1.2.1
+  planeVersion: stable
+  ingress:
+    enabled: true
+    host: plane.gsingh.io
+  redis:
+    local_setup: true
+    remote_url: ""  # Set when local_setup: false, e.g., "redis://redis.example.com:6379"
+  postgres:
+    local_setup: true
+    remote_url: ""  # Set when local_setup: false, e.g., "postgresql://user:pass@postgres.example.com:5432/plane"
+  minio:
+    local_setup: true
+    # External S3 configuration (when local_setup: false)
+    aws_access_key: ""
+    aws_secret_access_key: ""
+    aws_region: ""
+    aws_s3_endpoint_url: ""  # e.g., "https://s3.amazonaws.com" or "https://minio.example.com"
+  web:
+    replicas: 1
+  api:
+    replicas: 1
+  worker:
+    replicas: 1
+  external_secrets:
+    pgdb_existingSecret: ""
+    doc_store_existingSecret: ""
+  env:
+    pgdb_username: plane
+    pgdb_password: plane
+    pgdb_name: plane
+    docstore_bucket: uploads
+    secret_key: secretkey
+    cors_allowed_origins: ""
