@@ -1,0 +1,80 @@
+{{- if .Values.openproject.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openproject
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://charts.openproject.org
+    chart: openproject
+    targetRevision: {{.Values.openproject.version}}
+    helm:
+      values: |
+        ingress:
+          enabled: {{.Values.openproject.ingress.enabled}}
+          host: {{.Values.openproject.ingress.host}}
+        persistence:
+          enabled: false
+        s3:
+          enabled: {{.Values.openproject.s3.enabled}}
+          auth:
+            existingSecret: {{.Values.openproject.s3.existingSecret}}
+          bucketName: {{.Values.openproject.s3.bucketName}}
+          region: {{.Values.openproject.s3.region | default "us-east-1"}}
+          {{- if .Values.openproject.s3.endpoint }}
+          endpoint: {{.Values.openproject.s3.endpoint}}
+          {{- end }}
+        postgresql:
+          bundled: {{.Values.openproject.postgresql.bundled}}
+          {{- if not .Values.openproject.postgresql.bundled }}
+          connection:
+            host: {{.Values.openproject.postgresql.host}}
+            port: {{.Values.openproject.postgresql.port | default 5432}}
+          auth:
+            existingSecret: openproject-db-secrets
+            secretKeys:
+              adminPasswordKey: "postgres-password"
+              userPasswordKey: "password"
+            username: {{.Values.openproject.postgresql.username}}
+            database: {{.Values.openproject.postgresql.database}}
+          {{- end }}
+        appInit:
+          resources:
+            limits:
+              memory: {{.Values.openproject.appInit.resources.limits.memory | default "512Mi"}}
+            requests:
+              memory: {{.Values.openproject.appInit.resources.requests.memory | default "512Mi"}}
+        openproject:
+          https: true
+          admin_user:
+            password_reset: {{.Values.openproject.admin_user.password_reset}}
+            name: {{.Values.openproject.admin_user.name}}
+            mail: {{.Values.openproject.admin_user.mail}}
+            secret: {{.Values.openproject.admin_user.secret}}
+          oidc:
+            enabled: {{.Values.openproject.oidc.enabled}}
+            {{- if .Values.openproject.oidc.enabled }}
+            provider: {{.Values.openproject.oidc.provider}}
+            displayName: {{.Values.openproject.oidc.displayName}}
+            host: {{.Values.openproject.oidc.host}}
+            scope: {{.Values.openproject.oidc.scope}}
+            authorizationEndpoint: {{.Values.openproject.oidc.authorizationEndpoint}}
+            tokenEndpoint: {{.Values.openproject.oidc.tokenEndpoint}}
+            userinfoEndpoint: {{.Values.openproject.oidc.userinfoEndpoint}}
+            endSessionEndpoint: {{.Values.openproject.oidc.endSessionEndpoint}}
+            existingSecret: openproject-secrets
+            secretKeys:
+              identifier: oidc-client-id
+              secret: oidc-client-secret
+            {{- end }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+{{- end }}

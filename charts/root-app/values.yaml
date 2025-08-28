@@ -21,13 +21,13 @@ argocd:
   enabled: true
 coder:
   enabled: true
-  version: 2.23.1
+  version: 2.24.3
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
 ghost:
   enabled: true
-  version: 23.0.19
+  version: 24.0.1
   ghostHost: ghost.gsingh.io
   ingress:
     hostname: blog.gsingh.io
@@ -53,6 +53,39 @@ uptime:
     host: uptime.gsingh.io
 whoami:
   enabled: false
+openproject:
+  enabled: true
+  admin_user:
+    password_reset: false
+    name: "gurbakhshish"
+    mail: "hello@gsingh.io"
+    secret: openproject-admin-secrets
+  s3:
+    enabled: true
+    existingSecret: openproject-s3-secrets
+    bucketName: gsingh19-openproject
+    # endpoint: https://s3.gsingh.io
+  appInit:
+    resources:
+      limits:
+        memory: "1Gi"
+      requests:
+        memory: "1Gi"
+  version: 10.3.0
+  ingress:
+    enabled: true
+    host: projects.gsingh.io
+  postgresql:
+    bundled: false
+    host: 192.168.20.96
+    database: openproject
+    username: openprojectuser
+  oidc:
+    enabled: false # Set to true to enable OIDC authentication
+    provider: "Zitadel"
+    displayName: "Zitadel SSO"
+    host: "auth.gsingh.io"
+    scope: "[openid profile email]"
 zitadel:
   enabled: true
   version: 7.15.0
