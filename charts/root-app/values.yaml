@@ -92,3 +92,5 @@ zitadel:
   externalDomain: auth.gsingh.io
   ingress:
     host: auth.gsingh.io
+plane:
+  enabled: false
