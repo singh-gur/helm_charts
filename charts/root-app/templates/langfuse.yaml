@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: lf_v2
+  name: langfuse
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
