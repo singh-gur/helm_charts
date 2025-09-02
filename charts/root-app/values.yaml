@@ -33,8 +33,8 @@ ghost:
     hostname: blog.gsingh.io
   ghostEmail: hello@gsingh.io
 langfuse:
-  enabled: false
-  version: 1.5.0
+  enabled: true
+  version: 1.5.1
   ingress:
     host: langfuse.gsingh.io
 protonbridge:
