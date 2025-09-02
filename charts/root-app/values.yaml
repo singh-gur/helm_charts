@@ -37,6 +37,11 @@ langfuse:
   version: 1.5.1
   ingress:
     host: langfuse.gsingh.io
+  clickhouse:
+    enabled: true
+    deploy: true
+    migration:
+      autoMigrate: false
 protonbridge:
   enabled: true
   version: 5.4.2

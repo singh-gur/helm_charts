@@ -36,7 +36,11 @@ spec:
               - path: /
                 pathType: Prefix
             annotations: []
-
+        clickhouse:
+          clusterEnable: {{.Values.langfuse.clickhouse.enabled}}
+          deploy: {{.Values.langfuse.clickhouse.deploy}}
+          migration:
+            autoMigrate: {{.Values.langfuse.clickhouse.migration.autoMigrate}}
         postgresql:
           deploy: false
           host: 192.168.20.96
