@@ -99,3 +99,10 @@ zitadel:
     host: auth.gsingh.io
 plane:
   enabled: false
+windmill:
+  enabled: true
+  version: 2.1.0
+  ingress:
+    host: windmill.gsingh.io
+  postgresql:
+    enabled: true

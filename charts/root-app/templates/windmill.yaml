@@ -1,0 +1,42 @@
+{{- if .Values.windmill.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: windmill
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://windmill-labs.github.io/windmill-helm-charts/
+    chart: windmill
+    targetRevision: {{.Values.windmill.version}}
+    helm:
+      values: |
+        windmill:
+          baseUrl: "https://{{.Values.windmill.ingress.host}}"
+          databaseUrl:
+            valueFrom:
+              secretKeyRef:
+                name: windmill-secrets
+                key: database-url
+        ingress:
+          enabled: true
+          className: ""
+          annotations: {}
+          hosts:
+            - host: {{.Values.windmill.ingress.host}}
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls: []
+        postgresql:
+          enabled: {{.Values.windmill.postgresql.enabled}}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+{{- end }}
