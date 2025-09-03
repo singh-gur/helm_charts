@@ -101,7 +101,7 @@ plane:
   enabled: false
 windmill:
   enabled: true
-  version: 2.1.0
+  version: 2.0.481
   ingress:
     host: windmill.gsingh.io
   postgresql:
