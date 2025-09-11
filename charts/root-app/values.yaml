@@ -94,3 +94,35 @@ zitadel:
     host: auth.gsingh.io
 plane:
   enabled: false
+  version: 1.2.2
+  planeVersion: stable
+  ingress:
+    enabled: true
+    host: plane.gsingh.io
+  redis:
+    local_setup: true
+    remote_url: ""
+  postgres:
+    local_setup: true
+    remote_url: ""
+  minio:
+    local_setup: true
+    aws_access_key: ""
+    aws_secret_access_key: ""
+    aws_region: ""
+    aws_s3_endpoint_url: ""
+  env:
+    pgdb_username: plane
+    pgdb_name: plane
+    docstore_bucket: uploads
+    secret_key: ""
+    cors_allowed_origins: ""
+  web:
+    replicas: 1
+  api:
+    replicas: 1
+  worker:
+    replicas: 1
+  external_secrets:
+    pgdb_existingSecret: ""
+    doc_store_existingSecret: ""
