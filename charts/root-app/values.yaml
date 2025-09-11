@@ -133,8 +133,10 @@ plane:
     doc_store_existingSecret: ""
 windmill:
   enabled: false
-  version: 2.0.481
+  version: 2.0.485
   ingress:
     host: windmill.gsingh.io
+  databaseUrlSecretName: "windmill-db-secrets"
+  databaseUrlSecretKey: "url"
   postgresql:
-    enabled: true
+    enabled: false

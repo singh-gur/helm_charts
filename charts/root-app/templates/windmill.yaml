@@ -15,21 +15,15 @@ spec:
       values: |
         windmill:
           baseUrl: "https://{{.Values.windmill.ingress.host}}"
-          databaseUrl:
-            valueFrom:
-              secretKeyRef:
-                name: windmill-secrets
-                key: database-url
+          databaseUrlSecretName: {{.Values.windmill.databaseUrlSecretName | quote}}
+          databaseUrlSecretKey: {{.Values.windmill.databaseUrlSecretKey | quote}}
         ingress:
           enabled: true
-          className: ""
-          annotations: {}
           hosts:
             - host: {{.Values.windmill.ingress.host}}
               paths:
                 - path: /
                   pathType: Prefix
-          tls: []
         postgresql:
           enabled: {{.Values.windmill.postgresql.enabled}}
   destination:
