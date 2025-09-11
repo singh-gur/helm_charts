@@ -21,7 +21,7 @@ argocd:
   enabled: true
 coder:
   enabled: true
-  version: 2.24.3
+  version: 2.25.1
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
@@ -34,9 +34,14 @@ ghost:
   ghostEmail: hello@gsingh.io
 langfuse:
   enabled: true
-  version: 1.5.0
+  version: 1.5.1
   ingress:
     host: langfuse.gsingh.io
+  clickhouse:
+    enabled: true
+    deploy: true
+    migration:
+      autoMigrate: true
 protonbridge:
   enabled: true
   version: 5.4.2
@@ -126,3 +131,10 @@ plane:
   external_secrets:
     pgdb_existingSecret: ""
     doc_store_existingSecret: ""
+windmill:
+  enabled: false
+  version: 2.0.481
+  ingress:
+    host: windmill.gsingh.io
+  postgresql:
+    enabled: true
