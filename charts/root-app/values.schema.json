@@ -1,0 +1,704 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Root App Values",
+  "description": "Schema validation for root-app chart values",
+  "type": "object",
+  "properties": {
+    "lgtm": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "grafana": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "ingress": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "host": {
+                  "type": "string",
+                  "format": "hostname"
+                }
+              },
+              "required": ["enabled"]
+            }
+          },
+          "required": ["enabled"]
+        }
+      },
+      "required": ["enabled"]
+    },
+    "alloy": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        }
+      },
+      "required": ["enabled"]
+    },
+    "argowf": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "host": {
+              "type": "string",
+              "format": "hostname"
+            }
+          },
+          "required": ["host"]
+        },
+        "sso": {
+          "type": "object",
+          "properties": {
+            "issuer": {
+              "type": "string",
+              "format": "uri"
+            },
+            "redirectUrl": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "required": ["issuer", "redirectUrl"]
+        }
+      },
+      "required": ["enabled"]
+    },
+    "argocd": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": ["enabled"]
+    },
+    "coder": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "host": {
+              "type": "string",
+              "format": "hostname"
+            }
+          },
+          "required": ["host"]
+        },
+        "accessUrl": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "required": ["enabled"]
+    },
+    "ghost": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "ghostHost": {
+          "type": "string",
+          "format": "hostname"
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "hostname": {
+              "type": "string",
+              "format": "hostname"
+            }
+          },
+          "required": ["hostname"]
+        },
+        "ghostEmail": {
+          "type": "string",
+          "format": "email"
+        }
+      },
+      "required": ["enabled"]
+    },
+    "langfuse": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "host": {
+              "type": "string",
+              "format": "hostname"
+            }
+          },
+          "required": ["host"]
+        },
+        "clickhouse": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "deploy": {
+              "type": "boolean",
+              "default": false
+            },
+            "migration": {
+              "type": "object",
+              "properties": {
+                "autoMigrate": {
+                  "type": "boolean",
+                  "default": false
+                }
+              },
+              "required": ["autoMigrate"]
+            }
+          },
+          "required": ["enabled"]
+        }
+      },
+      "required": ["enabled"]
+    },
+    "protonbridge": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        }
+      },
+      "required": ["enabled"]
+    },
+    "rancher": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "hostname": {
+          "type": "string",
+          "format": "hostname"
+        }
+      },
+      "required": ["enabled"]
+    },
+    "rootapp": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": ["enabled"]
+    },
+    "uptime": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "host": {
+              "type": "string",
+              "format": "hostname"
+            }
+          },
+          "required": ["host"]
+        }
+      },
+      "required": ["enabled"]
+    },
+    "whoami": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": ["enabled"]
+    },
+    "openproject": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "admin_user": {
+          "type": "object",
+          "properties": {
+            "password_reset": {
+              "type": "boolean",
+              "default": false
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "mail": {
+              "type": "string",
+              "format": "email"
+            },
+            "secret": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["password_reset", "name", "mail", "secret"]
+        },
+        "s3": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "existingSecret": {
+              "type": "string",
+              "minLength": 1
+            },
+            "bucketName": {
+              "type": "string",
+              "minLength": 1
+            },
+            "endpoint": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "required": ["enabled", "existingSecret", "bucketName"]
+        },
+        "appInit": {
+          "type": "object",
+          "properties": {
+            "resources": {
+              "type": "object",
+              "properties": {
+                "limits": {
+                  "type": "object",
+                  "properties": {
+                    "memory": {
+                      "type": "string",
+                      "pattern": "^[0-9]+(\\.[0-9]+)?(Mi|Gi|Ti)$"
+                    }
+                  },
+                  "required": ["memory"]
+                },
+                "requests": {
+                  "type": "object",
+                  "properties": {
+                    "memory": {
+                      "type": "string",
+                      "pattern": "^[0-9]+(\\.[0-9]+)?(Mi|Gi|Ti)$"
+                    }
+                  },
+                  "required": ["memory"]
+                }
+              },
+              "required": ["limits", "requests"]
+            }
+          },
+          "required": ["resources"]
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "host": {
+              "type": "string",
+              "format": "hostname"
+            }
+          },
+          "required": ["enabled", "host"]
+        },
+        "postgresql": {
+          "type": "object",
+          "properties": {
+            "bundled": {
+              "type": "boolean",
+              "default": false
+            },
+            "host": {
+              "type": "string",
+              "format": "hostname"
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            "database": {
+              "type": "string",
+              "minLength": 1
+            },
+            "username": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["bundled"]
+        },
+        "oidc": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "provider": {
+              "type": "string",
+              "minLength": 1
+            },
+            "displayName": {
+              "type": "string",
+              "minLength": 1
+            },
+            "host": {
+              "type": "string",
+              "format": "hostname"
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "authorizationEndpoint": {
+              "type": "string",
+              "format": "uri"
+            },
+            "tokenEndpoint": {
+              "type": "string",
+              "format": "uri"
+            },
+            "userinfoEndpoint": {
+              "type": "string",
+              "format": "uri"
+            },
+            "endSessionEndpoint": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "required": ["enabled"]
+        }
+      },
+      "required": ["enabled"]
+    },
+    "zitadel": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "externalDomain": {
+          "type": "string",
+          "format": "hostname"
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "host": {
+              "type": "string",
+              "format": "hostname"
+            }
+          },
+          "required": ["host"]
+        }
+      },
+      "required": ["enabled"]
+    },
+    "plane": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "planeVersion": {
+          "type": "string",
+          "enum": ["stable", "beta", "alpha"]
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "host": {
+              "type": "string",
+              "format": "hostname"
+            }
+          },
+          "required": ["enabled", "host"]
+        },
+        "redis": {
+          "type": "object",
+          "properties": {
+            "local_setup": {
+              "type": "boolean",
+              "default": false
+            },
+            "remote_url": {
+              "type": "string",
+              "anyOf": [
+                {
+                  "format": "uri"
+                },
+                {
+                  "maxLength": 0
+                }
+              ]
+            }
+          },
+          "required": ["local_setup"]
+        },
+        "postgres": {
+          "type": "object",
+          "properties": {
+            "local_setup": {
+              "type": "boolean",
+              "default": false
+            },
+            "remote_url": {
+              "type": "string",
+              "anyOf": [
+                {
+                  "format": "uri"
+                },
+                {
+                  "maxLength": 0
+                }
+              ]
+            }
+          },
+          "required": ["local_setup"]
+        },
+        "minio": {
+          "type": "object",
+          "properties": {
+            "local_setup": {
+              "type": "boolean",
+              "default": false
+            },
+            "aws_access_key": {
+              "type": "string"
+            },
+            "aws_secret_access_key": {
+              "type": "string"
+            },
+            "aws_region": {
+              "type": "string"
+            },
+            "aws_s3_endpoint_url": {
+              "type": "string",
+              "anyOf": [
+                {
+                  "format": "uri"
+                },
+                {
+                  "maxLength": 0
+                }
+              ]
+            }
+          },
+          "required": ["local_setup"]
+        },
+        "env": {
+          "type": "object",
+          "properties": {
+            "pgdb_username": {
+              "type": "string",
+              "minLength": 1
+            },
+            "pgdb_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "docstore_bucket": {
+              "type": "string",
+              "minLength": 1
+            },
+            "secret_key": {
+              "type": "string"
+            },
+            "cors_allowed_origins": {
+              "type": "string"
+            }
+          },
+          "required": ["pgdb_username", "pgdb_name", "docstore_bucket"]
+        },
+        "web": {
+          "type": "object",
+          "properties": {
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": ["replicas"]
+        },
+        "api": {
+          "type": "object",
+          "properties": {
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": ["replicas"]
+        },
+        "worker": {
+          "type": "object",
+          "properties": {
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": ["replicas"]
+        },
+        "external_secrets": {
+          "type": "object",
+          "properties": {
+            "pgdb_existingSecret": {
+              "type": "string"
+            },
+            "doc_store_existingSecret": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "required": ["enabled"]
+    },
+    "windmill": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "host": {
+              "type": "string",
+              "format": "hostname"
+            }
+          },
+          "required": ["host"]
+        },
+        "databaseUrlSecretName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "databaseUrlSecretKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "postgresql": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          "required": ["enabled"]
+        }
+      },
+      "required": ["enabled"]
+    }
+  }
+}
