@@ -100,9 +100,8 @@ zitadel:
 plane:
   enabled: false
 windmill:
-  enabled: false
-  version: 2.0.481
-  ingress:
-    host: windmill.gsingh.io
+  enabled: true
+  version: 2.0.491
+  host: windmill.gsingh.io
   postgresql:
-    enabled: true
+    enabled: false

@@ -14,22 +14,12 @@ spec:
     helm:
       values: |
         windmill:
-          baseUrl: "https://{{.Values.windmill.ingress.host}}"
-          databaseUrl:
-            valueFrom:
-              secretKeyRef:
-                name: windmill-secrets
-                key: database-url
+          baseProtocol: https
+          baseDomain: {{.Values.windmill.host}}
+          databaseUrlSecretKey: windmill-secrets
+          databaseUrlSecretName: database-url
         ingress:
           enabled: true
-          className: ""
-          annotations: {}
-          hosts:
-            - host: {{.Values.windmill.ingress.host}}
-              paths:
-                - path: /
-                  pathType: Prefix
-          tls: []
         postgresql:
           enabled: {{.Values.windmill.postgresql.enabled}}
   destination:
