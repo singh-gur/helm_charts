@@ -64,19 +64,25 @@
               "type": "boolean",
               "default": false
             },
-            "ingress": {
+            "gateway": {
               "type": "object",
               "properties": {
-                "enabled": {
-                  "type": "boolean",
-                  "default": false
-                },
-                "host": {
-                  "type": "string",
-                  "format": "hostname"
+                "ingress": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "host": {
+                      "type": "string",
+                      "format": "hostname"
+                    }
+                  },
+                  "required": ["enabled"]
                 }
               },
-              "required": ["enabled"]
+              "required": ["ingress"]
             }
           },
           "required": ["enabled"]
@@ -710,6 +716,10 @@
         "version": {
           "type": "string",
           "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "host": {
+          "type": "string",
+          "format": "hostname"
         },
         "ingress": {
           "type": "object",

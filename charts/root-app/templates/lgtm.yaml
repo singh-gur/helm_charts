@@ -25,11 +25,11 @@ spec:
             passwordKey: {{.Values.lgtm.grafana.admin.passwordKey}}
         loki:
           enabled: {{.Values.lgtm.loki.enabled}}
-          ingress:
-            gateway:
-              enabled: {{.Values.lgtm.loki.ingress.enabled}}
+          gateway:
+            ingress:
+              enabled: {{.Values.lgtm.loki.gateway.ingress.enabled}}
               hosts:
-                - {{.Values.lgtm.loki.ingress.host}}
+                - {{.Values.lgtm.loki.gateway.ingress.host}}
   destination:
     server: https://kubernetes.default.svc
     namespace: default

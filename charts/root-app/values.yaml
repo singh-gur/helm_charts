@@ -12,9 +12,10 @@ lgtm:
       passwordKey: admin-password
   loki:
     enabled: true
-    ingress:
-      enabled: true
-      host: loki.gsingh.io
+    gateway:
+      ingress:
+        enabled: true
+        host: loki-gateway.gsingh.io
 alloy:
   enabled: true
   version: 1.0.3
