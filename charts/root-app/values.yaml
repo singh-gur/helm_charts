@@ -14,7 +14,7 @@ lgtm:
     enabled: true
     gateway:
       ingress:
-        enabled: true
+        enabled: false
         host: loki-gateway.gsingh.io
 alloy:
   enabled: true
