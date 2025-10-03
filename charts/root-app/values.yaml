@@ -6,6 +6,11 @@ lgtm:
     ingress:
       enabled: true
       host: grafana.gsingh.io
+  loki:
+    enabled: true
+    ingress:
+      enabled: true
+      host: loki.gsingh.io
 alloy:
   enabled: true
   version: 1.0.3

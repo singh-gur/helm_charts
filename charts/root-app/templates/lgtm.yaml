@@ -19,6 +19,13 @@ spec:
             enabled: {{.Values.lgtm.grafana.ingress.enabled}}
             hosts:
               - {{.Values.lgtm.grafana.ingress.host}}
+        loki:
+          enabled: {{.Values.lgtm.loki.enabled}}
+          ingress:
+            gateway:
+              enabled: {{.Values.lgtm.loki.ingress.enabled}}
+              hosts:
+                - {{.Values.lgtm.loki.ingress.host}}
   destination:
     server: https://kubernetes.default.svc
     namespace: default
