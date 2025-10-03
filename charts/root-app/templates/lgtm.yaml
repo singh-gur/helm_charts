@@ -19,6 +19,10 @@ spec:
             enabled: {{.Values.lgtm.grafana.ingress.enabled}}
             hosts:
               - {{.Values.lgtm.grafana.ingress.host}}
+          admin:
+            existingSecret: {{.Values.lgtm.grafana.admin.existingSecret}}
+            userKey: {{.Values.lgtm.grafana.admin.userKey}}
+            passwordKey: {{.Values.lgtm.grafana.admin.passwordKey}}
         loki:
           enabled: {{.Values.lgtm.loki.enabled}}
           ingress:

@@ -6,6 +6,10 @@ lgtm:
     ingress:
       enabled: true
       host: grafana.gsingh.io
+    admin:
+      existingSecret: grafana-admin-credentials
+      userKey: admin-user
+      passwordKey: admin-password
   loki:
     enabled: true
     ingress:

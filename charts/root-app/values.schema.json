@@ -35,6 +35,24 @@
                 }
               },
               "required": ["enabled"]
+            },
+            "admin": {
+              "type": "object",
+              "properties": {
+                "existingSecret": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "userKey": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "passwordKey": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": ["existingSecret", "userKey", "passwordKey"]
             }
           },
           "required": ["enabled"]
