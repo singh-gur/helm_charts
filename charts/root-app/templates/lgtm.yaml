@@ -29,7 +29,9 @@ spec:
             ingress:
               enabled: {{.Values.lgtm.loki.gateway.ingress.enabled}}
               hosts:
-                - {{.Values.lgtm.loki.gateway.ingress.host}}
+                - host: {{.Values.lgtm.loki.gateway.ingress.host}}
+                  paths:
+                    - path: /
   destination:
     server: https://kubernetes.default.svc
     namespace: default
