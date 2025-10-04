@@ -1,0 +1,49 @@
+{{- if .Values.promtail.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: promtail
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: promtail
+    targetRevision: {{.Values.promtail.version}}
+    helm:
+      values: |
+        daemonset:
+          enabled: {{.Values.promtail.daemonset.enabled}}
+        deployment:
+          enabled: {{.Values.promtail.deployment.enabled}}
+        config:
+          enabled: {{.Values.promtail.config.enabled}}
+          clients:
+            {{- range .Values.promtail.config.clients }}
+            - url: {{.url}}
+            {{- end }}
+          logLevel: {{.Values.promtail.config.logLevel}}
+          logFormat: {{.Values.promtail.config.logFormat}}
+          serverPort: {{.Values.promtail.config.serverPort}}
+        rbac:
+          create: {{.Values.promtail.rbac.create}}
+        serviceAccount:
+          create: {{.Values.promtail.serviceAccount.create}}
+        resources:
+          {{- toYaml .Values.promtail.resources | nindent 10 }}
+        tolerations:
+          {{- toYaml .Values.promtail.tolerations | nindent 10 }}
+        nodeSelector:
+          {{- toYaml .Values.promtail.nodeSelector | nindent 10 }}
+        podSecurityContext:
+          {{- toYaml .Values.promtail.podSecurityContext | nindent 10 }}
+        containerSecurityContext:
+          {{- toYaml .Values.promtail.containerSecurityContext | nindent 10 }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      selfHeal: true
+{{- end }}
