@@ -285,33 +285,9 @@
           "type": "string",
           "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
         },
-        "daemonset": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": true
-            }
-          },
-          "required": ["enabled"]
-        },
-        "deployment": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false
-            }
-          },
-          "required": ["enabled"]
-        },
         "config": {
           "type": "object",
           "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": true
-            },
             "clients": {
               "type": "array",
               "items": {
@@ -325,45 +301,9 @@
                 "required": ["url"]
               },
               "minItems": 1
-            },
-            "logLevel": {
-              "type": "string",
-              "enum": ["debug", "info", "warn", "error"],
-              "default": "info"
-            },
-            "logFormat": {
-              "type": "string",
-              "enum": ["logfmt", "json"],
-              "default": "logfmt"
-            },
-            "serverPort": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 65535,
-              "default": 3101
             }
           },
-          "required": ["enabled", "clients"]
-        },
-        "rbac": {
-          "type": "object",
-          "properties": {
-            "create": {
-              "type": "boolean",
-              "default": true
-            }
-          },
-          "required": ["create"]
-        },
-        "serviceAccount": {
-          "type": "object",
-          "properties": {
-            "create": {
-              "type": "boolean",
-              "default": true
-            }
-          },
-          "required": ["create"]
+          "required": ["clients"]
         },
         "resources": {
           "type": "object",
@@ -391,87 +331,6 @@
                 "memory": {
                   "type": "string",
                   "pattern": "^[0-9]+(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$"
-                }
-              }
-            }
-          }
-        },
-        "tolerations": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "key": {
-                "type": "string"
-              },
-              "operator": {
-                "type": "string",
-                "enum": ["Exists", "Equal"]
-              },
-              "effect": {
-                "type": "string",
-                "enum": ["NoSchedule", "PreferNoSchedule", "NoExecute", "PreferNoExecute"]
-              },
-              "value": {
-                "type": "string"
-              },
-              "tolerationSeconds": {
-                "type": "integer",
-                "minimum": 0
-              }
-            },
-            "required": ["key", "operator", "effect"]
-          }
-        },
-        "nodeSelector": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "podSecurityContext": {
-          "type": "object",
-          "properties": {
-            "runAsUser": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "runAsGroup": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "fsGroup": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "runAsNonRoot": {
-              "type": "boolean"
-            }
-          }
-        },
-        "containerSecurityContext": {
-          "type": "object",
-          "properties": {
-            "readOnlyRootFilesystem": {
-              "type": "boolean"
-            },
-            "allowPrivilegeEscalation": {
-              "type": "boolean"
-            },
-            "capabilities": {
-              "type": "object",
-              "properties": {
-                "drop": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "add": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
                 }
               }
             }
