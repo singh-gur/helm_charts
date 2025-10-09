@@ -31,7 +31,7 @@ argocd:
   enabled: true
 coder:
   enabled: true
-  version: 2.26.0
+  version: 2.27.0
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
@@ -92,7 +92,7 @@ openproject:
     host: projects.gsingh.io
   postgresql:
     bundled: false
-    host: 192.168.20.96
+    host: 192.168.2.119
     database: openproject
     username: openprojectuser
   oidc:

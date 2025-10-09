@@ -43,7 +43,7 @@ spec:
             autoMigrate: {{.Values.langfuse.clickhouse.migration.autoMigrate}}
         postgresql:
           deploy: false
-          host: 192.168.20.96
+          host: 192.168.2.119
           auth:
             username: lfdbuser
             database: langfuse
