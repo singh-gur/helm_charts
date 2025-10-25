@@ -110,7 +110,7 @@ zitadel:
 plane:
   enabled: false
 windmill:
-  enabled: false
+  enabled: true
   version: 3.0.6
   host: windmill.gsingh.io
   postgresql:
