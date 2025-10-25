@@ -16,8 +16,8 @@ spec:
         windmill:
           baseProtocol: https
           baseDomain: {{.Values.windmill.host}}
-          databaseUrlSecretName: windmill-db-secrets
-          databaseUrlSecretKey: url
+          databaseUrlSecretName: windmill-secrets
+          databaseUrlSecretKey: database-url
         ingress:
           enabled: true
         postgresql:
