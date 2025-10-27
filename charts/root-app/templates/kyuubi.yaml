@@ -1,0 +1,33 @@
+{{- if .Values.kyuubi.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kyuubi
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/awesome-kyuubi/kyuubi-helm-chart
+    targetRevision: HEAD
+    path: charts/kyuubi
+    helm:
+      releaseName: kyuubi
+      values: |
+        replicaCount: {{ .Values.kyuubi.replicaCount }}
+        image:
+          repository: {{ .Values.kyuubi.image.repository }}
+          tag: {{ .Values.kyuubi.image.tag }}
+        server:
+          thriftBinary:
+            enabled: true
+            port: 10009
+        resources:
+          {{- toYaml .Values.kyuubi.resources | nindent 10 }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.kyuubi.namespace | default "default" }}
+  syncPolicy:
+    automated:
+      selfHeal: true
+{{- end }}

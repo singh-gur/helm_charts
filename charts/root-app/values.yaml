@@ -128,3 +128,17 @@ promtail:
     requests:
       cpu: 100m
       memory: 128Mi
+kyuubi:
+  enabled: true
+  namespace: default
+  replicaCount: 2
+  image:
+    repository: apache/kyuubi
+    tag: "latest"
+  resources:
+    limits:
+      cpu: 2
+      memory: 4Gi
+    requests:
+      cpu: 1
+      memory: 2Gi
