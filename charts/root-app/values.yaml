@@ -31,20 +31,20 @@ argocd:
   enabled: true
 coder:
   enabled: true
-  version: 2.27.0
+  version: 2.27.1
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
 ghost:
   enabled: true
-  version: 24.0.1
+  version: 25.0.4
   ghostHost: ghost.gsingh.io
   ingress:
     hostname: blog.gsingh.io
   ghostEmail: hello@gsingh.io
 langfuse:
   enabled: true
-  version: 1.5.1
+  version: 1.5.8
   ingress:
     host: langfuse.gsingh.io
   clickhouse:
@@ -110,7 +110,7 @@ zitadel:
 plane:
   enabled: false
 windmill:
-  enabled: true
+  enabled: false
   version: 3.0.6
   host: windmill.gsingh.io
   postgresql:
