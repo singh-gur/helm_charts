@@ -134,7 +134,7 @@ kyuubi:
   replicaCount: 2
   image:
     repository: apache/kyuubi
-    tag: "latest"
+    tag: "1.10.2-all"
   resources:
     limits:
       cpu: 2
