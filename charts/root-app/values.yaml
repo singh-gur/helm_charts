@@ -67,7 +67,7 @@ uptime:
   ingress:
     host: uptime.gsingh.io
 whoami:
-  enabled: false
+  enabled: true
 openproject:
   enabled: true
   admin_user:
@@ -110,7 +110,7 @@ zitadel:
 plane:
   enabled: false
 windmill:
-  enabled: false
+  enabled: true
   version: 3.0.6
   host: windmill.gsingh.io
   postgresql:
