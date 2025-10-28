@@ -36,8 +36,8 @@ coder:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
 ghost:
-  enabled: false
-  version: 24.0.3
+  enabled: true
+  version: 24.0.1
   ghostHost: ghost.gsingh.io
   ingress:
     hostname: blog.gsingh.io
