@@ -114,6 +114,10 @@ windmill:
   version: 3.0.18
   host: windmill.gsingh.io
   postgresql:
+    enabled: true
+  databaseSecret:
+    name: windmill-secrets
+    key: database-url
     enabled: false
 promtail:
   enabled: true
