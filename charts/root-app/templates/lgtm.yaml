@@ -25,6 +25,25 @@ spec:
             passwordKey: {{.Values.lgtm.grafana.admin.passwordKey}}
         loki:
           enabled: {{.Values.lgtm.loki.enabled}}
+          {{- if .Values.lgtm.loki.s3.enabled }}
+          structuredConfig:
+            schema_config:
+              configs:
+                - from: "2020-09-07"
+                  object_store: s3
+            storage_config:
+              s3:
+                {{- if .Values.lgtm.loki.s3.existingSecret }}
+                s3: {{ .Values.lgtm.loki.s3.existingSecret }}
+                {{- else }}
+                bucketnames: {{ .Values.lgtm.loki.s3.bucketName }}
+                {{- end }}
+            compactor:
+              shared_store: s3
+            table_manager:
+              retention_deletes_enabled: true
+              retention_period: {{ .Values.lgtm.loki.s3.retentionPeriod }}
+          {{- end }}
           gateway:
             ingress:
               enabled: {{.Values.lgtm.loki.gateway.ingress.enabled}}

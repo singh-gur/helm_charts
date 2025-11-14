@@ -16,6 +16,11 @@ lgtm:
       ingress:
         enabled: false
         host: loki-gateway.gsingh.io
+    s3:
+      enabled: false
+      existingSecret: loki-s3-credentials
+      bucketName: gsingh19-loki-logs
+      retentionPeriod: 30d
 alloy:
   enabled: true
   version: 1.0.3
