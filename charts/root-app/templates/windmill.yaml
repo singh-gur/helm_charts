@@ -11,15 +11,6 @@ spec:
     repoURL: https://windmill-labs.github.io/windmill-helm-charts/
     chart: windmill
     targetRevision: {{.Values.windmill.version}}
-    {{- if .Values.windmill.useConfigMapValues }}
-    helm:
-      valueFiles:
-        - https://raw.githubusercontent.com/{{.Values.windmill.configMapRepo}}/main/{{.Values.windmill.configMapPath}}
-    {{- else if .Values.windmill.externalValuesFile }}
-    helm:
-      valueFiles:
-        - {{.Values.windmill.externalValuesFile}}
-    {{- else }}
     helm:
       values: |
         windmill:
@@ -33,7 +24,6 @@ spec:
           enabled: true
         postgresql:
           enabled: {{.Values.windmill.postgresql.enabled}}
-    {{- end }}
   destination:
     server: https://kubernetes.default.svc
     namespace: default
