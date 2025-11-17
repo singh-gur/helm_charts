@@ -11,6 +11,11 @@ spec:
     repoURL: https://charts.openproject.org
     chart: openproject
     targetRevision: {{.Values.openproject.version}}
+    {{- if .Values.openproject.externalValuesFile }}
+    helm:
+      valueFiles:
+        - {{.Values.openproject.externalValuesFile}}
+    {{- else }}
     helm:
       values: |
         ingress:
@@ -70,6 +75,7 @@ spec:
               identifier: oidc-client-id
               secret: oidc-client-secret
             {{- end }}
+    {{- end }}
   destination:
     server: https://kubernetes.default.svc
     namespace: default

@@ -11,6 +11,15 @@ spec:
     repoURL: https://grafana.github.io/helm-charts
     chart: lgtm-distributed
     targetRevision: {{.Values.lgtm.version}}
+    {{- if .Values.lgtm.useGitValues }}
+    helm:
+      valueFiles:
+        - {{.Values.lgtm.gitValuesRepo}}/{{.Values.lgtm.gitValuesPath}}
+    {{- else if .Values.lgtm.externalValuesFile }}
+    helm:
+      valueFiles:
+        - {{.Values.lgtm.externalValuesFile}}
+    {{- else }}
     helm:
       values: |
         grafana:
@@ -52,6 +61,7 @@ spec:
                   paths:
                     - path: /
                       pathType: Prefix
+    {{- end }}
   destination:
     server: https://kubernetes.default.svc
     namespace: default

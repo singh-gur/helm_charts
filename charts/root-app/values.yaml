@@ -1,6 +1,7 @@
 lgtm:
   enabled: true
   version: 2.1.0
+  externalValuesFile: "values-files/lgtm-values.yaml"
   grafana:
     enabled: true
     ingress:
@@ -75,6 +76,8 @@ whoami:
   enabled: true
 openproject:
   enabled: true
+  version: 10.3.0
+  externalValuesFile: "values-files/openproject-values.yaml"
   admin_user:
     password_reset: false
     name: "gurbakhshish"
@@ -91,7 +94,6 @@ openproject:
         memory: "1Gi"
       requests:
         memory: "1Gi"
-  version: 10.3.0
   ingress:
     enabled: true
     host: projects.gsingh.io

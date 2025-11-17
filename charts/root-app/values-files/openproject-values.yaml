@@ -1,0 +1,47 @@
+# External values file for OpenProject
+ingress:
+  enabled: true
+  host: projects.gsingh.io
+persistence:
+  enabled: false
+s3:
+  enabled: true
+  auth:
+    existingSecret: openproject-s3-secrets
+  bucketName: gsingh19-openproject
+  region: us-east-1
+postgresql:
+  bundled: false
+  connection:
+    host: 192.168.2.119
+    port: 5432
+  auth:
+    existingSecret: openproject-db-secrets
+    secretKeys:
+      adminPasswordKey: "postgres-password"
+      userPasswordKey: "password"
+    username: openprojectuser
+    database: openproject
+appInit:
+  resources:
+    limits:
+      memory: "1Gi"
+    requests:
+      memory: "1Gi"
+openproject:
+  https: true
+  admin_user:
+    password_reset: false
+    name: "gurbakhshish"
+    mail: "hello@gsingh.io"
+    secret: openproject-admin-secrets
+oidc:
+  enabled: false
+  provider: "Zitadel"
+  displayName: "Zitadel SSO"
+  host: "auth.gsingh.io"
+  scope: "[openid profile email]"
+  existingSecret: openproject-secrets
+  secretKeys:
+    identifier: oidc-client-id
+    secret: oidc-client-secret
