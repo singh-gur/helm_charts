@@ -17,18 +17,18 @@ lgtm:
         enabled: false
         host: loki-gateway.gsingh.io
     s3:
-      enabled: true
+      enabled: false
       existingSecret: loki-s3-credentials
       retentionPeriod: 30d
   mimir:
     enabled: true
     s3:
-      enabled: true
+      enabled: false
       existingSecret: loki-s3-credentials
   tempo:
     enabled: true
     s3:
-      enabled: true
+      enabled: false
       existingSecret: loki-s3-credentials
 
 alloy:
