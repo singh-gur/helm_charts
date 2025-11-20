@@ -33,11 +33,7 @@ spec:
                   object_store: s3
             storage_config:
               s3:
-                {{- if .Values.lgtm.loki.s3.existingSecret }}
                 s3: {{ .Values.lgtm.loki.s3.existingSecret }}
-                {{- else }}
-                bucketnames: {{ .Values.lgtm.loki.s3.bucketName }}
-                {{- end }}
             compactor:
               shared_store: s3
             table_manager:
@@ -52,6 +48,38 @@ spec:
                   paths:
                     - path: /
                       pathType: Prefix
+        mimir:
+          enabled: {{.Values.lgtm.mimir.enabled}}
+          {{- if .Values.lgtm.mimir.s3.enabled }}
+          structuredConfig:
+            multitenancy_enabled: false
+            limits:
+              enforce_metric_name: false
+            ingester:
+              max_transfer_retries: 0
+              zone_aware_replication: false
+            compactor:
+              compaction_interval: 10m
+            ruler:
+              enable_alertmanager: false
+            storage:
+              s3:
+                s3: {{ .Values.lgtm.mimir.s3.existingSecret }}
+          {{- end }}
+        tempo:
+          enabled: {{.Values.lgtm.tempo.enabled}}
+          {{- if .Values.lgtm.tempo.s3.enabled }}
+          structuredConfig:
+            multitenancy_enabled: false
+            overrides:
+              per_tenant_override_config: /runtime-config/overrides.yaml
+            storage:
+              trace:
+                backend: s3
+                s3:
+                  s3: {{ .Values.lgtm.tempo.s3.existingSecret }}
+          {{- end }}
+
   destination:
     server: https://kubernetes.default.svc
     namespace: default

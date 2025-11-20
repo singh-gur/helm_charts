@@ -19,8 +19,18 @@ lgtm:
     s3:
       enabled: true
       existingSecret: loki-s3-credentials
-      bucketName: loki-logs
       retentionPeriod: 30d
+  mimir:
+    enabled: true
+    s3:
+      enabled: true
+      existingSecret: loki-s3-credentials
+  tempo:
+    enabled: true
+    s3:
+      enabled: true
+      existingSecret: loki-s3-credentials
+
 alloy:
   enabled: true
   version: 1.0.3
@@ -137,6 +147,49 @@ promtail:
     requests:
       cpu: 100m
       memory: 128Mi
+k8sMonitoring:
+  enabled: false
+  version: 3.5.7
+  # LGTM Stack endpoints
+  endpoints:
+    loki: http://lgtm-loki-gateway.default.svc.cluster.local:80/loki/api/v1/push
+    mimir: http://lgtm-mimir.default.svc.cluster.local:9009/api/v1/push
+    tempo: http://lgtm-tempo.default.svc.cluster.local:4318
+  # Cluster metrics collection
+  clusterMetrics:
+    enabled: true
+    kubeStateMetrics:
+      enabled: true
+    nodeExporter:
+      enabled: true
+    windowsExporter:
+      enabled: false
+    opencost:
+      enabled: false
+    kepler:
+      enabled: false
+  # Logs collection
+  logs:
+    enabled: true
+    podLogs:
+      enabled: true
+    nodeLogs:
+      enabled: true
+    clusterEvents:
+      enabled: true
+  # Application observability
+  applicationObservability:
+    enabled: true
+    otlp:
+      enabled: true
+  # Traces collection
+  traces:
+    enabled: true
+  # Metrics configuration
+  metrics:
+    enabled: true
+    cost:
+      enabled: false
 kyuubi:
   enabled: true
   namespace: default

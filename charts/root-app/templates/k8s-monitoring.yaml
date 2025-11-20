@@ -1,0 +1,164 @@
+{{- if .Values.k8sMonitoring.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8s-monitoring
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: k8s-monitoring
+    targetRevision: {{.Values.k8sMonitoring.version}}
+    helm:
+      values: |
+        # Global configuration
+        global:
+          imageRegistry: docker.io
+          imagePullSecrets: []
+
+        # Alloy Operator configuration
+        alloy-operator:
+          deploy: true
+          waitForReadiness:
+            enabled: true
+
+        # Cluster metrics collection
+        clusterMetrics:
+          enabled: {{.Values.k8sMonitoring.clusterMetrics.enabled}}
+          kube-state-metrics:
+            deploy: {{.Values.k8sMonitoring.clusterMetrics.kubeStateMetrics.enabled}}
+          node-exporter:
+            deploy: {{.Values.k8sMonitoring.clusterMetrics.nodeExporter.enabled}}
+          windows-exporter:
+            deploy: {{.Values.k8sMonitoring.clusterMetrics.windowsExporter.enabled}}
+          opencost:
+            enabled: {{.Values.k8sMonitoring.clusterMetrics.opencost.enabled}}
+          kepler:
+            enabled: {{.Values.k8sMonitoring.clusterMetrics.kepler.enabled}}
+
+        # Logs collection
+        logs:
+          enabled: {{.Values.k8sMonitoring.logs.enabled}}
+          pod_logs:
+            enabled: {{.Values.k8sMonitoring.logs.podLogs.enabled}}
+          node_logs:
+            enabled: {{.Values.k8sMonitoring.logs.nodeLogs.enabled}}
+          cluster_events:
+            enabled: {{.Values.k8sMonitoring.logs.clusterEvents.enabled}}
+
+        # Application observability
+        applicationObservability:
+          enabled: {{.Values.k8sMonitoring.applicationObservability.enabled}}
+          receivers:
+            otlp:
+              enabled: {{.Values.k8sMonitoring.applicationObservability.otlp.enabled}}
+              http:
+                enabled: true
+              grpc:
+                enabled: true
+
+        # Traces collection
+        traces:
+          enabled: {{.Values.k8sMonitoring.traces.enabled}}
+
+        # Metrics configuration
+        metrics:
+          enabled: {{.Values.k8sMonitoring.metrics.enabled}}
+          cost:
+            enabled: {{.Values.k8sMonitoring.metrics.cost.enabled}}
+
+        # External endpoints configuration for LGTM stack
+        external:
+          loki:
+            endpoint: {{.Values.k8sMonitoring.endpoints.loki}}
+            auth:
+              type: none
+          mimir:
+            endpoint: {{.Values.k8sMonitoring.endpoints.mimir}}
+            auth:
+              type: none
+          tempo:
+            endpoint: {{.Values.k8sMonitoring.endpoints.tempo}}
+            auth:
+              type: none
+
+
+        # Alloy instances configuration
+        alloy:
+          metrics:
+            enabled: true
+            configReloader:
+              enabled: true
+            resources:
+              limits:
+                cpu: 500m
+                memory: 512Mi
+              requests:
+                cpu: 100m
+                memory: 128Mi
+          logs:
+            enabled: true
+            configReloader:
+              enabled: true
+            resources:
+              limits:
+                cpu: 500m
+                memory: 512Mi
+              requests:
+                cpu: 100m
+                memory: 128Mi
+          singleton:
+            enabled: true
+            resources:
+              limits:
+                cpu: 200m
+                memory: 256Mi
+              requests:
+                cpu: 100m
+                memory: 128Mi
+          receiver:
+            enabled: true
+            resources:
+              limits:
+                cpu: 500m
+                memory: 512Mi
+              requests:
+                cpu: 100m
+                memory: 128Mi
+
+        # Configuration for sending data to LGTM stack
+        loki:
+          enabled: true
+          write:
+            endpoint: {{.Values.k8sMonitoring.endpoints.loki}}
+
+        mimir:
+          enabled: true
+          write:
+            endpoint: {{.Values.k8sMonitoring.endpoints.mimir}}
+
+        tempo:
+          enabled: true
+          write:
+            endpoint: {{.Values.k8sMonitoring.endpoints.tempo}}
+
+
+
+        # Resource configuration for components
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      selfHeal: true
+{{- end }}
