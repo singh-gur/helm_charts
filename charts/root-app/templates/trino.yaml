@@ -1,0 +1,73 @@
+{{- if .Values.trino.enabled }}
+{{- $trino := .Values.trino }}
+{{- $iceberg := $trino.catalogs.iceberg | default dict }}
+{{- $s3 := $iceberg.s3 | default dict }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: trino
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://trinodb.github.io/charts/
+    chart: trino
+    targetRevision: {{ $trino.version }}
+    helm:
+      values: |
+        server:
+          workers: {{ default 4 $trino.server.workers }}
+        {{- if and $iceberg $iceberg.enabled }}
+        catalogs:
+          iceberg: |
+            connector.name=iceberg
+            iceberg.catalog.type={{ $iceberg.catalogType }}
+            {{- if and $iceberg.restUri $iceberg.catalogType (eq (lower $iceberg.catalogType) "rest") }}
+            iceberg.rest.catalog.uri={{ $iceberg.restUri }}
+            {{- end }}
+            {{- if $iceberg.metastoreUri }}
+            hive.metastore.uri={{ $iceberg.metastoreUri }}
+            {{- end }}
+            iceberg.warehouse={{ $iceberg.warehouse }}
+            {{- if $s3.endpoint }}
+            s3.endpoint={{ $s3.endpoint }}
+            {{- end }}
+            {{- if $s3.region }}
+            s3.region={{ $s3.region }}
+            {{- end }}
+            {{- if hasKey $s3 "pathStyleAccess" }}
+            s3.path-style-access={{ ternary "true" "false" (default false $s3.pathStyleAccess) }}
+            {{- end }}
+        {{- end }}
+        ingress:
+          enabled: true
+          {{- if $trino.ingress.className }}
+          className: {{ $trino.ingress.className }}
+          {{- end }}
+          hosts:
+          - host: {{ $trino.ingress.host }}
+            paths:
+            - path: /
+              pathType: Prefix
+          {{- if and $trino.ingress.tls.enabled $trino.ingress.tls.secretName }}
+          tls:
+          - secretName: {{ $trino.ingress.tls.secretName }}
+            hosts:
+            - {{ $trino.ingress.host }}
+          {{- else }}
+          tls: []
+          {{- end }}
+        {{- if $iceberg.credentialsSecret }}
+        envFrom:
+        - secretRef:
+            name: {{ $iceberg.credentialsSecret }}
+        {{- end }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ $trino.namespace | default "default" }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+{{- end }}

@@ -204,3 +204,28 @@ kyuubi:
     requests:
       cpu: 1
       memory: 2Gi
+
+trino:
+  enabled: true
+  version: "1.41.0"
+  namespace: data-platform
+  ingress:
+    host: trino.gsingh.io
+    className: nginx
+    tls:
+      enabled: false
+      secretName: ""
+  server:
+    workers: 4
+  catalogs:
+    iceberg:
+      enabled: true
+      catalogType: rest
+      restUri: https://iceberg-catalog.gsingh.io
+      metastoreUri: ""
+      warehouse: s3a://lakehouse/iceberg
+      s3:
+        endpoint: https://s3.gsingh.io
+        region: us-east-1
+        pathStyleAccess: true
+      credentialsSecret: trino-iceberg-s3
