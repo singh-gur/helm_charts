@@ -24,7 +24,7 @@ spec:
             connector.name=iceberg
             iceberg.catalog.type={{ $iceberg.catalogType }}
             {{- if and $iceberg.restUri $iceberg.catalogType (eq (lower $iceberg.catalogType) "rest") }}
-            iceberg.rest.catalog.uri={{ $iceberg.restUri }}
+            iceberg.rest-catalog.uri={{ $iceberg.restUri }}
             {{- end }}
             {{- if $iceberg.metastoreUri }}
             hive.metastore.uri={{ $iceberg.metastoreUri }}

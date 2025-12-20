@@ -206,7 +206,7 @@ kyuubi:
       memory: 2Gi
 
 trino:
-  enabled: true
+  enabled: false
   version: "1.41.0"
   namespace: data-platform
   ingress:
