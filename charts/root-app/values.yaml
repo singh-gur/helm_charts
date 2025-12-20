@@ -206,7 +206,7 @@ kyuubi:
       memory: 2Gi
 
 trino:
-  enabled: false
+  enabled: true
   version: "1.41.0"
   namespace: data-platform
   ingress:
@@ -223,9 +223,9 @@ trino:
       catalogType: rest
       restUri: https://iceberg-catalog.gsingh.io
       metastoreUri: ""
-      warehouse: s3a://lakehouse/iceberg
+      warehouse: s3a://datastore/iceberg
       s3:
-        endpoint: https://s3.gsingh.io
+        endpoint: https://s3v2.gsingh.io
         region: us-east-1
         pathStyleAccess: true
       credentialsSecret: trino-iceberg-s3
