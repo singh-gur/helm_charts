@@ -1,3 +1,5 @@
+argocdNamespace: default
+
 lgtm:
   enabled: true
   version: 2.1.0
