@@ -1,0 +1,231 @@
+lgtm:
+  enabled: false
+  version: 2.1.0
+  grafana:
+    enabled: true
+    ingress:
+      enabled: true
+      host: grafana.gsingh.io
+    admin:
+      existingSecret: grafana-admin-credentials
+      userKey: admin-user
+      passwordKey: admin-password
+  loki:
+    enabled: true
+    gateway:
+      ingress:
+        enabled: false
+        host: loki-gateway.gsingh.io
+    s3:
+      enabled: true
+      existingSecret: loki-s3-credentials
+      retentionPeriod: 30d
+  mimir:
+    enabled: true
+    s3:
+      enabled: false
+      existingSecret: loki-s3-credentials
+  tempo:
+    enabled: true
+    s3:
+      enabled: false
+      existingSecret: loki-s3-credentials
+
+alloy:
+  enabled: false
+  version: 1.0.3
+argowf:
+  enabled: false
+  version: 0.45.6
+  ingress:
+    host: argowf.gsingh.io
+  sso:
+    issuer: https://auth.gsingh.io
+    redirectUrl: https://argowf.gsingh.io/oauth2/callback
+argocd:
+  enabled: false
+coder:
+  enabled: false
+  version: 2.27.1
+  ingress:
+    host: ide.gsingh.io
+  accessUrl: https://ide.gsingh.io
+ghost:
+  enabled: false
+  version: 24.0.1
+  ghostHost: ghost.gsingh.io
+  ingress:
+    hostname: blog.gsingh.io
+  ghostEmail: hello@gsingh.io
+langfuse:
+  enabled: false
+  version: 1.5.11
+  ingress:
+    host: langfuse.gsingh.io
+  clickhouse:
+    enabled: true
+    deploy: true
+    migration:
+      autoMigrate: true
+protonbridge:
+  enabled: false
+  version: 5.4.2
+rancher:
+  enabled: false
+  version: 2.11.2
+  hostname: rancher.gsingh.io
+rootapp:
+  enabled: false
+uptime:
+  enabled: false
+  version: 2.21.3
+  ingress:
+    host: uptime.gsingh.io
+whoami:
+  enabled: false
+openproject:
+  enabled: false
+  admin_user:
+    password_reset: false
+    name: "gurbakhshish"
+    mail: "hello@gsingh.io"
+    secret: openproject-admin-secrets
+  s3:
+    enabled: true
+    existingSecret: openproject-s3-secrets
+    bucketName: gsingh19-openproject
+    # endpoint: https://s3.gsingh.io
+  appInit:
+    resources:
+      limits:
+        memory: "1Gi"
+      requests:
+        memory: "1Gi"
+  version: 10.3.0
+  ingress:
+    enabled: true
+    host: projects.gsingh.io
+  postgresql:
+    bundled: false
+    host: 192.168.2.119
+    database: openproject
+    username: openprojectuser
+  oidc:
+    enabled: false # Set to true to enable OIDC authentication
+    provider: "Zitadel"
+    displayName: "Zitadel SSO"
+    host: "auth.gsingh.io"
+    scope: "[openid profile email]"
+zitadel:
+  enabled: false
+  version: 7.15.0
+  externalDomain: auth.gsingh.io
+  ingress:
+    host: auth.gsingh.io
+plane:
+  enabled: false
+windmill:
+  enabled: false
+  version: 3.0.18
+  host: windmill.gsingh.io
+  postgresql:
+    enabled: true
+  databaseSecret:
+    name: windmill-secrets
+    key: database-url
+    enabled: false
+promtail:
+  enabled: false
+  version: 6.17.0
+  config:
+    clients:
+      - url: http://lgtm-loki-gateway.default.svc.cluster.local:80/loki/api/v1/push
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+k8sMonitoring:
+  enabled: false
+  version: 3.5.7
+  # LGTM Stack endpoints
+  endpoints:
+    loki: http://lgtm-loki-gateway.default.svc.cluster.local:80/loki/api/v1/push
+    mimir: http://lgtm-mimir.default.svc.cluster.local:9009/api/v1/push
+    tempo: http://lgtm-tempo.default.svc.cluster.local:4318
+  # Cluster metrics collection
+  clusterMetrics:
+    enabled: true
+    kubeStateMetrics:
+      enabled: true
+    nodeExporter:
+      enabled: true
+    windowsExporter:
+      enabled: false
+    opencost:
+      enabled: false
+    kepler:
+      enabled: false
+  # Logs collection
+  logs:
+    enabled: true
+    podLogs:
+      enabled: true
+    nodeLogs:
+      enabled: true
+    clusterEvents:
+      enabled: true
+  # Application observability
+  applicationObservability:
+    enabled: true
+    otlp:
+      enabled: true
+  # Traces collection
+  traces:
+    enabled: true
+  # Metrics configuration
+  metrics:
+    enabled: true
+    cost:
+      enabled: false
+kyuubi:
+  enabled: false
+  namespace: default
+  replicaCount: 2
+  image:
+    repository: apache/kyuubi
+    tag: "1.10.2-all"
+  resources:
+    limits:
+      cpu: 2
+      memory: 4Gi
+    requests:
+      cpu: 1
+      memory: 2Gi
+
+trino:
+  enabled: false
+  version: "1.41.0"
+  namespace: data-platform
+  ingress:
+    host: trino.gsingh.io
+    className: nginx
+    tls:
+      enabled: false
+      secretName: ""
+  server:
+    workers: 4
+  catalogs:
+    iceberg:
+      enabled: true
+      catalogType: rest
+      restUri: https://iceberg-catalog.gsingh.io
+      metastoreUri: ""
+      warehouse: s3a://datastore/iceberg
+      s3:
+        endpoint: https://s3v2.gsingh.io
+        region: us-east-1
+        pathStyleAccess: true
+      credentialsSecret: trino-iceberg-s3
