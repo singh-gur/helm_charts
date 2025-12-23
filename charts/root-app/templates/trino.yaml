@@ -5,7 +5,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  namespace: {{ .Values.argocdNamespace | default "argocd" }}
+  namespace: {{ .Values.argocdNamespace | default "default" }}
   name: trino
   finalizers:
   - resources-finalizer.argocd.argoproj.io
