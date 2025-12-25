@@ -30,7 +30,9 @@ spec:
             {{- if $iceberg.metastoreUri }}
             hive.metastore.uri={{ $iceberg.metastoreUri }}
             {{- end }}
-            iceberg.warehouse={{ $iceberg.warehouse }}
+            iceberg.rest-catalog.warehouse={{ $iceberg.warehouse }}
+            fs.hadoop.enabled=false
+            fs.native-s3.enabled=true
             {{- if $s3.endpoint }}
             s3.endpoint={{ $s3.endpoint }}
             {{- end }}
