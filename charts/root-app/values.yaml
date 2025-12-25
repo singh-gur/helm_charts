@@ -222,9 +222,7 @@ trino:
   catalogs:
     iceberg:
       enabled: true
-      catalogType: rest
-      restUri: https://iceberg-catalog.gsingh.io
-      metastoreUri: ""
+      catalogName: iceberg
       warehouse: s3a://datastore/iceberg
       s3:
         endpoint: https://s3v2.gsingh.io

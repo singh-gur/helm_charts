@@ -1,7 +1,7 @@
 {{- if .Values.trino.enabled }}
 {{- $trino := .Values.trino }}
 {{- $iceberg := $trino.catalogs.iceberg | default dict }}
-{{- $s3 := $iceberg.s3 | default dict }}
+{{- $icebergS3 := $iceberg.s3 | default dict }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -19,30 +19,29 @@ spec:
       values: |
         server:
           workers: {{ default 4 $trino.server.workers }}
-        {{- if and $iceberg $iceberg.enabled }}
         catalogs:
-          iceberg: |
+          {{- if and $iceberg $iceberg.enabled }}
+          {{ default "iceberg" $iceberg.catalogName }}: |
             connector.name=iceberg
-            iceberg.catalog.type={{ $iceberg.catalogType }}
-            {{- if and $iceberg.restUri $iceberg.catalogType (eq (lower $iceberg.catalogType) "rest") }}
-            iceberg.rest-catalog.uri={{ $iceberg.restUri }}
-            {{- end }}
-            {{- if $iceberg.metastoreUri }}
-            hive.metastore.uri={{ $iceberg.metastoreUri }}
-            {{- end }}
-            iceberg.rest-catalog.warehouse={{ $iceberg.warehouse }}
+            iceberg.catalog.type=jdbc
+            iceberg.jdbc.catalog=jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DATABASE}
+            iceberg.jdbc.user=${POSTGRES_USER}
+            iceberg.jdbc.password=${POSTGRES_PASSWORD}
+            iceberg.jdbc-schema=iceberg
+            iceberg.jdbc.default-catalog={{ default "iceberg" $iceberg.catalogName }}
+            iceberg.warehouse={{ $iceberg.warehouse }}
             fs.hadoop.enabled=false
             fs.native-s3.enabled=true
-            {{- if $s3.endpoint }}
-            s3.endpoint={{ $s3.endpoint }}
+            {{- if $icebergS3.endpoint }}
+            s3.endpoint={{ $icebergS3.endpoint }}
             {{- end }}
-            {{- if $s3.region }}
-            s3.region={{ $s3.region }}
+            {{- if $icebergS3.region }}
+            s3.region={{ $icebergS3.region }}
             {{- end }}
-            {{- if hasKey $s3 "pathStyleAccess" }}
-            s3.path-style-access={{ ternary "true" "false" (default false $s3.pathStyleAccess) }}
+            {{- if hasKey $icebergS3 "pathStyleAccess" }}
+            s3.path-style-access={{ ternary "true" "false" (default false $icebergS3.pathStyleAccess) }}
             {{- end }}
-        {{- end }}
+          {{- end }}
         ingress:
           enabled: true
           {{- if $trino.ingress.className }}
@@ -61,7 +60,7 @@ spec:
           {{- else }}
           tls: []
           {{- end }}
-        {{- if $iceberg.credentialsSecret }}
+        {{- if and $iceberg $iceberg.enabled $iceberg.credentialsSecret }}
         envFrom:
         - secretRef:
             name: {{ $iceberg.credentialsSecret }}

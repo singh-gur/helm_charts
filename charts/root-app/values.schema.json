@@ -877,16 +877,9 @@
                   "type": "boolean",
                   "default": false
                 },
-                "catalogType": {
+                "catalogName": {
                   "type": "string",
-                  "minLength": 1
-                },
-                "restUri": {
-                  "type": "string",
-                  "format": "uri"
-                },
-                "metastoreUri": {
-                  "type": "string"
+                  "default": "iceberg"
                 },
                 "warehouse": {
                   "type": "string",
@@ -911,8 +904,7 @@
                   "required": ["endpoint", "region"]
                 },
                 "credentialsSecret": {
-                  "type": "string",
-                  "minLength": 1
+                  "type": "string"
                 }
               },
               "required": ["enabled"]
