@@ -24,6 +24,10 @@ spec:
             authenticationType: "PASSWORD"
           {{- end }}
         {{- if and $trino.auth $trino.auth.enabled }}
+        additionalConfigProperties:
+          - http-server.process-forwarded=true
+        {{- end }}
+        {{- if and $trino.auth $trino.auth.enabled }}
         auth:
           passwordAuthSecret: {{ $trino.auth.passwordAuthSecret | quote }}
           {{- if and $trino.auth.groups $trino.auth.groups.enabled }}
