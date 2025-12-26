@@ -16,7 +16,7 @@ test-render template_name:
 
 # Expand ArgoCD Application to full Kubernetes manifests
 expand-app app_name:
-    ./expand-app.sh {{app_name}}
+    ./scripts/expand-app.sh {{app_name}}
 
 push message:
     @echo "Push changes to the repository"

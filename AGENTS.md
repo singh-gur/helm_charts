@@ -7,7 +7,7 @@
 - **Lint**: `helm lint charts/root-app/`, `helm lint charts/argo-cd/`, `helm lint charts/whoami/`
 - **Template**: `helm template root-app charts/root-app/ --values charts/root-app/values.yaml`
 - **Test single template**: `just test-render <app_name>` (e.g., `just test-render langfuse`)
-- **Expand to manifests**: `just expand-app <app_name>` or `./expand-app.sh <app_name>`
+- **Expand to manifests**: `just expand-app <app_name>` or `./scripts/expand-app.sh <app_name>`
 - **Dry-run**: `helm install --dry-run root-app charts/root-app/`
 
 ## Code Style
