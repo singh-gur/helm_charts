@@ -220,7 +220,7 @@ trino:
   server:
     workers: 4
   auth:
-    enabled: false
+    enabled: true
     # When enabled, set server.config.authenticationType to PASSWORD
     # Create a secret with password.db key containing htpasswd formatted credentials
     # Example: kubectl create secret generic trino-password-auth --from-file=password.db=./password.db
