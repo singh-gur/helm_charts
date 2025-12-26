@@ -225,6 +225,10 @@ trino:
     # Create a secret with password.db key containing htpasswd formatted credentials
     # Example: kubectl create secret generic trino-password-auth --from-file=password.db=./password.db
     passwordAuthSecret: "trino-password-auth"
+    # Shared secret for internal communication between coordinator and workers (REQUIRED when auth is enabled)
+    # Create a secret with TRINO_SHARED_SECRET key containing a random string
+    # Example: kubectl create secret generic trino-shared-secret --from-literal=TRINO_SHARED_SECRET=$(openssl rand -base64 32)
+    sharedSecretName: "trino-shared-secret"
     # Optional: Enable group-based access control
     groups:
       enabled: false

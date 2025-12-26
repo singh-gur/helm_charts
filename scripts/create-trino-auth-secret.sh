@@ -234,6 +234,34 @@ create_groups_secret() {
     print_success "Groups secret '${GROUPS_SECRET_NAME}' created in namespace '${NAMESPACE}'"
 }
 
+# Create Kubernetes secret for shared secret
+create_shared_secret() {
+    print_info "Creating Kubernetes secret for internal communication..."
+    
+    # Generate a random shared secret
+    SHARED_SECRET=$(openssl rand -base64 32)
+    
+    # Check if secret already exists
+    if kubectl get secret "trino-shared-secret" -n "${NAMESPACE}" &> /dev/null; then
+        print_warning "Secret 'trino-shared-secret' already exists in namespace '${NAMESPACE}'"
+        read -p "Do you want to replace it? (y/n): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            kubectl delete secret "trino-shared-secret" -n "${NAMESPACE}"
+            print_info "Existing secret deleted"
+        else
+            print_warning "Skipping shared secret creation"
+            return
+        fi
+    fi
+    
+    kubectl create secret generic "trino-shared-secret" \
+        --from-literal=TRINO_SHARED_SECRET="${SHARED_SECRET}" \
+        --namespace="${NAMESPACE}"
+    
+    print_success "Shared secret 'trino-shared-secret' created in namespace '${NAMESPACE}'"
+}
+
 # Display next steps
 show_next_steps() {
     echo ""
@@ -249,6 +277,7 @@ show_next_steps() {
     echo "     auth:"
     echo "       enabled: true"
     echo "       passwordAuthSecret: \"${PASSWORD_SECRET_NAME}\""
+       sharedSecretName: "trino-shared-secret"
     if kubectl get secret "${GROUPS_SECRET_NAME}" -n "${NAMESPACE}" &> /dev/null; then
         echo "       groups:"
         echo "         enabled: true"
@@ -265,6 +294,7 @@ show_next_steps() {
     if kubectl get secret "${GROUPS_SECRET_NAME}" -n "${NAMESPACE}" &> /dev/null; then
         echo "   kubectl get secret ${GROUPS_SECRET_NAME} -n ${NAMESPACE}"
     fi
+   kubectl get secret trino-shared-secret -n 
     echo ""
     echo "5. Test authentication:"
     echo "   trino --server https://trino.gsingh.io --user <username> --password"
@@ -357,6 +387,7 @@ main() {
     echo ""
     create_password_secret
     create_groups_secret
+    create_shared_secret
     
     # Show next steps
     show_next_steps

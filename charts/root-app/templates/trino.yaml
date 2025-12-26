@@ -26,6 +26,7 @@ spec:
         {{- if and $trino.auth $trino.auth.enabled }}
         additionalConfigProperties:
           - http-server.process-forwarded=true
+          - internal-communication.shared-secret=${ENV:TRINO_SHARED_SECRET}
         {{- end }}
         {{- if and $trino.auth $trino.auth.enabled }}
         auth:
@@ -74,10 +75,16 @@ spec:
           {{- else }}
           tls: []
           {{- end }}
-        {{- if and $iceberg $iceberg.enabled $iceberg.credentialsSecret }}
+        {{- if or (and $iceberg $iceberg.enabled $iceberg.credentialsSecret) (and $trino.auth $trino.auth.enabled $trino.auth.sharedSecretName) }}
         envFrom:
+        {{- if and $iceberg $iceberg.enabled $iceberg.credentialsSecret }}
         - secretRef:
             name: {{ $iceberg.credentialsSecret }}
+        {{- end }}
+        {{- if and $trino.auth $trino.auth.enabled $trino.auth.sharedSecretName }}
+        - secretRef:
+            name: {{ $trino.auth.sharedSecretName }}
+        {{- end }}
         {{- end }}
   destination:
     server: https://kubernetes.default.svc
