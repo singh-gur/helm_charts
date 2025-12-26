@@ -24,12 +24,12 @@ spec:
           {{ default "iceberg" $iceberg.catalogName }}: |
             connector.name=iceberg
             iceberg.catalog.type=jdbc
-            iceberg.jdbc.catalog=jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DATABASE}
-            iceberg.jdbc.user=${POSTGRES_USER}
-            iceberg.jdbc.password=${POSTGRES_PASSWORD}
-            iceberg.jdbc-schema=iceberg
-            iceberg.jdbc.default-catalog={{ default "iceberg" $iceberg.catalogName }}
-            iceberg.warehouse={{ $iceberg.warehouse }}
+            iceberg.jdbc-catalog.connection-url=jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DATABASE}
+            iceberg.jdbc-catalog.catalog-name={{ default "iceberg" $iceberg.catalogName }}
+            iceberg.jdbc-catalog.default-warehouse-dir={{ $iceberg.warehouse }}
+            iceberg.jdbc-catalog.driver-class=org.postgresql.Driver
+            iceberg.jdbc-catalog.connection-user=${POSTGRES_USER}
+            iceberg.jdbc-catalog.connection-password=${POSTGRES_PASSWORD}
             fs.hadoop.enabled=false
             fs.native-s3.enabled=true
             {{- if $icebergS3.endpoint }}
