@@ -219,6 +219,18 @@ trino:
       secretName: ""
   server:
     workers: 4
+  auth:
+    enabled: false
+    # When enabled, set server.config.authenticationType to PASSWORD
+    # Create a secret with password.db key containing htpasswd formatted credentials
+    # Example: kubectl create secret generic trino-password-auth --from-file=password.db=./password.db
+    passwordAuthSecret: "trino-password-auth"
+    # Optional: Enable group-based access control
+    groups:
+      enabled: false
+      # Create a secret with group.db key containing group definitions
+      # Format: group_name:user1,user2,user3
+      groupsAuthSecret: "trino-groups-auth"
   catalogs:
     iceberg:
       enabled: true

@@ -19,6 +19,17 @@ spec:
       values: |
         server:
           workers: {{ default 4 $trino.server.workers }}
+          {{- if and $trino.auth $trino.auth.enabled }}
+          config:
+            authenticationType: "PASSWORD"
+          {{- end }}
+        {{- if and $trino.auth $trino.auth.enabled }}
+        auth:
+          passwordAuthSecret: {{ $trino.auth.passwordAuthSecret | quote }}
+          {{- if and $trino.auth.groups $trino.auth.groups.enabled }}
+          groupsAuthSecret: {{ $trino.auth.groups.groupsAuthSecret | quote }}
+          {{- end }}
+        {{- end }}
         catalogs:
           {{- if and $iceberg $iceberg.enabled }}
           {{ default "iceberg" $iceberg.catalogName }}: |
