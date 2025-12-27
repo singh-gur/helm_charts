@@ -47,10 +47,18 @@ airflow:
   webserver:
     defaultUser:
       enabled: true
-      existingSecret: airflow-webserver-secret
+      username: admin
+      password: airflow
   postgresql:
-    enabled: false # Using external database
+    enabled: true # Use bundled PostgreSQL for local stack
   externalDatabase:
+    # For external database, use direct connection values:
+    # user: airflow
+    # pass: airflow
+    # protocol: postgresql
+    # host: hostname
+    # port: 5432
+    # db: airflow
     existingSecret: airflow-external-db-secret
   redis:
     enabled: true # Required for CeleryExecutor

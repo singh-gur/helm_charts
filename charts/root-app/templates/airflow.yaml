@@ -25,9 +25,8 @@ spec:
         webserver:
           defaultUser:
             enabled: {{ .Values.airflow.webserver.defaultUser.enabled }}
-            {{- if .Values.airflow.webserver.defaultUser.existingSecret }}
-            existingSecret: {{ .Values.airflow.webserver.defaultUser.existingSecret }}
-            {{- end }}
+            username: {{ .Values.airflow.webserver.defaultUser.username | default "admin" }}
+            password: {{ .Values.airflow.webserver.defaultUser.password }}
 
         {{- if .Values.airflow.postgresql.enabled }}
         postgresql:
@@ -35,8 +34,23 @@ spec:
         {{- else }}
         data:
           metadataConnection:
-            {{- if .Values.airflow.externalDatabase.existingSecret }}
-            existingSecret: {{ .Values.airflow.externalDatabase.existingSecret }}
+            {{- if .Values.airflow.externalDatabase.user }}
+            user: {{ .Values.airflow.externalDatabase.user }}
+            {{- end }}
+            {{- if .Values.airflow.externalDatabase.pass }}
+            pass: {{ .Values.airflow.externalDatabase.pass }}
+            {{- end }}
+            {{- if .Values.airflow.externalDatabase.protocol }}
+            protocol: {{ .Values.airflow.externalDatabase.protocol }}
+            {{- end }}
+            {{- if .Values.airflow.externalDatabase.host }}
+            host: {{ .Values.airflow.externalDatabase.host }}
+            {{- end }}
+            {{- if .Values.airflow.externalDatabase.port }}
+            port: {{ .Values.airflow.externalDatabase.port }}
+            {{- end }}
+            {{- if .Values.airflow.externalDatabase.db }}
+            db: {{ .Values.airflow.externalDatabase.db }}
             {{- end }}
         postgresql:
           enabled: false
