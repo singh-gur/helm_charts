@@ -50,7 +50,7 @@ airflow:
       username: admin
       password: airflow # Change on first boot
   postgresql:
-    enabled: true # Use bundled PostgreSQL for local stack
+    enabled: false # Use bundled PostgreSQL for local stack
   # For external database:
   # 1. Create a secret with base64 encoded connection string:
   #    kubectl create secret generic airflow-db-secret --from-literal=connection=$(echo -n "postgresql://user:pass@host:5432/db" | base64)
