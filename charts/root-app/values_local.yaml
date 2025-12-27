@@ -48,15 +48,15 @@ airflow:
     defaultUser:
       enabled: true
       username: admin
-      password: airflow  # Change on first boot
+      password: airflow # Change on first boot
   postgresql:
-    enabled: true # Use bundled PostgreSQL for local stack
+    enabled: false # Use bundled PostgreSQL for local stack
   # For external database with secret, set postgresql.enabled: false and:
-  # externalDatabase:
-  #   useSecret: true
-  #   secretName: airflow-secrets
-  #   host: your-db-host
-  #   port: 5432
+  externalDatabase:
+    useSecret: true
+    secretName: airflow-secrets
+    host: 192.168.2.119
+    port: 5432
   redis:
     enabled: true # Required for CeleryExecutor
   executor: "CeleryExecutor" # Options: LocalExecutor, CeleryExecutor, KubernetesExecutor
