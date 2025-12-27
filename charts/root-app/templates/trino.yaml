@@ -64,12 +64,6 @@ spec:
             paths:
             - path: /
               pathType: Prefix
-          {{- if and $trino.ingress.tls.enabled $trino.ingress.tls.secretName }}
-          tls:
-          - secretName: {{ $trino.ingress.tls.secretName }}
-            hosts:
-            - {{ $trino.ingress.host }}
-          {{- else }}
           tls: []
           {{- end }}
         {{- if or (and $iceberg $iceberg.enabled $iceberg.credentialsSecret) (and $trino.auth $trino.auth.enabled $trino.auth.sharedSecretName) }}
