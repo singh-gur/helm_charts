@@ -47,11 +47,11 @@ airflow:
   webserver:
     defaultUser:
       enabled: true
-      existingSecret: "" # Set to secret name containing admin credentials
+      existingSecret: airflow-webserver-secret
   postgresql:
-    enabled: true # Set to false to use external database
+    enabled: false # Using external database
   externalDatabase:
-    existingSecret: "" # Secret containing database connection string
+    existingSecret: airflow-external-db-secret
   redis:
     enabled: true # Required for CeleryExecutor
   executor: "CeleryExecutor" # Options: LocalExecutor, CeleryExecutor, KubernetesExecutor
