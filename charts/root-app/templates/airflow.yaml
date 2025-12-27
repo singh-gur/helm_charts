@@ -30,24 +30,16 @@ spec:
 
         {{- if .Values.airflow.postgresql.enabled }}
         postgresql:
-          enabled: {{ .Values.airflow.postgresql.enabled }}
+          enabled: true
         {{- else }}
-        {{- if .Values.airflow.externalDatabase.useSecret }}
-        # Use extraEnvFrom to inject database credentials from Kubernetes secret
-        extraEnvFrom:
-          - secretRef:
-              name: {{ .Values.airflow.externalDatabase.secretName | default "airflow-secrets" }}
-        # Construct connection string from secret env vars
-        extraEnv:
-          - name: AIRFLOW__DATABASE__CONN
-            value: postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)
+        {{- if .Values.airflow.externalDatabase.secretName }}
+        # Use pre-existing secret with "connection" key containing base64 encoded SQLAlchemy conn
         data:
-          metadataConnection:
-            useSecret: false
+          metadataSecretName: {{ .Values.airflow.externalDatabase.secretName }}
         postgresql:
           enabled: false
         {{- else }}
-        # Direct values (not recommended for production)
+        # Direct connection values (not recommended for production with secrets)
         data:
           metadataConnection:
             user: {{ .Values.airflow.externalDatabase.user }}
