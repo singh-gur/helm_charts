@@ -39,7 +39,7 @@ alloy:
 
 airflow:
   enabled: false
-  version: "1.15.0" # Apache Airflow Helm chart version
+  version: "1.18.0" # Apache Airflow Helm chart version
   namespace: default
   ingress:
     enabled: true
