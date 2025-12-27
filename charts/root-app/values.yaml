@@ -36,6 +36,33 @@ lgtm:
 alloy:
   enabled: true
   version: 1.0.3
+
+airflow:
+  enabled: true
+  version: "1.15.0"  # Apache Airflow Helm chart version
+  namespace: default
+  ingress:
+    enabled: true
+    host: airflow.gsingh.io
+    ingressClassName: ""
+  webserver:
+    defaultUser:
+      enabled: true
+      existingSecret: ""  # Set to secret name containing admin credentials
+  postgresql:
+    enabled: true  # Set to false to use external database
+  externalDatabase:
+    existingSecret: ""  # Secret containing database connection string
+  redis:
+    enabled: true  # Required for CeleryExecutor
+  executor: "CeleryExecutor"  # Options: LocalExecutor, CeleryExecutor, KubernetesExecutor
+  dags:
+    gitSync:
+      enabled: false
+      repo: ""  # Git repository URL for DAGs
+      branch: "main"
+      subPath: "dags"
+
 argowf:
   enabled: true
   version: 0.45.6
