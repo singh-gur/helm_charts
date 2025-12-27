@@ -32,28 +32,33 @@ spec:
         postgresql:
           enabled: {{ .Values.airflow.postgresql.enabled }}
         {{- else }}
+        {{- if .Values.airflow.externalDatabase.useSecret }}
+        # Use extraEnvFrom to inject database credentials from Kubernetes secret
+        extraEnvFrom:
+          - secretRef:
+              name: {{ .Values.airflow.externalDatabase.secretName | default "airflow-secrets" }}
+        # Construct connection string from secret env vars
+        extraEnv:
+          - name: AIRFLOW__DATABASE__CONN
+            value: postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)
         data:
           metadataConnection:
-            {{- if .Values.airflow.externalDatabase.user }}
-            user: {{ .Values.airflow.externalDatabase.user }}
-            {{- end }}
-            {{- if .Values.airflow.externalDatabase.pass }}
-            pass: {{ .Values.airflow.externalDatabase.pass }}
-            {{- end }}
-            {{- if .Values.airflow.externalDatabase.protocol }}
-            protocol: {{ .Values.airflow.externalDatabase.protocol }}
-            {{- end }}
-            {{- if .Values.airflow.externalDatabase.host }}
-            host: {{ .Values.airflow.externalDatabase.host }}
-            {{- end }}
-            {{- if .Values.airflow.externalDatabase.port }}
-            port: {{ .Values.airflow.externalDatabase.port }}
-            {{- end }}
-            {{- if .Values.airflow.externalDatabase.db }}
-            db: {{ .Values.airflow.externalDatabase.db }}
-            {{- end }}
+            useSecret: false
         postgresql:
           enabled: false
+        {{- else }}
+        # Direct values (not recommended for production)
+        data:
+          metadataConnection:
+            user: {{ .Values.airflow.externalDatabase.user }}
+            pass: {{ .Values.airflow.externalDatabase.pass }}
+            protocol: {{ .Values.airflow.externalDatabase.protocol | default "postgresql" }}
+            host: {{ .Values.airflow.externalDatabase.host }}
+            port: {{ .Values.airflow.externalDatabase.port | default 5432 }}
+            db: {{ .Values.airflow.externalDatabase.db }}
+        postgresql:
+          enabled: false
+        {{- end }}
         {{- end }}
 
         {{- if .Values.airflow.redis.enabled }}

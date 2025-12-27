@@ -51,15 +51,15 @@ airflow:
       password: airflow
   postgresql:
     enabled: true # Use bundled PostgreSQL for local stack
+  # For external database, set postgresql.enabled: false and configure below:
   externalDatabase:
-    # For external database, use direct connection values:
-    # user: airflow
-    # pass: airflow
-    # protocol: postgresql
-    # host: hostname
-    # port: 5432
-    # db: airflow
-    existingSecret: airflow-external-db-secret
+    useSecret: true  # Set to true to use credentials from Kubernetes secret
+    secretName: airflow-secrets
+    # host/port still needed for connection string construction
+    protocol: postgresql
+    host: hostname
+    port: 5432
+    db: airflow
   redis:
     enabled: true # Required for CeleryExecutor
   executor: "CeleryExecutor" # Options: LocalExecutor, CeleryExecutor, KubernetesExecutor
