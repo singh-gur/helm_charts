@@ -21,17 +21,14 @@ spec:
             {{- if .Values.airflow.ingress.host }}
             host: {{ .Values.airflow.ingress.host }}
             {{- end }}
-            {{- if .Values.airflow.ingress.ingressClassName }}
-            ingressClassName: {{ .Values.airflow.ingress.ingressClassName }}
-            {{- end }}
-        
+
         webserver:
           defaultUser:
             enabled: {{ .Values.airflow.webserver.defaultUser.enabled }}
             {{- if .Values.airflow.webserver.defaultUser.existingSecret }}
             existingSecret: {{ .Values.airflow.webserver.defaultUser.existingSecret }}
             {{- end }}
-        
+
         {{- if .Values.airflow.postgresql.enabled }}
         postgresql:
           enabled: {{ .Values.airflow.postgresql.enabled }}
@@ -44,16 +41,16 @@ spec:
         postgresql:
           enabled: false
         {{- end }}
-        
+
         {{- if .Values.airflow.redis.enabled }}
         redis:
           enabled: {{ .Values.airflow.redis.enabled }}
         {{- end }}
-        
+
         {{- if .Values.airflow.executor }}
         executor: {{ .Values.airflow.executor }}
         {{- end }}
-        
+
         {{- if .Values.airflow.dags }}
         dags:
           {{- if .Values.airflow.dags.gitSync }}
