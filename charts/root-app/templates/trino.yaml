@@ -65,7 +65,6 @@ spec:
             - path: /
               pathType: Prefix
           tls: []
-          {{- end }}
         {{- if or (and $iceberg $iceberg.enabled $iceberg.credentialsSecret) (and $trino.auth $trino.auth.enabled $trino.auth.sharedSecretName) }}
         envFrom:
         {{- if and $iceberg $iceberg.enabled $iceberg.credentialsSecret }}
