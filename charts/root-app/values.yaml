@@ -213,10 +213,6 @@ trino:
   namespace: data-platform
   ingress:
     host: trino.gsingh.io
-    className: nginx
-    tls:
-      enabled: false
-      secretName: ""
   server:
     workers: 4
   auth:

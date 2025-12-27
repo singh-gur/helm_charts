@@ -59,9 +59,6 @@ spec:
           {{- end }}
         ingress:
           enabled: true
-          {{- if $trino.ingress.className }}
-          className: {{ $trino.ingress.className }}
-          {{- end }}
           hosts:
           - host: {{ $trino.ingress.host }}
             paths:
