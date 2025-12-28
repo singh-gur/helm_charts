@@ -2,7 +2,7 @@ argocdNamespace: default
 
 lgtm:
   enabled: true
-  version: 2.1.0
+  version: 3.0.1
   grafana:
     enabled: true
     ingress:
