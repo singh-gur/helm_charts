@@ -110,7 +110,7 @@ langfuse:
     migration:
       autoMigrate: true
 protonbridge:
-  enabled: true
+  enabled: false
   version: 5.4.2
 rancher:
   enabled: true
