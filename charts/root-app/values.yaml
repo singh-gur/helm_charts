@@ -82,11 +82,13 @@ argowf:
   sso:
     issuer: https://auth.gsingh.io
     redirectUrl: https://argowf.gsingh.io/oauth2/callback
+
 argocd:
   enabled: true
+
 coder:
   enabled: true
-  version: 2.27.1
+  version: 2.29.1
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io

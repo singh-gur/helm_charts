@@ -81,7 +81,7 @@ argocd:
   enabled: false
 coder:
   enabled: false
-  version: 2.27.1
+  version: 2.29.1
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
