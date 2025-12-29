@@ -92,6 +92,9 @@ coder:
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
+  oidc:
+    ignoreEmailVerified: true
+    signInText: "Sign in with PocketID"
 ghost:
   enabled: false
   version: 24.0.1

@@ -18,6 +18,10 @@ spec:
           service:
             type: ClusterIP
           env:
+            - name: CODER_OIDC_IGNORE_EMAIL_VERIFIED
+              value: "{{ .Values.coder.oidc.ignoreEmailVerified }}"
+            - name: CODER_OIDC_SIGN_IN_TEXT
+              value: "{{ .Values.coder.oidc.signInText }}"
             - name: CODER_ACCESS_URL
               value: "{{.Values.coder.accessUrl}}"
             - name: CODER_PG_CONNECTION_URL

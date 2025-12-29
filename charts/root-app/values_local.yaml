@@ -85,6 +85,9 @@ coder:
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
+  oidc:
+    ignoreEmailVerified: true
+    signInText: "SSO Login"
 ghost:
   enabled: false
   version: 24.0.1
