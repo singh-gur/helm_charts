@@ -162,7 +162,7 @@ openproject:
     host: "auth.gsingh.io"
     scope: "[openid profile email]"
 zitadel:
-  enabled: true
+  enabled: false
   version: 7.15.0
   externalDomain: auth.gsingh.io
   ingress:
