@@ -94,7 +94,7 @@ coder:
   accessUrl: https://ide.gsingh.io
   oidc:
     ignoreEmailVerified: true
-    signInText: "Sign in with PocketID"
+    signInText: "SSO Login"
 ghost:
   enabled: false
   version: 24.0.1
@@ -129,7 +129,7 @@ uptime:
 whoami:
   enabled: false
 openproject:
-  enabled: true
+  enabled: false
   admin_user:
     password_reset: false
     name: "gurbakhshish"
