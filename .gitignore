@@ -3,3 +3,4 @@ charts/**/charts
 */**/.ignore
 .ignore
 .test
+.zed/settings.json
