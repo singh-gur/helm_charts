@@ -1,5 +1,6 @@
 {{- if .Values.airflow.enabled }}
 {{- $airflow := .Values.airflow }}
+{{- $secretName := $airflow.data.metadataSecretName | default $airflow.externalDatabase.secretName | default "" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -27,6 +28,27 @@ spec:
             enabled: {{ $airflow.webserver.defaultUser.enabled }}
             username: {{ $airflow.webserver.defaultUser.username | default "admin" }}
             password: {{ $airflow.webserver.defaultUser.password }}
+        {{- if $airflow.migrateDatabaseJob }}
+        migrateDatabaseJob:
+          enabled: {{ $airflow.migrateDatabaseJob.enabled | default false }}
+          {{- if $airflow.migrateDatabaseJob.backoffLimit }}
+          backoffLimit: {{ $airflow.migrateDatabaseJob.backoffLimit }}
+          {{- end }}
+        {{- end }}
+        {{- if or $secretName $airflow.externalDatabase.host }}
+        data:
+          {{- if $secretName }}
+          metadataSecretName: {{ $secretName }}
+          {{- else }}
+          metadataConnection:
+            user: {{ $airflow.externalDatabase.user }}
+            pass: {{ $airflow.externalDatabase.pass }}
+            protocol: {{ $airflow.externalDatabase.protocol | default "postgresql" }}
+            host: {{ $airflow.externalDatabase.host }}
+            port: {{ $airflow.externalDatabase.port | default 5432 }}
+            db: {{ $airflow.externalDatabase.db }}
+          {{- end }}
+        {{- end }}
         {{- if $airflow.postgresql.enabled }}
         postgresql:
           enabled: true
@@ -39,21 +61,8 @@ spec:
             tag: {{ $airflow.postgresql.image.tag }}
             {{- end }}
           {{- end }}
-        {{- else }}
-        {{- if $airflow.externalDatabase.secretName }}
-        data:
-          metadataSecretName: {{ $airflow.externalDatabase.secretName }}
-        postgresql:
-          enabled: false
-        {{- else }}
-        data:
-          metadataConnection:
-            user: {{ $airflow.externalDatabase.user }}
-            pass: {{ $airflow.externalDatabase.pass }}
-            protocol: {{ $airflow.externalDatabase.protocol | default "postgresql" }}
-            host: {{ $airflow.externalDatabase.host }}
-            port: {{ $airflow.externalDatabase.port | default 5432 }}
-            db: {{ $airflow.externalDatabase.db }}
+        {{- else if not $secretName }}
+        {{- if not $airflow.externalDatabase.host }}
         postgresql:
           enabled: false
         {{- end }}

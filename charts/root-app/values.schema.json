@@ -218,6 +218,27 @@
               "required": ["enabled"]
             }
           }
+        },
+        "migrateDatabaseJob": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "backoffLimit": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "metadataSecretName": {
+              "type": "string"
+            }
+          }
         }
       },
       "required": ["enabled"]

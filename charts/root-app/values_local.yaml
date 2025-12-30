@@ -72,6 +72,11 @@ airflow:
       repo: "" # Git repository URL for DAGs
       branch: "main"
       subPath: "dags"
+  migrateDatabaseJob:
+    enabled: true
+    backoffLimit: 15
+  data:
+    metadataSecretName: airflow-db-secret
 
 argowf:
   enabled: false
