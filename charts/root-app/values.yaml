@@ -52,6 +52,7 @@ airflow:
   postgresql:
     enabled: false # Use external PostgreSQL
     image:
+      repository: "postgres" # Override image repository (e.g., myregistry/bitnami/postgresql)
       tag: "16.11"
   externalDatabase:
     secretName: airflow-db-credentials # Optional: secret with "connection" key (base64 encoded SQLAlchemy conn)

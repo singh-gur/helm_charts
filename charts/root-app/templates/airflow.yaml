@@ -32,6 +32,9 @@ spec:
           enabled: true
           {{- if $airflow.postgresql.image }}
           image:
+            {{- if $airflow.postgresql.image.repository }}
+            repository: {{ $airflow.postgresql.image.repository }}
+            {{- end }}
             {{- if $airflow.postgresql.image.tag }}
             tag: {{ $airflow.postgresql.image.tag }}
             {{- end }}
