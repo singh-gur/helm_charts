@@ -1,7 +1,7 @@
 argocdNamespace: argocd
 
 lgtm:
-  enabled: true
+  enabled: false
   version: 3.0.1
   grafana:
     enabled: true
