@@ -1,4 +1,5 @@
 {{- if .Values.airflow.enabled }}
+{{- $airflow := .Values.airflow }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -11,76 +12,69 @@ spec:
   source:
     repoURL: https://airflow.apache.org
     chart: airflow
-    targetRevision: {{ .Values.airflow.version }}
+    targetRevision: {{ $airflow.version }}
     helm:
       values: |
         ingress:
-          enabled: {{ .Values.airflow.ingress.enabled }}
+          enabled: {{ $airflow.ingress.enabled }}
           web:
-            enabled: {{ .Values.airflow.ingress.enabled }}
-            {{- if .Values.airflow.ingress.host }}
-            host: {{ .Values.airflow.ingress.host }}
+            enabled: {{ $airflow.ingress.enabled }}
+            {{- if $airflow.ingress.host }}
+            host: {{ $airflow.ingress.host }}
             {{- end }}
-
         webserver:
           defaultUser:
-            enabled: {{ .Values.airflow.webserver.defaultUser.enabled }}
-            username: {{ .Values.airflow.webserver.defaultUser.username | default "admin" }}
-            password: {{ .Values.airflow.webserver.defaultUser.password }}
-
-        {{- if .Values.airflow.postgresql.enabled }}
+            enabled: {{ $airflow.webserver.defaultUser.enabled }}
+            username: {{ $airflow.webserver.defaultUser.username | default "admin" }}
+            password: {{ $airflow.webserver.defaultUser.password }}
+        {{- if $airflow.postgresql.enabled }}
         postgresql:
           enabled: true
         {{- else }}
-        {{- if .Values.airflow.externalDatabase.secretName }}
-        # Use pre-existing secret with "connection" key containing base64 encoded SQLAlchemy conn
+        {{- if $airflow.externalDatabase.secretName }}
         data:
-          metadataSecretName: {{ .Values.airflow.externalDatabase.secretName }}
+          metadataSecretName: {{ $airflow.externalDatabase.secretName }}
         postgresql:
           enabled: false
         {{- else }}
-        # Direct connection values (not recommended for production with secrets)
         data:
           metadataConnection:
-            user: {{ .Values.airflow.externalDatabase.user }}
-            pass: {{ .Values.airflow.externalDatabase.pass }}
-            protocol: {{ .Values.airflow.externalDatabase.protocol | default "postgresql" }}
-            host: {{ .Values.airflow.externalDatabase.host }}
-            port: {{ .Values.airflow.externalDatabase.port | default 5432 }}
-            db: {{ .Values.airflow.externalDatabase.db }}
+            user: {{ $airflow.externalDatabase.user }}
+            pass: {{ $airflow.externalDatabase.pass }}
+            protocol: {{ $airflow.externalDatabase.protocol | default "postgresql" }}
+            host: {{ $airflow.externalDatabase.host }}
+            port: {{ $airflow.externalDatabase.port | default 5432 }}
+            db: {{ $airflow.externalDatabase.db }}
         postgresql:
           enabled: false
         {{- end }}
         {{- end }}
-
-        {{- if .Values.airflow.redis.enabled }}
+        {{- if $airflow.redis.enabled }}
         redis:
-          enabled: {{ .Values.airflow.redis.enabled }}
+          enabled: {{ $airflow.redis.enabled }}
         {{- end }}
-
-        {{- if .Values.airflow.executor }}
-        executor: {{ .Values.airflow.executor }}
+        {{- if $airflow.executor }}
+        executor: {{ $airflow.executor }}
         {{- end }}
-
-        {{- if .Values.airflow.dags }}
+        {{- if $airflow.dags }}
         dags:
-          {{- if .Values.airflow.dags.gitSync }}
+          {{- if $airflow.dags.gitSync }}
           gitSync:
-            enabled: {{ .Values.airflow.dags.gitSync.enabled }}
-            {{- if .Values.airflow.dags.gitSync.repo }}
-            repo: {{ .Values.airflow.dags.gitSync.repo }}
+            enabled: {{ $airflow.dags.gitSync.enabled }}
+            {{- if $airflow.dags.gitSync.repo }}
+            repo: {{ $airflow.dags.gitSync.repo }}
             {{- end }}
-            {{- if .Values.airflow.dags.gitSync.branch }}
-            branch: {{ .Values.airflow.dags.gitSync.branch }}
+            {{- if $airflow.dags.gitSync.branch }}
+            branch: {{ $airflow.dags.gitSync.branch }}
             {{- end }}
-            {{- if .Values.airflow.dags.gitSync.subPath }}
-            subPath: {{ .Values.airflow.dags.gitSync.subPath }}
+            {{- if $airflow.dags.gitSync.subPath }}
+            subPath: {{ $airflow.dags.gitSync.subPath }}
             {{- end }}
           {{- end }}
         {{- end }}
   destination:
     server: https://kubernetes.default.svc
-    namespace: {{ .Values.airflow.namespace | default "default" }}
+    namespace: {{ $airflow.namespace | default "default" }}
   syncPolicy:
     automated:
       prune: true

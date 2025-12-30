@@ -38,7 +38,7 @@ alloy:
   version: 1.0.3
 
 airflow:
-  enabled: false
+  enabled: true
   version: "1.18.0" # Apache Airflow Helm chart version
   namespace: default
   ingress:
@@ -50,15 +50,16 @@ airflow:
       username: admin
       password: airflow # Change on first boot
   postgresql:
-    enabled: false # Use bundled PostgreSQL for local stack
-  # For external database:
-  # 1. Create a secret with base64 encoded connection string:
-  #    kubectl create secret generic airflow-db-secret --from-literal=connection=$(echo -n "postgresql://user:pass@host:5432/db" | base64)
-  # 2. Set secretName below and postgresql.enabled: false
+    enabled: true # Use external PostgreSQL
   externalDatabase:
-    secretName: airflow-db-secret # Secret name with "connection" key (base64 encoded SQLAlchemy conn)
-    host: 192.168.2.119
-    port: 5432
+    secretName: "" # Optional: secret with "connection" key (base64 encoded SQLAlchemy conn)
+    # Direct connection values (used when secretName is empty)
+    # user: airflow
+    # pass: airflow
+    # protocol: postgresql
+    # host: localhost
+    # port: 5432
+    # db: airflow
   redis:
     enabled: true # Required for CeleryExecutor
   executor: "CeleryExecutor" # Options: LocalExecutor, CeleryExecutor, KubernetesExecutor
