@@ -50,7 +50,9 @@ airflow:
       username: admin
       password: airflow
   postgresql:
-    enabled: false # Use bundled PostgreSQL for local stack
+    enabled: false # Use external PostgreSQL
+    image:
+      tag: "16.4-debian-12-r"
   externalDatabase:
     secretName: airflow-db-credentials # Optional: secret with "connection" key (base64 encoded SQLAlchemy conn)
     # Direct connection values (used when secretName is empty)

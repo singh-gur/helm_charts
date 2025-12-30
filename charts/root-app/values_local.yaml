@@ -50,7 +50,9 @@ airflow:
       username: admin
       password: airflow # Change on first boot
   postgresql:
-    enabled: true # Use external PostgreSQL
+    enabled: true # Use bundled PostgreSQL
+    image:
+      tag: "16.4-debian-12-r"
   externalDatabase:
     secretName: "" # Optional: secret with "connection" key (base64 encoded SQLAlchemy conn)
     # Direct connection values (used when secretName is empty)

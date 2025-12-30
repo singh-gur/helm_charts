@@ -30,6 +30,12 @@ spec:
         {{- if $airflow.postgresql.enabled }}
         postgresql:
           enabled: true
+          {{- if $airflow.postgresql.image }}
+          image:
+            {{- if $airflow.postgresql.image.tag }}
+            tag: {{ $airflow.postgresql.image.tag }}
+            {{- end }}
+          {{- end }}
         {{- else }}
         {{- if $airflow.externalDatabase.secretName }}
         data:
