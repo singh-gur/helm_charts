@@ -38,7 +38,7 @@ alloy:
   version: 1.0.3
 
 airflow:
-  enabled: false
+  enabled: true
   version: "1.18.0" # Apache Airflow Helm chart version
   namespace: default
   ingress:
@@ -55,7 +55,7 @@ airflow:
       repository: "postgres" # Override image repository (e.g., myregistry/bitnami/postgresql)
       tag: "16.11"
   externalDatabase:
-    secretName: airflow-db-credentials # Optional: secret with "connection" key (base64 encoded SQLAlchemy conn)
+    secretName: airflow-db-secret # Optional: secret with "connection" key (base64 encoded SQLAlchemy conn)
     # Direct connection values (used when secretName is empty)
     # user: airflow
     # pass: airflow
