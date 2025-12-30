@@ -74,7 +74,7 @@ airflow:
       subPath: "dags"
   migrateDatabaseJob:
     enabled: true
-    backoffLimit: 15
+    # ttlSecondsAfterFinished: 300  # Auto-cleanup job after completion
   data:
     metadataSecretName: airflow-db-secret
 

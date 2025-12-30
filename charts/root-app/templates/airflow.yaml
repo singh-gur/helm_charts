@@ -31,8 +31,8 @@ spec:
         {{- if $airflow.migrateDatabaseJob }}
         migrateDatabaseJob:
           enabled: {{ $airflow.migrateDatabaseJob.enabled | default false }}
-          {{- if $airflow.migrateDatabaseJob.backoffLimit }}
-          backoffLimit: {{ $airflow.migrateDatabaseJob.backoffLimit }}
+          {{- if $airflow.migrateDatabaseJob.ttlSecondsAfterFinished }}
+          ttlSecondsAfterFinished: {{ $airflow.migrateDatabaseJob.ttlSecondsAfterFinished }}
           {{- end }}
         {{- end }}
         {{- if or $secretName $airflow.externalDatabase.host }}
