@@ -119,6 +119,48 @@
           "type": "string",
           "minLength": 1
         },
+        "image": {
+          "type": "object",
+          "properties": {
+            "registry": {
+              "type": "string"
+            },
+            "repository": {
+              "type": "string"
+            },
+            "tag": {
+              "type": "string"
+            }
+          }
+        },
+        "auth": {
+          "type": "object",
+          "properties": {
+            "existingSecret": {
+              "type": "string"
+            },
+            "username": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            },
+            "fernetKey": {
+              "type": "string"
+            },
+            "secretKey": {
+              "type": "string"
+            }
+          }
+        },
+        "executor": {
+          "type": "string",
+          "enum": ["LocalExecutor", "CeleryExecutor", "KubernetesExecutor", "SequentialExecutor", "CeleryKubernetesExecutor", "LocalKubernetesExecutor"]
+        },
+        "loadExamples": {
+          "type": "boolean",
+          "default": false
+        },
         "ingress": {
           "type": "object",
           "properties": {
@@ -132,43 +174,46 @@
             },
             "ingressClassName": {
               "type": "string"
+            },
+            "annotations": {
+              "type": "object"
+            },
+            "tls": {
+              "type": "boolean",
+              "default": false
             }
-          },
-          "required": ["enabled"]
-        },
-        "webserver": {
-          "type": "object",
-          "properties": {
-            "defaultUser": {
-              "type": "object",
-              "properties": {
-                "enabled": {
-                  "type": "boolean",
-                  "default": false
-                },
-                "existingSecret": {
-                  "type": "string"
-                }
-              },
-              "required": ["enabled"]
-            }
-          },
-          "required": ["defaultUser"]
+          }
         },
         "postgresql": {
           "type": "object",
           "properties": {
             "enabled": {
               "type": "boolean",
-              "default": false
+              "default": true
             }
-          },
-          "required": ["enabled"]
+          }
         },
         "externalDatabase": {
           "type": "object",
           "properties": {
+            "host": {
+              "type": "string"
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            "database": {
+              "type": "string"
+            },
             "existingSecret": {
+              "type": "string"
+            },
+            "user": {
+              "type": "string"
+            },
+            "password": {
               "type": "string"
             }
           }
@@ -178,14 +223,9 @@
           "properties": {
             "enabled": {
               "type": "boolean",
-              "default": false
+              "default": true
             }
-          },
-          "required": ["enabled"]
-        },
-        "executor": {
-          "type": "string",
-          "enum": ["LocalExecutor", "CeleryExecutor", "KubernetesExecutor"]
+          }
         },
         "dags": {
           "type": "object",
@@ -211,34 +251,34 @@
                 "branch": {
                   "type": "string"
                 },
-                "subPath": {
+                "name": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "sshKeySecret": {
                   "type": "string"
                 }
-              },
-              "required": ["enabled"]
+              }
             }
           }
         },
-        "migrateDatabaseJob": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false
-            },
-            "ttlSecondsAfterFinished": {
-              "type": "integer",
-              "minimum": 0
-            }
-          }
+        "webserverReplicaCount": {
+          "type": "integer",
+          "minimum": 1
         },
-        "data": {
-          "type": "object",
-          "properties": {
-            "metadataSecretName": {
-              "type": "string"
-            }
-          }
+        "schedulerReplicaCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "workerReplicas": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "usePasswordFiles": {
+          "type": "boolean",
+          "default": false
         }
       },
       "required": ["enabled"]

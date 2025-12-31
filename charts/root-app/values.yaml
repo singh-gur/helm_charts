@@ -39,44 +39,49 @@ alloy:
 
 airflow:
   enabled: false
-  version: "1.18.0" # Apache Airflow Helm chart version
+  version: "25.0.2" # Bitnami Airflow Helm chart version
   namespace: default
+  image:
+    registry: docker.io
+    repository: bitnami/airflow
+    tag: 3.0.5-debian-12-r0
+  auth:
+    existingSecret: airflow-secrets
+    # username: user
+    # password: airflow
+    # fernetKey: ""
+    # secretKey: ""
+  executor: CeleryExecutor
+  loadExamples: false
   ingress:
     enabled: true
     host: airflow.gsingh.io
-  webserver:
-    defaultUser:
-      enabled: true
-      username: admin
-      password: airflow
+    # ingressClassName: nginx
+    annotations: {}
+    tls: false
   postgresql:
     enabled: false # Use external PostgreSQL
-    image:
-      repository: "postgres" # Override image repository (e.g., myregistry/bitnami/postgresql)
-      tag: "16.11"
   externalDatabase:
-    secretName: airflow-db-secret # Optional: secret with "connection" key (base64 encoded SQLAlchemy conn)
-    # Direct connection values (used when secretName is empty)
+    host: 192.168.2.119
+    port: 5432
+    database: airflow
+    existingSecret: airflow-db-secret
     # user: airflow
-    # pass: airflow
-    # protocol: postgresql
-    # host: localhost
-    # port: 5432
-    # db: airflow
+    # password: airflow
   redis:
-    enabled: true # Required for CeleryExecutor
-  executor: "CeleryExecutor" # Options: LocalExecutor, CeleryExecutor, KubernetesExecutor
+    enabled: false # Use external Redis
   dags:
     gitSync:
       enabled: false
       repo: "" # Git repository URL for DAGs
-      branch: "main"
-      subPath: "dags"
-  migrateDatabaseJob:
-    enabled: true
-    # ttlSecondsAfterFinished: 300  # Auto-cleanup job after completion
-  data:
-    metadataSecretName: airflow-db-secret
+      branch: main
+      name: dags
+      path: ""
+      # sshKeySecret: ""
+  # webserverReplicaCount: 1
+  # schedulerReplicaCount: 1
+  # workerReplicas: 1
+  usePasswordFiles: true
 
 argowf:
   enabled: true

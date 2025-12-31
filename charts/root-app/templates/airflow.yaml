@@ -1,6 +1,5 @@
 {{- if .Values.airflow.enabled }}
 {{- $airflow := .Values.airflow }}
-{{- $secretName := $airflow.data.metadataSecretName | default $airflow.externalDatabase.secretName | default "" }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -11,83 +10,69 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://airflow.apache.org
+    repoURL: https://charts.bitnami.com/bitnami
     chart: airflow
     targetRevision: {{ $airflow.version }}
     helm:
       values: |
+        image:
+          registry: {{ $airflow.image.registry | default "docker.io" }}
+          repository: {{ $airflow.image.repository | default "bitnami/airflow" }}
+          tag: {{ $airflow.image.tag | default "3.0.5-debian-12-r0" }}
+        {{- if $airflow.auth.existingSecret }}
+        auth:
+          existingSecret: {{ $airflow.auth.existingSecret }}
+        {{- else }}
+        auth:
+          username: {{ $airflow.auth.username | default "user" }}
+          password: {{ $airflow.auth.password }}
+          fernetKey: {{ $airflow.auth.fernetKey }}
+          secretKey: {{ $airflow.auth.secretKey }}
+        {{- end }}
+        executor: {{ $airflow.executor | default "CeleryExecutor" }}
+        loadExamples: {{ $airflow.loadExamples | default false }}
+        {{- if $airflow.ingress.enabled }}
         ingress:
-          enabled: {{ $airflow.ingress.enabled }}
-          web:
-            enabled: {{ $airflow.ingress.enabled }}
-            {{- if $airflow.ingress.host }}
-            host: {{ $airflow.ingress.host }}
-            {{- end }}
-        webserver:
-          defaultUser:
-            enabled: {{ $airflow.webserver.defaultUser.enabled }}
-            username: {{ $airflow.webserver.defaultUser.username | default "admin" }}
-            password: {{ $airflow.webserver.defaultUser.password }}
-        {{- if $airflow.migrateDatabaseJob }}
-        migrateDatabaseJob:
-          enabled: {{ $airflow.migrateDatabaseJob.enabled | default false }}
-          {{- if $airflow.migrateDatabaseJob.ttlSecondsAfterFinished }}
-          ttlSecondsAfterFinished: {{ $airflow.migrateDatabaseJob.ttlSecondsAfterFinished }}
-          {{- end }}
-        {{- end }}
-        {{- if or $secretName $airflow.externalDatabase.host }}
-        data:
-          {{- if $secretName }}
-          metadataSecretName: {{ $secretName }}
-          {{- else }}
-          metadataConnection:
-            user: {{ $airflow.externalDatabase.user }}
-            pass: {{ $airflow.externalDatabase.pass }}
-            protocol: {{ $airflow.externalDatabase.protocol | default "postgresql" }}
-            host: {{ $airflow.externalDatabase.host }}
-            port: {{ $airflow.externalDatabase.port | default 5432 }}
-            db: {{ $airflow.externalDatabase.db }}
-          {{- end }}
-        {{- end }}
-        {{- if $airflow.postgresql.enabled }}
-        postgresql:
           enabled: true
-          {{- if $airflow.postgresql.image }}
-          image:
-            {{- if $airflow.postgresql.image.repository }}
-            repository: {{ $airflow.postgresql.image.repository }}
-            {{- end }}
-            {{- if $airflow.postgresql.image.tag }}
-            tag: {{ $airflow.postgresql.image.tag }}
-            {{- end }}
+          {{- if $airflow.ingress.ingressClassName }}
+          ingressClassName: {{ $airflow.ingress.ingressClassName }}
           {{- end }}
-        {{- else if not $secretName }}
-        {{- if not $airflow.externalDatabase.host }}
+          hostname: {{ $airflow.ingress.host }}
+          {{- if $airflow.ingress.annotations }}
+          annotations: {{ toYaml $airflow.ingress.annotations | indent 10 }}
+          {{- end }}
+          tls: {{ $airflow.ingress.tls | default false }}
+        {{- end }}
+        {{- if not $airflow.postgresql.enabled }}
         postgresql:
           enabled: false
+        externalDatabase:
+          host: {{ $airflow.externalDatabase.host }}
+          port: {{ $airflow.externalDatabase.port | default 5432 }}
+          database: {{ $airflow.externalDatabase.database }}
+          {{- if $airflow.externalDatabase.existingSecret }}
+          existingSecret: {{ $airflow.externalDatabase.existingSecret }}
+          {{- else }}
+          user: {{ $airflow.externalDatabase.user }}
+          password: {{ $airflow.externalDatabase.password }}
+          {{- end }}
         {{- end }}
-        {{- end }}
-        {{- if $airflow.redis.enabled }}
+        {{- if not $airflow.redis.enabled }}
         redis:
-          enabled: {{ $airflow.redis.enabled }}
+          enabled: false
         {{- end }}
-        {{- if $airflow.executor }}
-        executor: {{ $airflow.executor }}
-        {{- end }}
-        {{- if $airflow.dags }}
+        {{- if $airflow.dags.gitSync }}
         dags:
-          {{- if $airflow.dags.gitSync }}
-          gitSync:
-            enabled: {{ $airflow.dags.gitSync.enabled }}
-            {{- if $airflow.dags.gitSync.repo }}
-            repo: {{ $airflow.dags.gitSync.repo }}
-            {{- end }}
-            {{- if $airflow.dags.gitSync.branch }}
-            branch: {{ $airflow.dags.gitSync.branch }}
-            {{- end }}
-            {{- if $airflow.dags.gitSync.subPath }}
-            subPath: {{ $airflow.dags.gitSync.subPath }}
-            {{- end }}
+          enabled: true
+          repositories:
+            - repository: {{ $airflow.dags.gitSync.repo }}
+              branch: {{ $airflow.dags.gitSync.branch | default "main" }}
+              name: {{ $airflow.dags.gitSync.name | default "dags" }}
+              {{- if $airflow.dags.gitSync.path }}
+              path: {{ $airflow.dags.gitSync.path }}
+              {{- end }}
+          {{- if $airflow.dags.gitSync.sshKeySecret }}
+          existingSshKeySecret: {{ $airflow.dags.gitSync.sshKeySecret }}
           {{- end }}
         {{- end }}
   destination:
