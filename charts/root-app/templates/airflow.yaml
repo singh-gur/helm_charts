@@ -61,7 +61,7 @@ spec:
         redis:
           enabled: false
         {{- end }}
-        {{- if $airflow.dags.gitSync }}
+        {{- if and $airflow.dags.gitSync $airflow.dags.gitSync.enabled $airflow.dags.gitSync.repo }}
         dags:
           enabled: true
           repositories:
