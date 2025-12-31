@@ -56,10 +56,38 @@ spec:
           user: {{ $airflow.externalDatabase.user }}
           password: {{ $airflow.externalDatabase.password }}
           {{- end }}
+        {{- else }}
+        {{- if or $airflow.postgresql.image.registry $airflow.postgresql.image.repository $airflow.postgresql.image.tag }}
+        postgresql:
+          image:
+            {{- if $airflow.postgresql.image.registry }}
+            registry: {{ $airflow.postgresql.image.registry }}
+            {{- end }}
+            {{- if $airflow.postgresql.image.repository }}
+            repository: {{ $airflow.postgresql.image.repository }}
+            {{- end }}
+            {{- if $airflow.postgresql.image.tag }}
+            tag: {{ $airflow.postgresql.image.tag }}
+            {{- end }}
+        {{- end }}
         {{- end }}
         {{- if not $airflow.redis.enabled }}
         redis:
           enabled: false
+        {{- else }}
+        {{- if or $airflow.redis.image.registry $airflow.redis.image.repository $airflow.redis.image.tag }}
+        redis:
+          image:
+            {{- if $airflow.redis.image.registry }}
+            registry: {{ $airflow.redis.image.registry }}
+            {{- end }}
+            {{- if $airflow.redis.image.repository }}
+            repository: {{ $airflow.redis.image.repository }}
+            {{- end }}
+            {{- if $airflow.redis.image.tag }}
+            tag: {{ $airflow.redis.image.tag }}
+            {{- end }}
+        {{- end }}
         {{- end }}
         {{- if and $airflow.dags.gitSync $airflow.dags.gitSync.enabled $airflow.dags.gitSync.repo }}
         dags:

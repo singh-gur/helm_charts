@@ -42,9 +42,9 @@ airflow:
   version: "25.0.2" # Bitnami Airflow Helm chart version
   namespace: default
   image:
-    registry: docker.io
-    repository: bitnami/airflow
-    tag: 3.0.5-debian-12-r0
+    registry: regv2.gsingh.io
+    repository: core/airflow
+    tag: 3.0.5
   auth:
     existingSecret: airflow-secrets
     # username: user
@@ -61,6 +61,10 @@ airflow:
     tls: false
   postgresql:
     enabled: false # Use external PostgreSQL
+    image:
+      registry: regv2.gsingh.io
+      repository: core/postgresql
+      tag: "16.4"
   externalDatabase:
     host: 192.168.2.119
     port: 5432
@@ -70,6 +74,10 @@ airflow:
     # password: airflow
   redis:
     enabled: false # Use external Redis
+    image:
+      registry: regv2.gsingh.io
+      repository: core/redis
+      tag: "7.4"
   dags:
     gitSync:
       enabled: false
