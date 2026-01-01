@@ -93,6 +93,8 @@ while [[ $# -gt 0 ]]; do
             ;;
         -p|--password)
             PASSWORD="$2"
+            log_warn "Password provided via command line - visible in process list!"
+            log_warn "Consider using interactive mode for better security"
             shift 2
             ;;
         -e|--email)
@@ -235,14 +237,38 @@ if [[ "$ADD_INSECURE" == "true" ]]; then
     log_step "Configuring ArgoCD for insecure registry..."
 
     if kubectl get configmap argocd-cm -n argocd &>/dev/null; then
-        CURRENT_CONFIG=$(kubectl get configmap argocd-cm -n argocd -o jsonpath='{.data.config.yaml}' 2>/dev/null || echo "")
+        CURRENT_CONFIG=$(kubectl get configmap argocd-cm -n argocd -o jsonpath='{.data.config\.yaml}' 2>/dev/null || echo "")
 
         if echo "$CURRENT_CONFIG" | grep -q "$REGISTRY_SERVER"; then
             log_info "  Registry already configured in ArgoCD"
         else
-            kubectl patch configmap argocd-cm -n argocd \
-                --type merge \
-                -p '{"data":{"config.yaml":"'"$CURRENT_CONFIG"'\ninsecure.registry:\n- '"$REGISTRY_SERVER"'\n"}}' 2>/dev/null || true
+            # Create temporary file for safe YAML patching
+            TEMP_CONFIG=$(mktemp)
+            trap "rm -f $TEMP_CONFIG" EXIT
+            
+            # Build the new config with proper YAML formatting
+            if [[ -n "$CURRENT_CONFIG" ]]; then
+                echo "$CURRENT_CONFIG" > "$TEMP_CONFIG"
+                # Add insecure registry if not already present
+                if ! grep -q "insecure.registry:" "$TEMP_CONFIG"; then
+                    echo "insecure.registry:" >> "$TEMP_CONFIG"
+                fi
+                echo "- $REGISTRY_SERVER" >> "$TEMP_CONFIG"
+            else
+                # Create new config if empty
+                cat > "$TEMP_CONFIG" <<EOF
+insecure.registry:
+- $REGISTRY_SERVER
+EOF
+            fi
+            
+            # Apply the patch using kubectl create with --dry-run and apply pattern
+            kubectl create configmap argocd-cm \
+                --from-file=config.yaml="$TEMP_CONFIG" \
+                --namespace=argocd \
+                --dry-run=client \
+                -o yaml | kubectl apply -f - 2>/dev/null || log_warn "  Failed to patch ArgoCD configmap"
+            
             log_info "  Added '$REGISTRY_SERVER' to insecure registries"
         fi
     else
@@ -251,7 +277,7 @@ if [[ "$ADD_INSECURE" == "true" ]]; then
 fi
 
 # Restart ArgoCD pods
-if [[ "$RESTART_ARGOCD" == "true" ]] && [[ "$PATCH_ARGOCD" == "true" ]] || [[ "$ADD_INSECURE" == "true" ]]; then
+if [[ "$RESTART_ARGOCD" == "true" ]] && ( [[ "$PATCH_ARGOCD" == "true" ]] || [[ "$ADD_INSECURE" == "true" ]] ); then
     echo ""
     log_step "Restarting ArgoCD components..."
 
