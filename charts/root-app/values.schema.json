@@ -119,6 +119,20 @@
           "type": "string",
           "minLength": 1
         },
+        "global": {
+          "type": "object",
+          "properties": {
+            "security": {
+              "type": "object",
+              "properties": {
+                "allowInsecureImages": {
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            }
+          }
+        },
         "image": {
           "type": "object",
           "properties": {

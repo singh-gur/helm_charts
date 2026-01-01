@@ -15,6 +15,9 @@ spec:
     targetRevision: {{ $airflow.version }}
     helm:
       values: |
+        global:
+          security:
+            allowInsecureImages: {{ $airflow.global.security.allowInsecureImages | default false }}
         image:
           registry: {{ $airflow.image.registry | default "docker.io" }}
           repository: {{ $airflow.image.repository | default "bitnami/airflow" }}

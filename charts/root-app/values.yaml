@@ -41,6 +41,9 @@ airflow:
   enabled: false
   version: "25.0.2" # Bitnami Airflow Helm chart version
   namespace: default
+  global:
+    security:
+      allowInsecureImages: true
   image:
     registry: regv2.gsingh.io
     repository: core/airflow
