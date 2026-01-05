@@ -122,7 +122,7 @@ ghost:
   ghostEmail: hello@gsingh.io
 langfuse:
   enabled: false
-  version: 1.5.11
+  version: 1.5.15
   ingress:
     host: langfuse.gsingh.io
   clickhouse:
