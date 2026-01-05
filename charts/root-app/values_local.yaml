@@ -189,7 +189,7 @@ plane:
   enabled: false
 windmill:
   enabled: false
-  version: 3.0.18
+  version: 4.0.21
   host: windmill.gsingh.io
   postgresql:
     enabled: true
