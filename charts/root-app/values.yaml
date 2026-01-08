@@ -256,7 +256,7 @@ k8sMonitoring:
     cost:
       enabled: false
 kyuubi:
-  enabled: true
+  enabled: false
   namespace: default
   replicaCount: 2
   image:
