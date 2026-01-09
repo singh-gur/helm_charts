@@ -15,7 +15,7 @@ spec:
     helm:
       values: |
         zitadel:
-          masterkeySecretName: zitadel-masterkey
+          masterkeySecretName: {{.Values.zitadel.masterkeySecretName | default "zitadel-masterkey"}}
           configmapConfig:
             ExternalPort: 443
             ExternalSecure: true
@@ -23,18 +23,46 @@ spec:
             TLS:
               Enabled: false
             Database:
-              Cockroach:
+              Postgres:
+                Host: {{ .Values.zitadel.dbHost | default "db-postgresql" }}
+                Port: 5432
+                Database: zitadel
                 MaxOpenConns: 20
                 MaxIdleConns: 10
                 MaxConnLifetime: 30m
                 MaxConnIdleTime: 5m
-          selfSignedCert:
+                User:
+                  Username: zitadel
+                  SSL:
+                    Mode: {{ .Values.zitadel.dbSslMode | default "disable" }}
+          secretConfig:
+            Database:
+              Postgres:
+                User:
+                  Password: ""
+          firstInstance:
+            org:
+              machine:
+                machine:
+                  username: iam-admin
+                  name: IAM Admin
+                machineKey:
+                  expirationDate: "2029-01-01T00:00:00Z"
+                  type: 1
+                pat:
+                  expirationDate: "2029-01-01T00:00:00Z"
+              loginClient:
+                machine:
+                  username: login-client
+                  name: Login Client
+                pat:
+                  expirationDate: "2029-01-01T00:00:00Z"
+          login:
             enabled: true
-          configSecretName: zitadel-config-secrets
-          configSecretKey: config.yaml
-          dbSslCaCrtSecret: zitadel-db-ca-secret
-          dbSslAdminCrtSecret: zitadel-db-admin-secret
-          dbSslUserCrtSecret: zitadel-db-user-secret
+            ingress:
+              enabled: true
+        initJob:
+          command: "zitadel"
         ingress:
           enabled: true
           hosts:
