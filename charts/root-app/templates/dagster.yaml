@@ -91,6 +91,7 @@ spec:
         {{- else }}
         dagster-user-deployments:
           enabled: false
+          enableSubchart: false
         {{- end }}
         {{- if $dagster.migrate.enabled }}
         migrate:
