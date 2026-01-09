@@ -304,7 +304,7 @@ trino:
       credentialsSecret: trino-iceberg-s3
 
 dagster:
-  enabled: true
+  enabled: false
   version: 1.12.9
   namespace: dagster
 
@@ -322,7 +322,7 @@ dagster:
 
   # Dagster daemon configuration
   dagsterDaemon:
-    enabled: false  # Requires proper dagster instance config
+    enabled: false # Requires proper dagster instance config
     image:
       repository: "docker.io/dagster/dagster-celery-k8s"
       tag: ~
