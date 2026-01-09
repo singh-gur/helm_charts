@@ -182,7 +182,7 @@ openproject:
     host: "auth.gsingh.io"
     scope: "[openid profile email]"
 zitadel:
-  enabled: true
+  enabled: false
   version: 9.15.0
   externalDomain: auth.gsingh.io
   ingress:
@@ -317,7 +317,7 @@ dagster:
 
   # Dagster daemon configuration
   dagsterDaemon:
-    enabled: false  # Requires proper dagster instance config
+    enabled: false # Requires proper dagster instance config
     image:
       repository: "docker.io/dagster/dagster-celery-k8s"
       tag: ~
