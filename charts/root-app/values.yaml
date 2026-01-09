@@ -37,6 +37,46 @@ alloy:
   enabled: true
   version: 1.0.3
 
+authentik:
+  enabled: false
+  version: "2025.10.3"
+  namespace: default
+  secret_key: ""  # Required: Generate with: openssl rand -base64 50
+  # External PostgreSQL configuration
+  postgresql:
+    host: 192.168.2.119
+    port: 5432
+    database: authentik
+    existingSecret: authentik-postgres-credentials
+    # Username key in secret: username
+    # Password key in secret: password
+  # Ingress configuration
+  ingress:
+    enabled: true
+    host: auth.gsingh.io
+  # Server configuration
+  server:
+    replicas: 1
+  # Worker configuration
+  worker:
+    replicas: 1
+  # Email settings (optional)
+  email:
+    host: ""
+    port: 587
+    from: ""
+    use_tls: false
+  # Error reporting (optional)
+  error_reporting:
+    enabled: false
+    environment: "production"
+    send_pii: false
+  # Log level
+  log_level: "info"
+  # GeoIP configuration (optional)
+  geoip:
+    enabled: false
+
 airflow:
   enabled: false
   version: "25.0.2" # Bitnami Airflow Helm chart version

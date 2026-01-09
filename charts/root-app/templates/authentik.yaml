@@ -1,0 +1,138 @@
+{{- if .Values.authentik.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: {{ .Values.argocdNamespace | default "default" }}
+  name: authentik
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://charts.goauthentik.io
+    chart: authentik
+    targetRevision: {{ .Values.authentik.version }}
+    helm:
+      values: |
+        # Global settings
+        global:
+          image:
+            pullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+
+        # PostgreSQL configuration (external)
+        postgresql:
+          enabled: false
+
+        # Authentik core settings
+        authentik:
+          secret_key: "{{ .Values.authentik.secret_key }}"
+          {{- if .Values.authentik.error_reporting.enabled }}
+          error_reporting:
+            enabled: true
+            environment: "{{ .Values.authentik.error_reporting.environment | default "production" }}"
+            send_pii: {{ .Values.authentik.error_reporting.send_pii | default false }}
+          {{- end }}
+          postgresql:
+            host: {{ .Values.authentik.postgresql.host }}
+            port: {{ .Values.authentik.postgresql.port | default 5432 }}
+            database: {{ .Values.authentik.postgresql.database | default "authentik" }}
+            user: "file:///postgres-creds/username"
+            password: "file:///postgres-creds/password"
+          log_level: "{{ .Values.authentik.log_level | default "info" }}"
+          email:
+            {{- if .Values.authentik.email.host }}
+            host: "{{ .Values.authentik.email.host }}"
+            port: {{ .Values.authentik.email.port | default 587 }}
+            from: "{{ .Values.authentik.email.from }}"
+            use_tls: {{ .Values.authentik.email.use_tls | default false }}
+            {{- end }}
+
+        # Server deployment
+        server:
+          enabled: true
+          replicas: {{ .Values.authentik.server.replicas | default 1 }}
+          {{- if .Values.authentik.ingress.enabled }}
+          ingress:
+            enabled: true
+            ingressClassName: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+              nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+              nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+              nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+            hosts:
+              - host: {{ .Values.authentik.ingress.host }}
+                paths:
+                  - path: /
+                    pathType: Prefix
+            tls:
+              - secretName: authentik-tls
+                hosts:
+                  - {{ .Values.authentik.ingress.host }}
+          {{- end }}
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          volumeMounts:
+            - name: postgres-creds
+              mountPath: /postgres-creds
+              readOnly: true
+          volumes:
+            - name: postgres-creds
+              secret:
+                secretName: {{ .Values.authentik.postgresql.existingSecret }}
+
+        # Worker deployment
+        worker:
+          enabled: true
+          replicas: {{ .Values.authentik.worker.replicas | default 1 }}
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          volumeMounts:
+            - name: postgres-creds
+              mountPath: /postgres-creds
+              readOnly: true
+          volumes:
+            - name: postgres-creds
+              secret:
+                secretName: {{ .Values.authentik.postgresql.existingSecret }}
+
+        # Service account
+        serviceAccount:
+          create: true
+
+        # GeoIP (disabled by default)
+        {{- if .Values.authentik.geoip.enabled }}
+        geoip:
+          enabled: true
+          editionIds: "{{ .Values.authentik.geoip.editionIds | default "GeoLite2-City GeoLite2-ASN" }}"
+          {{- if .Values.authentik.geoip.existingSecret }}
+          existingSecret:
+            secretName: {{ .Values.authentik.geoip.existingSecret }}
+            accountId: "{{ .Values.authentik.geoip.accountIdKey | default "account_id" }}"
+            licenseKey: "{{ .Values.authentik.geoip.licenseKeyKey | default "license_key" }}"
+          {{- end }}
+        {{- end }}
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.authentik.namespace | default "default" }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+{{- end }}
