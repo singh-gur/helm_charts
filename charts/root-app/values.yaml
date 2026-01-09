@@ -38,11 +38,11 @@ alloy:
   version: 1.0.3
 
 authentik:
-  enabled: false
+  enabled: true
   version: "2025.10.3"
   namespace: default
   existingSecret:
-    secretName: ""  # K8s secret containing: secret_key, postgresql-password, email-password
+    secretName: authentik-secret # K8s secret containing: secret_key, postgresql-password, email-password
   # External PostgreSQL configuration
   postgresql:
     host: 192.168.2.119
@@ -73,7 +73,7 @@ authentik:
   # Ingress configuration
   ingress:
     enabled: true
-    host: auth.gsingh.io
+    host: authentik.gsingh.io
 
 airflow:
   enabled: false
