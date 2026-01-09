@@ -189,6 +189,7 @@ zitadel:
     host: auth.gsingh.io
   masterkeySecretName: zitadel-masterkey
   configSecretName: zitadel-config-secrets
+  dbHost: 192.168.2.119
   dbSslMode: "disable"
 plane:
   enabled: false
