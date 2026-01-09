@@ -34,6 +34,10 @@ spec:
                 hosts:
                   - {{ $dagster.ingress.host }}
             {{- end }}
+            {{- if not $dagster.dagsterUserDeployments.enabled }}
+            workspace:
+              enabled: false
+            {{- end }}
         {{- end }}
         {{- if not $dagster.postgresql.enabled }}
         postgresql:
