@@ -104,6 +104,131 @@
       },
       "required": ["enabled"]
     },
+    "authentik": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "namespace": {
+          "type": "string",
+          "minLength": 1
+        },
+        "existingSecret": {
+          "type": "object",
+          "properties": {
+            "secretName": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["secretName"]
+        },
+        "postgresql": {
+          "type": "object",
+          "properties": {
+            "host": {
+              "type": "string",
+              "format": "hostname"
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            "database": {
+              "type": "string",
+              "minLength": 1
+            },
+            "username": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "email": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "host": {
+              "type": "string"
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            "username": {
+              "type": "string"
+            },
+            "from": {
+              "type": "string"
+            },
+            "use_tls": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "error_reporting": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "environment": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "log_level": {
+          "type": "string",
+          "enum": ["debug", "info", "warning", "error"]
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "host": {
+              "type": "string",
+              "format": "hostname"
+            }
+          }
+        },
+        "server": {
+          "type": "object",
+          "properties": {
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "worker": {
+          "type": "object",
+          "properties": {
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      },
+      "required": ["enabled", "version", "postgresql"]
+    },
     "airflow": {
       "type": "object",
       "properties": {
