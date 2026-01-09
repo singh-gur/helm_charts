@@ -4,4 +4,4 @@ charts/**/charts
 .ignore
 .test
 .zed/settings.json
-#.crush
+.crush
