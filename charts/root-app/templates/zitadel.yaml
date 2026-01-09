@@ -22,6 +22,19 @@ spec:
             ExternalDomain: {{.Values.zitadel.externalDomain}}
             TLS:
               Enabled: false
+            Database:
+              Postgres:
+                Host: {{ .Values.zitadel.dbHost | default "db-postgresql" }}
+                Port: {{ .Values.zitadel.dbPort | default 5432 }}
+                Database: {{ .Values.zitadel.dbName | default "zitadel" }}
+                MaxOpenConns: 20
+                MaxIdleConns: 10
+                MaxConnLifetime: 30m
+                MaxConnIdleTime: 5m
+                User:
+                  Username: {{ .Values.zitadel.dbUser | default "zitadel" }}
+                  SSL:
+                    Mode: {{ .Values.zitadel.dbSslMode | default "disable" }}
           envVarsSecret: {{ .Values.zitadel.envSecretsName | default "zitadel-secrets" }}
           firstInstance:
             org:
