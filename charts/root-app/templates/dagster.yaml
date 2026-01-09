@@ -84,6 +84,9 @@ spec:
         dagster-user-deployments:
           enabled: true
           deployments: {{ toYaml $dagster.dagsterUserDeployments.deployments | indent 10 }}
+        {{- else }}
+        dagster-user-deployments:
+          enabled: false
         {{- end }}
         {{- if $dagster.migrate.enabled }}
         migrate:
