@@ -188,9 +188,7 @@ zitadel:
   ingress:
     host: auth.gsingh.io
   masterkeySecretName: zitadel-masterkey
-  dbHost: 192.168.2.119
-  dbSslMode: "disable"
-  envSecretsName: zitadel-secrets
+  configSecretName: zitadel-secrets
 plane:
   enabled: false
 windmill:
