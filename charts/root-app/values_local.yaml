@@ -322,7 +322,7 @@ dagster:
 
   # Dagster daemon configuration
   dagsterDaemon:
-    enabled: true
+    enabled: false  # Requires proper dagster instance config
     image:
       repository: "docker.io/dagster/dagster-celery-k8s"
       tag: ~
