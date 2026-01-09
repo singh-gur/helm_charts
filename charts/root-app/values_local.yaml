@@ -38,7 +38,7 @@ alloy:
   version: 1.0.3
 
 airflow:
-  enabled: true
+  enabled: false
   version: "25.0.2" # Bitnami Airflow Helm chart version
   namespace: default
   global:
@@ -269,7 +269,7 @@ kyuubi:
       memory: 2Gi
 
 trino:
-  enabled: true
+  enabled: false
   version: "1.41.0"
   namespace: data-platform
   ingress:
@@ -302,3 +302,105 @@ trino:
         region: us-east-1
         pathStyleAccess: true
       credentialsSecret: trino-iceberg-s3
+
+dagster:
+  enabled: true
+  version: 1.12.9
+  namespace: dagster
+
+  # Dagster webserver configuration
+  dagsterWebserver:
+    replicaCount: 1
+    image:
+      repository: "docker.io/dagster/dagster-celery-k8s"
+      tag: ~
+      pullPolicy: Always
+    service:
+      type: ClusterIP
+      port: 80
+    resources: {}
+    ingress:
+      enabled: true
+      annotations: {}
+      ingressClassName: ~
+      host: dagster.gsingh.io
+      path: "/*"
+      pathType: ImplementationSpecific
+      tls:
+        enabled: false
+        secretName: dagster-tls
+
+  # Dagster daemon configuration
+  dagsterDaemon:
+    enabled: true
+    image:
+      repository: "docker.io/dagster/dagster-celery-k8s"
+      tag: ~
+      pullPolicy: Always
+    heartbeatTolerance: 1800
+    resources: {}
+
+  # Run launcher configuration
+  runLauncher:
+    type: K8sRunLauncher
+    config: {}
+
+  # PostgreSQL configuration (use external or bundled)
+  postgresql:
+    enabled: true
+    postgresqlHost: ""
+    postgresqlUsername: dagster
+    postgresqlPassword: ""
+    postgresqlDatabase: dagster
+    postgresqlPort: 5432
+    existingSecret: ""
+    # To use external PostgreSQL, set enabled: false and configure postgresqlHost above
+
+  # RabbitMQ configuration (optional, for CeleryExecutor)
+  rabbitmq:
+    enabled: false
+    host: ""
+    port: 5672
+    username: ""
+    password: ""
+
+  # Redis configuration (optional, alternative to RabbitMQ)
+  redis:
+    enabled: false
+    host: ""
+    port: 6379
+    password: ""
+
+  # User code deployments
+  dagsterUserDeployments:
+    enabled: false
+    deployments: []
+
+  # Compute log manager
+  computeLogManager:
+    type: NoOpComputeLogManager
+    config: {}
+
+  # Ingress configuration (top-level)
+  ingress:
+    enabled: false
+    annotations: {}
+    labels: {}
+    ingressClassName: ~
+
+  # Flower (optional Celery monitoring)
+  flower:
+    enabled: false
+    host: ""
+    port: 5555
+
+  # Global settings
+  global:
+    postgresqlSecretName: "dagster-postgresql-secret"
+    dagsterHome: "/opt/dagster/dagster_home"
+    serviceAccountName: ""
+    celeryConfigSecretName: "dagster-celery-config-secret"
+
+  # Migration job (one-time use)
+  migrate:
+    enabled: false
