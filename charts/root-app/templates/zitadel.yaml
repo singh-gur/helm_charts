@@ -35,11 +35,7 @@ spec:
                   Username: zitadel
                   SSL:
                     Mode: {{ .Values.zitadel.dbSslMode | default "disable" }}
-          secretConfig:
-            Database:
-              Postgres:
-                User:
-                  Password: ""
+          envVarsSecret: {{ .Values.zitadel.envSecretsName | default "zitadel-secrets" }}
           firstInstance:
             org:
               machine:
