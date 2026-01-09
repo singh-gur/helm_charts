@@ -15,24 +15,24 @@ spec:
     targetRevision: {{ $dagster.version }}
     helm:
       values: |
-        {{- if $dagster.dagsterWebserver.ingress.enabled }}
-        dagsterWebserver:
-          ingress:
-            enabled: true
-            {{- if $dagster.dagsterWebserver.ingress.annotations }}
-            annotations: {{ toYaml $dagster.dagsterWebserver.ingress.annotations | indent 12 }}
-            {{- end }}
-            {{- if $dagster.dagsterWebserver.ingress.ingressClassName }}
-            ingressClassName: {{ $dagster.dagsterWebserver.ingress.ingressClassName }}
-            {{- end }}
-            host: {{ $dagster.dagsterWebserver.ingress.host }}
-            path: {{ $dagster.dagsterWebserver.ingress.path | default "/*" }}
-            pathType: {{ $dagster.dagsterWebserver.ingress.pathType | default "ImplementationSpecific" }}
-            {{- if $dagster.dagsterWebserver.ingress.tls.enabled }}
+        {{- if $dagster.ingress.enabled }}
+        ingress:
+          enabled: true
+          {{- if $dagster.ingress.annotations }}
+          annotations: {{ toYaml $dagster.ingress.annotations | indent 10 }}
+          {{- end }}
+          {{- if $dagster.ingress.ingressClassName }}
+          ingressClassName: {{ $dagster.ingress.ingressClassName }}
+          {{- end }}
+          dagsterWebserver:
+            host: {{ $dagster.ingress.host }}
+            path: {{ $dagster.ingress.path | default "/*" }}
+            pathType: {{ $dagster.ingress.pathType | default "ImplementationSpecific" }}
+            {{- if $dagster.ingress.tls.enabled }}
             tls:
-              - secretName: {{ $dagster.dagsterWebserver.ingress.tls.secretName | default "dagster-tls" }}
+              - secretName: {{ $dagster.ingress.tls.secretName | default "dagster-tls" }}
                 hosts:
-                  - {{ $dagster.dagsterWebserver.ingress.host }}
+                  - {{ $dagster.ingress.host }}
             {{- end }}
         {{- end }}
         {{- if not $dagster.postgresql.enabled }}

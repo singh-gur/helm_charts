@@ -308,27 +308,17 @@ dagster:
   version: 1.12.9
   namespace: dagster
 
-  # Dagster webserver configuration
-  dagsterWebserver:
-    replicaCount: 1
-    image:
-      repository: "docker.io/dagster/dagster-celery-k8s"
-      tag: ~
-      pullPolicy: Always
-    service:
-      type: ClusterIP
-      port: 80
-    resources: {}
-    ingress:
-      enabled: true
-      annotations: {}
-      ingressClassName: ~
-      host: dagster.gsingh.io
-      path: "/*"
-      pathType: ImplementationSpecific
-      tls:
-        enabled: false
-        secretName: dagster-tls
+  # Top-level ingress configuration
+  ingress:
+    enabled: true
+    annotations: {}
+    ingressClassName: ~
+    host: dagster.gsingh.io
+    path: "/*"
+    pathType: ImplementationSpecific
+    tls:
+      enabled: false
+      secretName: dagster-tls
 
   # Dagster daemon configuration
   dagsterDaemon:
@@ -354,7 +344,6 @@ dagster:
     postgresqlDatabase: dagster
     postgresqlPort: 5432
     existingSecret: ""
-    # To use external PostgreSQL, set enabled: false and configure postgresqlHost above
 
   # RabbitMQ configuration (optional, for CeleryExecutor)
   rabbitmq:
@@ -380,13 +369,6 @@ dagster:
   computeLogManager:
     type: NoOpComputeLogManager
     config: {}
-
-  # Ingress configuration (top-level)
-  ingress:
-    enabled: false
-    annotations: {}
-    labels: {}
-    ingressClassName: ~
 
   # Flower (optional Celery monitoring)
   flower:
