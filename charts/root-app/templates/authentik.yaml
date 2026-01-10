@@ -73,14 +73,8 @@ spec:
           {{- if .Values.authentik.ingress.enabled }}
           ingress:
             enabled: true
-            ingressClassName: nginx
-            annotations:
-              cert-manager.io/cluster-issuer: letsencrypt-prod
             hosts:
-              - host: {{ .Values.authentik.ingress.host }}
-                paths:
-                  - path: /
-                    pathType: Prefix
+              - {{ .Values.authentik.ingress.host }}
             {{- if .Values.authentik.tls.enabled }}
             tls:
               - secretName: authentik-tls
