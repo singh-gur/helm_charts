@@ -120,14 +120,8 @@
           "minLength": 1
         },
         "existingSecret": {
-          "type": "object",
-          "properties": {
-            "secretName": {
-              "type": "string",
-              "minLength": 1
-            }
-          },
-          "required": ["secretName"]
+          "type": "string",
+          "minLength": 1
         },
         "postgresql": {
           "type": "object",

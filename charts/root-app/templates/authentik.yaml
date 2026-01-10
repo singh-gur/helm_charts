@@ -46,6 +46,26 @@ spec:
               value: "https://{{ .Values.authentik.ingress.host }}"
             - name: AUTHENTIK_LISTEN__TRUSTED_PROXY_CIDRS
               value: "{{ .Values.authentik.trusted_proxy_cidrs | default "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16" }}"
+            - name: AUTHENTIK_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.authentik.existingSecret }}
+                  key: AUTHENTIK_SECRET_KEY
+            - name: AUTHENTIK_POSTGRESQL__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.authentik.existingSecret }}
+                  key: AUTHENTIK_POSTGRESQL__PASSWORD
+            - name: AUTHENTIK_BOOTSTRAP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.authentik.existingSecret }}
+                  key: AUTHENTIK_BOOTSTRAP_PASSWORD
+            - name: AUTHENTIK_BOOTSTRAP_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.authentik.existingSecret }}
+                  key: AUTHENTIK_BOOTSTRAP_EMAIL
         # Server deployment
         server:
           enabled: true
