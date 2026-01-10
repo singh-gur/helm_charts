@@ -20,8 +20,6 @@ spec:
 
         # Authentik core settings
         authentik:
-          existingSecret:
-            secretName: {{ .Values.authentik.existingSecret.secretName }}
           log_level: "{{ .Values.authentik.log_level | default "info" }}"
           {{- if .Values.authentik.error_reporting.enabled }}
           error_reporting:
@@ -42,6 +40,12 @@ spec:
             use_tls: {{ .Values.authentik.email.use_tls | default false }}
           {{- end }}
 
+        global:
+          env:
+            - name: AUTHENTIK_EXTERNAL_URL
+              value: "https://{{ .Values.authentik.ingress.host }}"
+            - name: AUTHENTIK_LISTEN__TRUSTED_PROXY_CIDRS
+              value: "{{ .Values.authentik.trusted_proxy_cidrs | default "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16" }}"
         # Server deployment
         server:
           enabled: true
@@ -57,10 +61,12 @@ spec:
                 paths:
                   - path: /
                     pathType: Prefix
+            {{- if .Values.authentik.tls.enabled }}
             tls:
               - secretName: authentik-tls
                 hosts:
                   - {{ .Values.authentik.ingress.host }}
+            {{- end }}
           {{- end }}
 
         # Worker deployment

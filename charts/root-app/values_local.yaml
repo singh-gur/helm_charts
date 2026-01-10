@@ -49,6 +49,8 @@ authentik:
     port: 5432
     database: authentik
     username: authentik
+  trusted_proxy_cidrs:
+    "192.168.0.0/16"
     # Password is read from existingSecret
   # Email settings (optional, leave disabled if not needed)
   email:
@@ -74,6 +76,8 @@ authentik:
   ingress:
     enabled: true
     host: authentik.gsingh.io
+  tls:
+    enabled: false
 
 airflow:
   enabled: false
