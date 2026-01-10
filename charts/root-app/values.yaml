@@ -38,7 +38,7 @@ alloy:
   version: 1.0.3
 
 authentik:
-  enabled: true
+  enabled: false
   version: "2025.10.3"
   namespace: default
   existingSecret: authentik-secret
