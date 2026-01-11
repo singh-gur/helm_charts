@@ -228,8 +228,7 @@ zitadel:
     host: auth.gsingh.io
   masterkeySecretName: zitadel-masterkey
   configSecretName: zitadel-secrets
-plane:
-  enabled: false
+
 windmill:
   enabled: false
   version: 4.0.21

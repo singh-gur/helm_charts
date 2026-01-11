@@ -188,7 +188,8 @@ uptime:
   ingress:
     host: uptime.gsingh.io
 whoami:
-  enabled: true
+  enabled: false
+
 openproject:
   enabled: false
   admin_user:
@@ -230,8 +231,7 @@ zitadel:
     host: auth.gsingh.io
   masterkeySecretName: zitadel-masterkey
   configSecretName: zitadel-secrets
-plane:
-  enabled: false
+
 windmill:
   enabled: true
   version: 4.0.21
