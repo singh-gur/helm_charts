@@ -1,0 +1,61 @@
+{{- if .Values.plane.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: {{ .Values.argocdNamespace | default "default" }}
+  name: plane
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://helm.plane.so/
+    chart: plane-ce
+    targetRevision: {{ .Values.plane.version }}
+    helm:
+      values: |
+        # External services
+        postgres:
+          local_setup: false
+        redis:
+          local_setup: true
+        rabbitmq:
+          local_setup: true
+        minio:
+          local_setup: false
+
+        # Secrets
+        app_env_existingSecret: {{ .Values.plane.existingSecret }}
+        live_env_existingSecret: {{ .Values.plane.existingSecret }}
+        live_server_secret_key: "htbqvBJAgpm9bzvf3r4urJer0ENReatceh"
+        doc_store_existingSecret: {{ .Values.plane.s3.existingSecret | default .Values.plane.existingSecret }}
+
+        # S3 configuration
+        env:
+          docstore_bucket: {{ .Values.plane.s3.bucket | default "plane-uploads" }}
+          doc_upload_size_limit: {{ .Values.plane.s3.uploadLimit | default 5242880 }}
+          default_cluster_domain: cluster.local
+
+        # Ingress
+        ingress:
+          enabled: true
+          appHost: {{ .Values.plane.ingress.host }}
+          ingressClass: nginx
+          ingress_annotations:
+            nginx.ingress.kubernetes.io/proxy-body-size: "5m"
+
+        # API custom settings
+        api:
+          env:
+            api_key_rate_limit: "60/minute"
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.plane.namespace | default "default" }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}
