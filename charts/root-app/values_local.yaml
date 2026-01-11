@@ -443,3 +443,14 @@ prefect:
     enabled: true
     existingSecret: "prefect-basic-auth"
   uiApiUrl: "https://prefect.gsingh.io/api"
+
+prefectWorker:
+  enabled: true
+  version: "2026.1.8195301"
+  namespace: default
+  replicaCount: 3
+  workPool: "kubernetes"
+  apiUrl: "http://prefect-server.default.svc.cluster.local:4200/api"
+  basicAuth:
+    enabled: true
+    existingSecret: "prefect-basic-auth"

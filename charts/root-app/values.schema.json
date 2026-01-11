@@ -1285,6 +1285,51 @@
         }
       },
       "required": ["enabled"]
+    },
+    "prefectWorker": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "namespace": {
+          "type": "string",
+          "minLength": 1
+        },
+        "replicaCount": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "workPool": {
+          "type": "string",
+          "minLength": 1
+        },
+        "apiUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "basicAuth": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "existingSecret": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["enabled", "existingSecret"]
+        }
+      },
+      "required": ["enabled", "version", "replicaCount", "workPool", "apiUrl", "basicAuth"]
     }
   }
 }

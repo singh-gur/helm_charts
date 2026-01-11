@@ -1,0 +1,44 @@
+{{- if .Values.prefectWorker.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: {{ .Values.argocdNamespace | default "default" }}
+  name: prefect-worker
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://prefecthq.github.io/prefect-helm
+    chart: prefect-worker
+    targetRevision: {{ .Values.prefectWorker.version }}
+    helm:
+      values: |
+        worker:
+          replicaCount: {{ .Values.prefectWorker.replicaCount }}
+          apiConfig: selfHostedServer
+          config:
+            workPool: {{ .Values.prefectWorker.workPool }}
+            type: kubernetes
+          selfHostedServerApiConfig:
+            apiUrl: {{ .Values.prefectWorker.apiUrl | quote }}
+            basicAuth:
+              enabled: {{ .Values.prefectWorker.basicAuth.enabled }}
+              existingSecret: {{ .Values.prefectWorker.basicAuth.existingSecret }}
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.prefectWorker.namespace | default "default" }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}
