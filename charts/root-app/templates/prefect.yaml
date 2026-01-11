@@ -37,6 +37,7 @@ spec:
           enabled: true
           host:
             hostname: {{ .Values.prefect.ingress.host }}
+            pathType: Prefix
   destination:
     server: https://kubernetes.default.svc
     namespace: default
