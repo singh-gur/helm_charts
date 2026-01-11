@@ -422,3 +422,11 @@ dagster:
   # Migration job (one-time use)
   migrate:
     enabled: false
+
+prefect:
+  enabled: true
+  version: "2.8.1"
+  ingress:
+    host: prefect.gsingh.io
+  postgresql:
+    existingSecret: "prefect-db-secret"

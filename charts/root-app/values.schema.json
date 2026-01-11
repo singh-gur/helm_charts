@@ -1225,6 +1225,40 @@
         }
       },
       "required": ["enabled"]
+    },
+    "prefect": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "host": {
+              "type": "string",
+              "format": "hostname"
+            }
+          },
+          "required": ["host"]
+        },
+        "postgresql": {
+          "type": "object",
+          "properties": {
+            "existingSecret": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["existingSecret"]
+        }
+      },
+      "required": ["enabled"]
     }
   }
 }

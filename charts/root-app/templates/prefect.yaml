@@ -1,0 +1,50 @@
+{{- if .Values.prefect.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: {{ .Values.argocdNamespace | default "default" }}
+  name: prefect
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://prefecthq.github.io/prefect-helm
+    chart: prefect-server
+    targetRevision: {{ .Values.prefect.version }}
+    helm:
+      values: |
+        postgresql:
+          enabled: false
+        secret:
+          create: false
+          name: {{ .Values.prefect.postgresql.existingSecret }}
+        backgroundServices:
+          runAsSeparateDeployment: false
+        server:
+          replicaCount: 1
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+        ingress:
+          enabled: true
+          tls:
+            enabled: true
+          host:
+            hostname: {{ .Values.prefect.ingress.host }}
+            path: /
+            pathType: ImplementationSpecific
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}
