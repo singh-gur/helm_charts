@@ -23,6 +23,8 @@ spec:
           basicAuth:
             enabled: {{ .Values.prefect.basicAuth.enabled }}
             existingSecret: {{ .Values.prefect.basicAuth.existingSecret }}
+          uiConfig:
+            prefectUiApiUrl: {{ .Values.prefect.uiApiUrl | quote }}
           replicaCount: 1
           resources:
             requests:

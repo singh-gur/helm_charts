@@ -442,3 +442,4 @@ prefect:
   basicAuth:
     enabled: true
     existingSecret: "prefect-basic-auth"
+  uiApiUrl: "https://prefect.gsingh.io/api"

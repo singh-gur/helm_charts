@@ -1278,6 +1278,10 @@
             }
           },
           "required": ["enabled", "existingSecret"]
+        },
+        "uiApiUrl": {
+          "type": "string",
+          "format": "uri"
         }
       },
       "required": ["enabled"]
