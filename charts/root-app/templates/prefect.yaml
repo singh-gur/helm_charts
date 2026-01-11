@@ -35,9 +35,13 @@ spec:
           runAsSeparateDeployment: false
         ingress:
           enabled: true
+          tls:
+            enabled: {{ .Values.prefect.ingress.tls.enabled }}
+            selfSigned: {{ .Values.prefect.ingress.tls.selfSigned }}
           host:
             hostname: {{ .Values.prefect.ingress.host }}
-            pathType: Prefix
+            path: /
+            pathType: ImplementationSpecific
   destination:
     server: https://kubernetes.default.svc
     namespace: default
