@@ -188,7 +188,7 @@ uptime:
   ingress:
     host: uptime.gsingh.io
 whoami:
-  enabled: false
+  enabled: true
 openproject:
   enabled: false
   admin_user:
