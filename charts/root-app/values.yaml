@@ -425,7 +425,7 @@ dagster:
 
 prefect:
   enabled: true
-  version: "2.8.1"
+  version: "2026.1.8195301"
   ingress:
     host: prefect.gsingh.io
   postgresql:
