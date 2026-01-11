@@ -431,7 +431,7 @@ dagster:
     enabled: false
 
 prefect:
-  enabled: false
+  enabled: true
   version: "2026.1.8195301"
   ingress:
     host: prefect.gsingh.io
