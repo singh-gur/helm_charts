@@ -35,9 +35,8 @@ spec:
           runAsSeparateDeployment: false
         ingress:
           enabled: true
-          tls:
-            enabled: {{ .Values.prefect.ingress.tls.enabled }}
-            selfSigned: {{ .Values.prefect.ingress.tls.selfSigned }}
+          tls: {{ .Values.prefect.ingress.tls }}
+          selfSigned: {{ .Values.prefect.ingress.selfSigned }}
           host:
             hostname: {{ .Values.prefect.ingress.host }}
             path: /

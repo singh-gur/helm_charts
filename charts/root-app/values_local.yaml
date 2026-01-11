@@ -435,9 +435,8 @@ prefect:
   version: "2026.1.8195301"
   ingress:
     host: prefect.gsingh.io
-    tls:
-      enabled: true
-      selfSigned: true
+    tls: true
+    selfSigned: true
   postgresql:
     existingSecret: "prefect-db-secret"
   basicAuth:
