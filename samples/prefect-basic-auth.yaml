@@ -1,0 +1,22 @@
+# Prefect Server Basic Auth Secret
+# Create this secret to enable basic authentication for Prefect UI/API
+#
+# Format: admin:PASSWORD (no brackets)
+#
+# Example: admin:MySecurePassword123
+#
+# Create with kubectl:
+#   kubectl create secret generic prefect-basic-auth \
+#     --from-literal=auth-string="admin:password" \
+#     -n default
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: prefect-basic-auth
+  labels:
+    app.kubernetes.io/name: prefect
+    app.kubernetes.io/instance: prefect
+type: Opaque
+stringData:
+  auth-string: admin:PASSWORD_HERE

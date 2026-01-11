@@ -437,3 +437,6 @@ prefect:
     host: prefect.gsingh.io
   postgresql:
     existingSecret: "prefect-db-secret"
+  basicAuth:
+    enabled: true
+    existingSecret: "prefect-basic-auth"

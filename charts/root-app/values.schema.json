@@ -1256,6 +1256,20 @@
             }
           },
           "required": ["existingSecret"]
+        },
+        "basicAuth": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "existingSecret": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["enabled", "existingSecret"]
         }
       },
       "required": ["enabled"]
