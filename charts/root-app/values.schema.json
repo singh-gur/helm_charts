@@ -1089,12 +1089,17 @@
         "postgresql": {
           "type": "object",
           "properties": {
+            "useEmbedded": {
+              "type": "boolean",
+              "default": false,
+              "description": "Use embedded PostgreSQL. When false, requires existingSecret."
+            },
             "existingSecret": {
               "type": "string",
               "minLength": 1
             }
           },
-          "required": ["existingSecret"]
+          "required": ["useEmbedded"]
         },
         "basicAuth": {
           "type": "object",

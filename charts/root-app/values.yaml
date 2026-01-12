@@ -431,6 +431,7 @@ prefect:
     tls: true
     selfSigned: true
   postgresql:
+    useEmbedded: false
     existingSecret: "prefect-db-secret"
   basicAuth:
     enabled: true

@@ -15,10 +15,12 @@ spec:
     helm:
       values: |
         postgresql:
-          enabled: false
+          enabled: {{ .Values.prefect.postgresql.useEmbedded | default false }}
+        {{- if not .Values.prefect.postgresql.useEmbedded }}
         secret:
           create: false
           name: {{ .Values.prefect.postgresql.existingSecret }}
+        {{- end }}
         server:
           basicAuth:
             enabled: {{ .Values.prefect.basicAuth.enabled }}
