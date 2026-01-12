@@ -454,8 +454,8 @@ prefectWorker:
     enabled: true
     existingSecret: "prefect-basic-auth"
   # Custom image (uncomment and set to use custom registry)
-  # image:
-  #   repository: regv2.gsingh.io/core/prefect-worker
-  #   tag: "latest"
-  #   pullSecrets: []
+  image:
+    repository: regv2.gsingh.io/core/prefect_ext
+    tag: "kube_worker"
+    pullSecrets: ["regv2-secret"]
   #   debug: false
