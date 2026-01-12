@@ -31,6 +31,7 @@
 #   -i, --insecure   Add insecure registry to ArgoCD (default: false)
 #                    Use for self-signed certificates
 #   -r, --restart    Restart ArgoCD pods (default: true)
+#   -d, --dry-run    Print commands instead of running them
 #   -h, --help       Show this help message
 #
 # Examples:
@@ -48,6 +49,9 @@
 #
 #   # Skip ArgoCD operations
 #   ./create-registry-secret.sh -u myuser -p mypass -n default -a false -i false -r false
+#
+#   # Dry run - print commands without executing
+#   ./create-registry-secret.sh -u myuser -p mypass -n default --dry-run
 #
 #   # All options with custom registry
 #   ./create-registry-secret.sh -s regv2.gsingh.io -u myuser -p mypass -e hello@gsingh.io -n "default,kube-system"
@@ -79,6 +83,7 @@ NAMESPACES="default"
 PATCH_ARGOCD=true
 ADD_INSECURE=false
 RESTART_ARGOCD=true
+DRY_RUN=false
 
 # Colors for output
 RED='\033[0;31m'
@@ -128,20 +133,28 @@ patch_serviceaccount_with_secret() {
     local sa=$1
     local ns=$2
     local secret=$3
-    
+
+    # Build the patch with all secrets (existing + new)
+    local secrets_json='['
+    local first=true
+
+    # In dry run mode, assume we need to patch
+    if [[ "$DRY_RUN" == "true" ]]; then
+        secrets_json+="{\"name\":\"$secret\"}]"
+        echo "  [DRY RUN] Would patch serviceaccount '$sa' in namespace '$ns' with secret '$secret'"
+        return 0
+    fi
+
     # Get existing imagePullSecrets
     local existing
     existing=$(kubectl get serviceaccount "$sa" -n "$ns" -o jsonpath='{.imagePullSecrets[*].name}' 2>/dev/null || echo "")
-    
+
     # Check if secret already exists in the list
     if echo "$existing" | grep -qw "$secret"; then
         log_info "  Secret '$secret' already attached to serviceaccount '$sa'"
         return 0
     fi
-    
-    # Build the patch with all secrets (existing + new)
-    local secrets_json='['
-    local first=true
+
     for s in $existing; do
         if [[ "$first" == "true" ]]; then
             first=false
@@ -150,12 +163,12 @@ patch_serviceaccount_with_secret() {
         fi
         secrets_json+="{\"name\":\"$s\"}"
     done
-    
+
     if [[ "$first" == "false" ]]; then
         secrets_json+=','
     fi
     secrets_json+="{\"name\":\"$secret\"}]"
-    
+
     kubectl patch serviceaccount "$sa" \
         --namespace="$ns" \
         -p "{\"imagePullSecrets\": $secrets_json}" \
@@ -163,7 +176,7 @@ patch_serviceaccount_with_secret() {
             log_warn "  Could not patch serviceaccount '$sa' in namespace '$ns'"
             return 1
         }
-    
+
     log_info "  Patched serviceaccount '$sa' (appended secret)"
     return 0
 }
@@ -209,6 +222,10 @@ while [[ $# -gt 0 ]]; do
         -r|--restart)
             RESTART_ARGOCD=$(normalize_bool "$2")
             shift 2
+            ;;
+        -d|--dry-run)
+            DRY_RUN=true
+            shift
             ;;
         -h|--help)
             show_help
@@ -289,14 +306,21 @@ echo "  Namespaces: ${NAMESPACE_ARRAY[*]}"
 echo "  Patch ArgoCD: $PATCH_ARGOCD"
 echo "  Add Insecure Registry: $ADD_INSECURE"
 echo "  Restart ArgoCD: $RESTART_ARGOCD"
+echo "  Dry Run: $DRY_RUN"
 echo ""
 
-# Confirmation prompt
-read -p "Proceed with these settings? (y/N): " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    log_info "Aborted by user"
-    exit 0
+# Skip confirmation for dry run
+if [[ "$DRY_RUN" == "true" ]]; then
+    log_warn "DRY RUN MODE - Commands will be printed, not executed"
+    echo ""
+else
+    # Confirmation prompt
+    read -p "Proceed with these settings? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        log_info "Aborted by user"
+        exit 0
+    fi
 fi
 echo ""
 
@@ -309,22 +333,37 @@ for NS in "${NAMESPACE_ARRAY[@]}"; do
 
     log_step "Processing namespace: $NS"
 
-    # Check if namespace exists
-    if ! kubectl get namespace "$NS" &>/dev/null; then
-        log_warn "Namespace '$NS' does not exist. Creating..."
-        kubectl create namespace "$NS"
+    # Check if namespace exists (skip in dry run)
+    if [[ "$DRY_RUN" == "true" ]]; then
+        echo "  [DRY RUN] Would check/create namespace '$NS'"
+    else
+        if ! kubectl get namespace "$NS" &>/dev/null; then
+            log_warn "Namespace '$NS' does not exist. Creating..."
+            kubectl create namespace "$NS"
+        fi
     fi
 
     # Create or update the secret
-    log_info "  Creating/updating secret '$SECRET_NAME' in namespace '$NS'..."
-    kubectl create secret docker-registry "$SECRET_NAME" \
-        --docker-server="$REGISTRY_SERVER" \
-        --docker-username="$USERNAME" \
-        --docker-password="$PASSWORD" \
-        --docker-email="$EMAIL" \
-        --namespace="$NS" \
-        --dry-run=client \
-        -o yaml | kubectl apply -f - 2>/dev/null || true
+    if [[ "$DRY_RUN" == "true" ]]; then
+        echo "  [DRY RUN] Would create secret '$SECRET_NAME' in namespace '$NS':"
+        echo "    kubectl create secret docker-registry $SECRET_NAME \\"
+        echo "      --docker-server=$REGISTRY_SERVER \\"
+        echo "      --docker-username=$USERNAME \\"
+        echo "      --docker-password=<PASSWORD> \\"
+        echo "      --docker-email=$EMAIL \\"
+        echo "      --namespace=$NS \\"
+        echo "      --dry-run=client -o yaml | kubectl apply -f -"
+    else
+        log_info "  Creating/updating secret '$SECRET_NAME' in namespace '$NS'..."
+        kubectl create secret docker-registry "$SECRET_NAME" \
+            --docker-server="$REGISTRY_SERVER" \
+            --docker-username="$USERNAME" \
+            --docker-password="$PASSWORD" \
+            --docker-email="$EMAIL" \
+            --namespace="$NS" \
+            --dry-run=client \
+            -o yaml | kubectl apply -f - 2>/dev/null || true
+    fi
 
     # Patch the default service account
     log_info "  Patching default service account in namespace '$NS'..."
@@ -336,29 +375,42 @@ if [[ "$PATCH_ARGOCD" == "true" ]]; then
     echo ""
     log_step "Patching ArgoCD service accounts..."
 
-    # Check if ArgoCD is installed
-    if ! kubectl get namespace argocd &>/dev/null; then
-        log_warn "ArgoCD namespace not found. Skipping ArgoCD patch."
+    # Check if ArgoCD is installed (skip in dry run)
+    if [[ "$DRY_RUN" == "true" ]]; then
+        echo "  [DRY RUN] Would check namespace 'argocd' and patch service accounts"
+        echo "    kubectl create secret docker-registry $SECRET_NAME \\"
+        echo "      --docker-server=$REGISTRY_SERVER \\"
+        echo "      --docker-username=$USERNAME \\"
+        echo "      --docker-password=<PASSWORD> \\"
+        echo "      --docker-email=$EMAIL \\"
+        echo "      --namespace=argocd \\"
+        echo "      --dry-run=client -o yaml | kubectl apply -f -"
+        echo ""
+        echo "    Would patch service accounts: argocd-repo-server, argocd-server, argocd-application-controller"
     else
-        # Create secret in argocd namespace first
-        log_info "  Creating/updating secret '$SECRET_NAME' in namespace 'argocd'..."
-        kubectl create secret docker-registry "$SECRET_NAME" \
-            --docker-server="$REGISTRY_SERVER" \
-            --docker-username="$USERNAME" \
-            --docker-password="$PASSWORD" \
-            --docker-email="$EMAIL" \
-            --namespace="argocd" \
-            --dry-run=client \
-            -o yaml | kubectl apply -f - 2>/dev/null || true
-        
-        # Patch ArgoCD service accounts
-        for sa in argocd-repo-server argocd-server argocd-application-controller; do
-            if kubectl get serviceaccount "$sa" -n argocd &>/dev/null; then
-                patch_serviceaccount_with_secret "$sa" "argocd" "$SECRET_NAME"
-            else
-                log_warn "  Service account '$sa' not found in namespace 'argocd'"
-            fi
-        done
+        if ! kubectl get namespace argocd &>/dev/null; then
+            log_warn "ArgoCD namespace not found. Skipping ArgoCD patch."
+        else
+            # Create secret in argocd namespace first
+            log_info "  Creating/updating secret '$SECRET_NAME' in namespace 'argocd'..."
+            kubectl create secret docker-registry "$SECRET_NAME" \
+                --docker-server="$REGISTRY_SERVER" \
+                --docker-username="$USERNAME" \
+                --docker-password="$PASSWORD" \
+                --docker-email="$EMAIL" \
+                --namespace="argocd" \
+                --dry-run=client \
+                -o yaml | kubectl apply -f - 2>/dev/null || true
+
+            # Patch ArgoCD service accounts
+            for sa in argocd-repo-server argocd-server argocd-application-controller; do
+                if kubectl get serviceaccount "$sa" -n argocd &>/dev/null; then
+                    patch_serviceaccount_with_secret "$sa" "argocd" "$SECRET_NAME"
+                else
+                    log_warn "  Service account '$sa' not found in namespace 'argocd'"
+                fi
+            done
+        fi
     fi
 fi
 
@@ -367,70 +419,75 @@ if [[ "$ADD_INSECURE" == "true" ]]; then
     echo ""
     log_step "Configuring ArgoCD for insecure registry..."
 
-    if kubectl get configmap argocd-cm -n argocd &>/dev/null; then
-        CURRENT_CONFIG=$(kubectl get configmap argocd-cm -n argocd -o jsonpath='{.data.config\.yaml}' 2>/dev/null || echo "")
+    if [[ "$DRY_RUN" == "true" ]]; then
+        echo "  [DRY RUN] Would add '$REGISTRY_SERVER' to insecure registries in argocd-cm configmap"
+        echo "    kubectl patch configmap argocd-cm -n argocd --type merge -p '{\"data\":{\"config.yaml\":\"insecure.registry:\\n- $REGISTRY_SERVER\\n\"}}'"
+    else
+        if kubectl get configmap argocd-cm -n argocd &>/dev/null; then
+            CURRENT_CONFIG=$(kubectl get configmap argocd-cm -n argocd -o jsonpath='{.data.config\.yaml}' 2>/dev/null || echo "")
 
-        # Check if registry is already in the insecure list
-        if echo "$CURRENT_CONFIG" | grep -q "^[[:space:]]*-[[:space:]]*$REGISTRY_SERVER[[:space:]]*$"; then
-            log_info "  Registry '$REGISTRY_SERVER' already in insecure registries list"
-        else
-            # Create temporary file for safe YAML patching
-            TEMP_CONFIG=$(mktemp)
-            TEMP_FILES+=("$TEMP_CONFIG")
-            
-            # Build the new config with proper YAML formatting
-            if [[ -n "$CURRENT_CONFIG" ]]; then
-                # Check if insecure.registry section exists
-                if echo "$CURRENT_CONFIG" | grep -q "^insecure\.registry:"; then
-                    # Append to existing insecure.registry list
-                    echo "$CURRENT_CONFIG" > "$TEMP_CONFIG"
-                    # Find the line with insecure.registry and add our server after it
-                    # Using awk to properly append to the YAML array
-                    awk -v server="$REGISTRY_SERVER" '
-                        /^insecure\.registry:/ {
-                            print $0
-                            getline
-                            print $0
-                            print "- " server
-                            next
-                        }
-                        { print }
-                    ' "$TEMP_CONFIG" > "$TEMP_CONFIG.new"
-                    mv "$TEMP_CONFIG.new" "$TEMP_CONFIG"
+            # Check if registry is already in the insecure list
+            if echo "$CURRENT_CONFIG" | grep -q "^[[:space:]]*-[[:space:]]*$REGISTRY_SERVER[[:space:]]*$"; then
+                log_info "  Registry '$REGISTRY_SERVER' already in insecure registries list"
+            else
+                # Create temporary file for safe YAML patching
+                TEMP_CONFIG=$(mktemp)
+                TEMP_FILES+=("$TEMP_CONFIG")
+
+                # Build the new config with proper YAML formatting
+                if [[ -n "$CURRENT_CONFIG" ]]; then
+                    # Check if insecure.registry section exists
+                    if echo "$CURRENT_CONFIG" | grep -q "^insecure\.registry:"; then
+                        # Append to existing insecure.registry list
+                        echo "$CURRENT_CONFIG" > "$TEMP_CONFIG"
+                        # Find the line with insecure.registry and add our server after it
+                        # Using awk to properly append to the YAML array
+                        awk -v server="$REGISTRY_SERVER" '
+                            /^insecure\.registry:/ {
+                                print $0
+                                getline
+                                print $0
+                                print "- " server
+                                next
+                            }
+                            { print }
+                        ' "$TEMP_CONFIG" > "$TEMP_CONFIG.new"
+                        mv "$TEMP_CONFIG.new" "$TEMP_CONFIG"
+                    else
+                        # Add new insecure.registry section
+                        echo "$CURRENT_CONFIG" > "$TEMP_CONFIG"
+                        cat >> "$TEMP_CONFIG" <<EOF
+
+insecure.registry:
+- $REGISTRY_SERVER
+EOF
+                    fi
                 else
-                    # Add new insecure.registry section
-                    echo "$CURRENT_CONFIG" > "$TEMP_CONFIG"
-                    cat >> "$TEMP_CONFIG" <<EOF
-
+                    # Create new config if empty
+                    cat > "$TEMP_CONFIG" <<EOF
 insecure.registry:
 - $REGISTRY_SERVER
 EOF
                 fi
-            else
-                # Create new config if empty
-                cat > "$TEMP_CONFIG" <<EOF
-insecure.registry:
-- $REGISTRY_SERVER
-EOF
+
+                # Apply the patch using kubectl patch
+                if kubectl patch configmap argocd-cm -n argocd \
+                    --type merge \
+                    -p "{\"data\":{\"config.yaml\":\"$(cat "$TEMP_CONFIG" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')\"}}" 2>/dev/null; then
+                    log_info "  Added '$REGISTRY_SERVER' to insecure registries"
+                else
+                    log_warn "  Failed to patch ArgoCD configmap - trying alternative method"
+                    # Fallback: use kubectl create with --dry-run and apply
+                    kubectl create configmap argocd-cm \
+                        --from-file=config.yaml="$TEMP_CONFIG" \
+                        --namespace=argocd \
+                        --dry-run=client \
+                        -o yaml | kubectl apply -f - 2>/dev/null || log_warn "  Failed to patch ArgoCD configmap"
+                fi
             fi
-            
-            # Apply the patch using kubectl patch
-            if kubectl patch configmap argocd-cm -n argocd \
-                --type merge \
-                -p "{\"data\":{\"config.yaml\":\"$(cat "$TEMP_CONFIG" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')\"}}" 2>/dev/null; then
-                log_info "  Added '$REGISTRY_SERVER' to insecure registries"
-            else
-                log_warn "  Failed to patch ArgoCD configmap - trying alternative method"
-                # Fallback: use kubectl create with --dry-run and apply
-                kubectl create configmap argocd-cm \
-                    --from-file=config.yaml="$TEMP_CONFIG" \
-                    --namespace=argocd \
-                    --dry-run=client \
-                    -o yaml | kubectl apply -f - 2>/dev/null || log_warn "  Failed to patch ArgoCD configmap"
-            fi
+        else
+            log_warn "  ArgoCD configmap 'argocd-cm' not found. Skipping."
         fi
-    else
-        log_warn "  ArgoCD configmap 'argocd-cm' not found. Skipping."
     fi
 fi
 
@@ -439,9 +496,16 @@ if [[ "$RESTART_ARGOCD" == "true" ]] && ( [[ "$PATCH_ARGOCD" == "true" ]] || [[ 
     echo ""
     log_step "Restarting ArgoCD components..."
 
-    kubectl rollout restart deployment argocd-server -n argocd 2>/dev/null && log_info "  Restarted: argocd-server" || log_warn "  Could not restart argocd-server"
-    kubectl rollout restart deployment argocd-repo-server -n argocd 2>/dev/null && log_info "  Restarted: argocd-repo-server" || log_warn "  Could not restart argocd-repo-server"
-    kubectl rollout restart statefulset argocd-application-controller -n argocd 2>/dev/null && log_info "  Restarted: argocd-application-controller" || log_warn "  Could not restart argocd-application-controller"
+    if [[ "$DRY_RUN" == "true" ]]; then
+        echo "  [DRY RUN] Would restart ArgoCD components:"
+        echo "    kubectl rollout restart deployment argocd-server -n argocd"
+        echo "    kubectl rollout restart deployment argocd-repo-server -n argocd"
+        echo "    kubectl rollout restart statefulset argocd-application-controller -n argocd"
+    else
+        kubectl rollout restart deployment argocd-server -n argocd 2>/dev/null && log_info "  Restarted: argocd-server" || log_warn "  Could not restart argocd-server"
+        kubectl rollout restart deployment argocd-repo-server -n argocd 2>/dev/null && log_info "  Restarted: argocd-repo-server" || log_warn "  Could not restart argocd-repo-server"
+        kubectl rollout restart statefulset argocd-application-controller -n argocd 2>/dev/null && log_info "  Restarted: argocd-application-controller" || log_warn "  Could not restart argocd-application-controller"
+    fi
 fi
 
 # Final summary
@@ -450,12 +514,20 @@ log_info "=== Summary ==="
 log_info "Registry: $REGISTRY_SERVER"
 log_info "Secret: $SECRET_NAME"
 log_info "Namespaces: ${NAMESPACE_ARRAY[*]}"
+log_info "Dry Run: $DRY_RUN"
 echo ""
-log_info "Secrets created:"
-for NS in "${NAMESPACE_ARRAY[@]}"; do
-    NS=$(echo "$NS" | xargs)
-    kubectl get secret "$SECRET_NAME" -n "$NS" &>/dev/null && echo "  - $NS: OK" || echo "  - $NS: FAILED"
-done
+
+if [[ "$DRY_RUN" == "true" ]]; then
+    log_warn "DRY RUN COMPLETE - No changes were made"
+    echo ""
+    log_info "Run the commands above in another terminal to apply changes"
+else
+    log_info "Secrets created:"
+    for NS in "${NAMESPACE_ARRAY[@]}"; do
+        NS=$(echo "$NS" | xargs)
+        kubectl get secret "$SECRET_NAME" -n "$NS" &>/dev/null && echo "  - $NS: OK" || echo "  - $NS: FAILED"
+    done
+fi
 
 echo ""
 log_info "To verify your deployments, run:"
