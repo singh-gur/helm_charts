@@ -33,7 +33,7 @@ spec:
         # S3 configuration
         env:
           docstore_bucket: {{ .Values.plane.s3.bucket | default "plane" }}
-          doc_upload_size_limit: {{ .Values.plane.env.doc_upload_size_limit | default 5242880 }}
+          doc_upload_size_limit: "{{ .Values.plane.env.doc_upload_size_limit }}"
 
         # Ingress
         ingress:
