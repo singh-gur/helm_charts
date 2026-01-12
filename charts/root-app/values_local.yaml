@@ -453,24 +453,3 @@ prefectWorker:
   basicAuth:
     enabled: true
     existingSecret: "prefect-basic-auth"
-
-plane:
-  enabled: false
-  version: 1.4.1
-  namespace: default
-  existingSecret: plane-secrets
-  # External PostgreSQL configuration
-  postgresql:
-    host: 192.168.2.119
-    port: 5432
-    database: plane
-    username: plane
-  # External S3-compatible object store
-  s3:
-    bucket: plane-uploads
-    existingSecret: plane-s3-secrets
-    # Optional: for non-AWS S3 compatible stores
-    endpoint: https://s3.gsingh.io
-    region: us-east-1
-  ingress:
-    host: plane.gsingh.io
