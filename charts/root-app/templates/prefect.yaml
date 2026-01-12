@@ -14,6 +14,19 @@ spec:
     targetRevision: {{ .Values.prefect.version }}
     helm:
       values: |
+        {{- if .Values.prefect.image }}
+        global:
+          prefect:
+            image:
+              repository: {{ .Values.prefect.image.repository }}
+              prefectTag: {{ .Values.prefect.image.tag }}
+              {{- if .Values.prefect.image.pullSecrets }}
+              pullSecrets:
+                {{- range .Values.prefect.image.pullSecrets }}
+                - {{ . }}
+                {{- end }}
+              {{- end }}
+        {{- end }}
         postgresql:
           enabled: {{ .Values.prefect.postgresql.useEmbedded | default false }}
         {{- if not .Values.prefect.postgresql.useEmbedded }}

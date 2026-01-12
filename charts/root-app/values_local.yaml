@@ -443,6 +443,11 @@ prefect:
     enabled: true
     existingSecret: "prefect-basic-auth"
   uiApiUrl: "http://localhost:4200/api"
+  # Custom image (uncomment and set to use custom registry)
+  image:
+    repository: regv2.gsingh.io/core/prefect_ext
+    tag: "3.6.10-python3.11_0.0.1"
+  #   pullSecrets: []
 
 prefectWorker:
   enabled: true
@@ -454,3 +459,9 @@ prefectWorker:
   basicAuth:
     enabled: true
     existingSecret: "prefect-basic-auth"
+  # Custom image (uncomment and set to use custom registry)
+  # image:
+  #   repository: regv2.gsingh.io/core/prefect-worker
+  #   tag: "latest"
+  #   pullSecrets: []
+  #   debug: false

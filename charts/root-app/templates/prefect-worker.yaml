@@ -14,6 +14,20 @@ spec:
     targetRevision: {{ .Values.prefectWorker.version }}
     helm:
       values: |
+        {{- if .Values.prefectWorker.image }}
+        image:
+          repository: {{ .Values.prefectWorker.image.repository }}
+          prefectTag: {{ .Values.prefectWorker.image.tag }}
+          {{- if .Values.prefectWorker.image.pullSecrets }}
+          pullSecrets:
+            {{- range .Values.prefectWorker.image.pullSecrets }}
+            - {{ . }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.prefectWorker.image.debug }}
+          debug: {{ .Values.prefectWorker.image.debug }}
+          {{- end }}
+        {{- end }}
         worker:
           replicaCount: {{ .Values.prefectWorker.replicaCount }}
           apiConfig: selfHostedServer

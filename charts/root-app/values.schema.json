@@ -1118,6 +1118,26 @@
         "uiApiUrl": {
           "type": "string",
           "format": "uri"
+        },
+        "image": {
+          "type": "object",
+          "description": "Custom image configuration (nested under global.prefect.image in chart values)",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "minLength": 1
+            },
+            "tag": {
+              "type": "string",
+              "minLength": 1
+            },
+            "pullSecrets": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
         }
       },
       "required": ["enabled"]
@@ -1163,6 +1183,30 @@
             }
           },
           "required": ["enabled", "existingSecret"]
+        },
+        "image": {
+          "type": "object",
+          "description": "Custom image configuration (nested under worker.image in chart values)",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "minLength": 1
+            },
+            "tag": {
+              "type": "string",
+              "minLength": 1
+            },
+            "pullSecrets": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "debug": {
+              "type": "boolean",
+              "default": false
+            }
+          }
         }
       },
       "required": ["enabled", "version", "replicaCount", "workPool", "apiUrl", "basicAuth"]
