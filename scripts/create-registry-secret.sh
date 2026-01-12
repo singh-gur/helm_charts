@@ -190,36 +190,68 @@ show_help() {
 while [[ $# -gt 0 ]]; do
     case $1 in
         -s|--server)
+            if [[ $# -lt 2 ]]; then
+                log_error "Option -s/--server requires a value"
+                show_help
+            fi
             REGISTRY_SERVER="$2"
             shift 2
             ;;
         -u|--username)
+            if [[ $# -lt 2 ]]; then
+                log_error "Option -u/--username requires a value"
+                show_help
+            fi
             USERNAME="$2"
             shift 2
             ;;
         -p|--password)
+            if [[ $# -lt 2 ]]; then
+                log_error "Option -p/--password requires a value"
+                show_help
+            fi
             PASSWORD="$2"
             log_warn "Password provided via command line - visible in process list!"
             log_warn "Consider using interactive mode for better security"
             shift 2
             ;;
         -e|--email)
+            if [[ $# -lt 2 ]]; then
+                log_error "Option -e/--email requires a value"
+                show_help
+            fi
             EMAIL="$2"
             shift 2
             ;;
         -n|--namespaces)
+            if [[ $# -lt 2 ]]; then
+                log_error "Option -n/--namespaces requires a value"
+                show_help
+            fi
             NAMESPACES="$2"
             shift 2
             ;;
         -a|--argocd)
+            if [[ $# -lt 2 ]]; then
+                log_error "Option -a/--argocd requires a value"
+                show_help
+            fi
             PATCH_ARGOCD=$(normalize_bool "$2")
             shift 2
             ;;
         -i|--insecure)
+            if [[ $# -lt 2 ]]; then
+                log_error "Option -i/--insecure requires a value"
+                show_help
+            fi
             ADD_INSECURE=$(normalize_bool "$2")
             shift 2
             ;;
         -r|--restart)
+            if [[ $# -lt 2 ]]; then
+                log_error "Option -r/--restart requires a value"
+                show_help
+            fi
             RESTART_ARGOCD=$(normalize_bool "$2")
             shift 2
             ;;
