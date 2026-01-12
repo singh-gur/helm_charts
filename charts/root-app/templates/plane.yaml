@@ -17,6 +17,13 @@ spec:
         # External services
         postgres:
           local_setup: false
+          host: {{ .Values.plane.postgresql.host }}
+          port: {{ .Values.plane.postgresql.port | default 5432 }}
+          database: {{ .Values.plane.postgresql.database }}
+          user:
+            existingSecret: {{ .Values.plane.existingSecret }}
+            userKey: "pg-user"
+            passwordKey: "pg-password"
         redis:
           local_setup: true
         rabbitmq:
