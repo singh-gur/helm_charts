@@ -449,7 +449,7 @@ prefectWorker:
     existingSecret: "prefect-basic-auth"
 
 plane:
-  enabled: false
+  enabled: true
   version: 1.4.1
   namespace: default
   existingSecret: plane-secrets
