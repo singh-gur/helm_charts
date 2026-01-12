@@ -447,7 +447,7 @@ prefect:
   image:
     repository: regv2.gsingh.io/core/prefect_ext
     tag: "3.6.10-python3.11_0.0.1"
-  #   pullSecrets: []
+    pullSecrets: ["regv2-secret"]
 
 prefectWorker:
   enabled: true
