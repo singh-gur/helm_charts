@@ -453,6 +453,10 @@ plane:
   version: 1.4.1
   namespace: default
   existingSecret: plane-secrets
+  # Environment variables
+  env:
+    doc_upload_size_limit: 5242880  # 50MB in bytes
+    # default_cluster_domain: cluster.local  # uncomment to override
   # External PostgreSQL configuration
   postgresql:
     host: 192.168.2.119
@@ -461,7 +465,7 @@ plane:
     username: plane
   # External S3-compatible object store
   s3:
-    bucket: plane-uploads
+    bucket: plane
     existingSecret: plane-s3-secrets
     # Optional: for non-AWS S3 compatible stores
     endpoint: https://s3.gsingh.io
