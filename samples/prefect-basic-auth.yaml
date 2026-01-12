@@ -19,4 +19,4 @@ metadata:
     app.kubernetes.io/instance: prefect
 type: Opaque
 stringData:
-  auth-string: admin:PASSWORD_HERE
+  auth-string: admin:adminpasswordgoeshere
