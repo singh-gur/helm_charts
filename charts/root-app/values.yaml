@@ -455,7 +455,7 @@ plane:
   existingSecret: plane-secrets
   # Environment variables
   env:
-    doc_upload_size_limit: 5242880  # 50MB in bytes
+    doc_upload_size_limit: "5242880"  # 50MB in bytes
     # default_cluster_domain: cluster.local  # uncomment to override
   # External PostgreSQL configuration
   postgresql:
