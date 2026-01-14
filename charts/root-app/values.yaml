@@ -224,7 +224,7 @@ openproject:
     host: "auth.gsingh.io"
     scope: "[openid profile email]"
 zitadel:
-  enabled: false
+  enabled: true
   version: 9.15.0
   externalDomain: auth.gsingh.io
   ingress:
@@ -460,7 +460,7 @@ prefectWorker:
     tag: "kube_worker"
     pullSecrets: ["regv2-secret"]
   #   debug: false
-  
+
   # RBAC configuration for Kubernetes worker
   # These permissions allow the worker to create and manage Kubernetes resources
   # for flow runs using prefect_kubernetes.jobs.KubernetesJob
