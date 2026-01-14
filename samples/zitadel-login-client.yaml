@@ -1,0 +1,30 @@
+# Sample Kubernetes Secret for Zitadel Login Client
+# This secret is required when upgrading to Zitadel v9 with the new login deployment enabled
+#
+# For NEW installations: The setup job automatically creates this secret
+# For EXISTING installations: You must create this secret manually before upgrading
+#
+# Steps to create the PAT (Personal Access Token):
+# 1. Log into your Zitadel instance as an admin
+# 2. Create a new user of type "Machine User" (e.g., "login-client")
+# 3. Assign the role "IAM_LOGIN_CLIENT" to make it an instance administrator
+# 4. Generate a Personal Access Token (PAT) for this machine user
+# 5. Download the PAT file and use its content in this secret
+#
+# Apply with: kubectl apply -f samples/zitadel-login-client.yaml -n <namespace>
+#
+# Reference: https://github.com/zitadel/zitadel-charts/blob/main/charts/zitadel/README.md#switch-to-the-new-login-deployment
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: login-client
+  labels:
+    app: zitadel
+    component: login
+type: Opaque
+stringData:
+  # Personal Access Token (PAT) for the login client machine user
+  # This should be the content of the downloaded PAT file from Zitadel
+  # Format: A long base64-encoded string
+  pat: "your-personal-access-token-here-replace-with-actual-pat-from-zitadel"

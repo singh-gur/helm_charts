@@ -228,6 +228,10 @@ zitadel:
     host: auth.gsingh.io
   masterkeySecretName: zitadel-masterkey
   configSecretName: zitadel-secrets
+  login:
+    enabled: false
+    ingress:
+      enabled: false
 
 windmill:
   enabled: false
@@ -466,7 +470,7 @@ prefectWorker:
     tag: "kube_worker"
     pullSecrets: ["regv2-secret"]
     # debug: false
-  
+
   # RBAC configuration for Kubernetes worker
   # These permissions allow the worker to create and manage Kubernetes resources
   # for flow runs using prefect_kubernetes.jobs.KubernetesJob

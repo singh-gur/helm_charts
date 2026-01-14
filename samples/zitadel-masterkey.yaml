@@ -1,0 +1,29 @@
+# Sample Kubernetes Secret for Zitadel Masterkey
+# The masterkey is used to encrypt sensitive data in the Zitadel database
+#
+# IMPORTANT: 
+# - The masterkey must be exactly 32 characters long
+# - Once set, DO NOT change this key as it will make existing encrypted data unreadable
+# - Store this key securely in a password manager or secret management system
+#
+# Generate a secure masterkey with one of these commands:
+#   openssl rand -base64 32 | head -c 32
+#   tr -dc A-Za-z0-9 </dev/urandom | head -c 32
+#   python3 -c "import secrets; print(secrets.token_urlsafe(32)[:32])"
+#
+# Apply with: kubectl apply -f samples/zitadel-masterkey.yaml -n <namespace>
+#
+# Reference: https://zitadel.com/docs/self-hosting/manage/configure
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: zitadel-masterkey
+  labels:
+    app: zitadel
+    component: masterkey
+type: Opaque
+stringData:
+  # Masterkey for encrypting sensitive data (MUST be exactly 32 characters)
+  # CHANGE THIS to a randomly generated 32-character string
+  masterkey: "CHANGE-ME-32-CHAR-MASTERKEY!!"
