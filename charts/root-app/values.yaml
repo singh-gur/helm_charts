@@ -426,6 +426,7 @@ dagster:
 prefect:
   enabled: true
   version: "2026.1.8195301"
+  namespace: prefect
   ingress:
     host: prefect.gsingh.io
     tls: true
@@ -446,7 +447,7 @@ prefect:
 prefectWorker:
   enabled: true
   version: "2026.1.8195301"
-  namespace: default
+  namespace: prefect
   replicaCount: 5
   workPool: "kubernetes"
   apiUrl: "https://prefect.gsingh.io/api"

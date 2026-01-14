@@ -60,7 +60,7 @@ spec:
             pathType: ImplementationSpecific
   destination:
     server: https://kubernetes.default.svc
-    namespace: default
+    namespace: {{ .Values.prefect.namespace | default "default" }}
   syncPolicy:
     automated:
       prune: true
