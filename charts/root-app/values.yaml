@@ -449,7 +449,7 @@ prefectWorker:
   namespace: default
   replicaCount: 5
   workPool: "kubernetes"
-  apiUrl: "http://prefect-server.default.svc.cluster.local:4200/api"
+  apiUrl: "https://prefect.gsingh.io/api"
   basicAuth:
     enabled: true
     existingSecret: "prefect-basic-auth"
