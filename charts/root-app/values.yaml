@@ -224,7 +224,7 @@ openproject:
     host: "auth.gsingh.io"
     scope: "[openid profile email]"
 zitadel:
-  enabled: false
+  enabled: true
   version: 9.16.0
   externalDomain: auth.gsingh.io
   ingress:
@@ -232,9 +232,9 @@ zitadel:
   masterkeySecretName: zitadel-masterkey
   configSecretName: zitadel-secrets
   login:
-    enabled: false
+    enabled: true
     ingress:
-      enabled: false
+      enabled: true
 
 windmill:
   enabled: true
