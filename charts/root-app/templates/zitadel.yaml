@@ -24,23 +24,6 @@ spec:
               Enabled: false
           configSecretName: {{ .Values.zitadel.configSecretName | default "zitadel-secrets" }}
           configSecretKey: config.yaml
-          firstInstance:
-            org:
-              machine:
-                machine:
-                  username: iam-admin
-                  name: IAM Admin
-                machineKey:
-                  expirationDate: "2029-01-01T00:00:00Z"
-                  type: 1
-                pat:
-                  expirationDate: "2029-01-01T00:00:00Z"
-              loginClient:
-                machine:
-                  username: login-client
-                  name: Login Client
-                pat:
-                  expirationDate: "2029-01-01T00:00:00Z"
           login:
             enabled: true
             ingress:
