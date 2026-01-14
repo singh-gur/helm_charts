@@ -241,7 +241,7 @@ windmill:
   version: 4.0.21
   host: windmill.gsingh.io
   postgresql:
-    enabled: true
+    enabled: false
   databaseSecret:
     name: windmill-secrets
     key: database-url
