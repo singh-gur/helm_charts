@@ -136,7 +136,7 @@ airflow:
   usePasswordFiles: true
 
 argowf:
-  enabled: true
+  enabled: false
   version: 0.45.6
   ingress:
     host: argowf.gsingh.io
