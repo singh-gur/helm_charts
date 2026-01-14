@@ -1207,6 +1207,46 @@
               "default": false
             }
           }
+        },
+        "role": {
+          "type": "object",
+          "description": "RBAC configuration for Kubernetes worker. Permissions are namespace-scoped (Role, not ClusterRole).",
+          "properties": {
+            "extraPermissions": {
+              "type": "array",
+              "description": "Additional RBAC permissions for the worker to manage Kubernetes resources in its namespace",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "apiGroups": {
+                    "type": "array",
+                    "description": "Kubernetes API groups (e.g., [''] for core, ['batch'] for jobs)",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "resources": {
+                    "type": "array",
+                    "description": "Kubernetes resources (e.g., pods, jobs, services, configmaps)",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1
+                  },
+                  "verbs": {
+                    "type": "array",
+                    "description": "Allowed operations (e.g., get, list, watch, create, update, patch, delete)",
+                    "items": {
+                      "type": "string",
+                      "enum": ["get", "list", "watch", "create", "update", "patch", "delete", "deletecollection"]
+                    },
+                    "minItems": 1
+                  }
+                },
+                "required": ["apiGroups", "resources", "verbs"]
+              }
+            }
+          }
         }
       },
       "required": ["enabled", "version", "replicaCount", "workPool", "apiUrl", "basicAuth"]

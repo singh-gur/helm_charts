@@ -46,6 +46,15 @@ spec:
             limits:
               cpu: "1"
               memory: 1Gi
+        
+        {{- if .Values.prefectWorker.role }}
+        # RBAC configuration for Kubernetes worker
+        role:
+          {{- if .Values.prefectWorker.role.extraPermissions }}
+          extraPermissions:
+            {{- toYaml .Values.prefectWorker.role.extraPermissions | nindent 12 }}
+          {{- end }}
+        {{- end }}
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ .Values.prefectWorker.namespace | default "default" }}

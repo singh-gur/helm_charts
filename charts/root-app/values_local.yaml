@@ -466,3 +466,31 @@ prefectWorker:
     tag: "kube_worker"
     pullSecrets: ["regv2-secret"]
     # debug: false
+  
+  # RBAC configuration for Kubernetes worker
+  # These permissions allow the worker to create and manage Kubernetes resources
+  # for flow runs using prefect_kubernetes.jobs.KubernetesJob
+  # NOTE: These permissions are namespace-scoped (Role, not ClusterRole)
+  # The worker can only manage resources in its own namespace (default)
+  role:
+    extraPermissions:
+      # Allow worker to create, update, and delete pods for flow runs
+      - apiGroups: [""]
+        resources: ["pods", "pods/log", "pods/status"]
+        verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+      # Allow worker to manage services (for flow run networking)
+      - apiGroups: [""]
+        resources: ["services"]
+        verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+      # Allow worker to manage configmaps (for flow run configuration)
+      - apiGroups: [""]
+        resources: ["configmaps"]
+        verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+      # Allow worker to read events for monitoring
+      - apiGroups: [""]
+        resources: ["events"]
+        verbs: ["get", "list", "watch"]
+      # Allow worker to manage persistent volume claims (for flow run storage)
+      - apiGroups: [""]
+        resources: ["persistentvolumeclaims"]
+        verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
