@@ -24,6 +24,8 @@ spec:
               Enabled: false
           configSecretName: {{ .Values.zitadel.configSecretName | default "zitadel-secrets" }}
           configSecretKey: config.yaml
+          login:
+            enabled: false
         initJob:
           command: "zitadel"
         ingress:
