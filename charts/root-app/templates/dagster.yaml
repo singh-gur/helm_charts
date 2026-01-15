@@ -36,7 +36,7 @@ spec:
                 pullPolicy: IfNotPresent
               dagsterApiGrpcArgs:
                 - "--python-file"
-                - "/example_project/example_repo/repo.py"
+                - "/iris_analysis/definitions.py"
               port: 3030
   destination:
     server: https://kubernetes.default.svc
