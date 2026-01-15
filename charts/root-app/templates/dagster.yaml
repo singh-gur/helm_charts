@@ -35,7 +35,7 @@ spec:
                 tag: "1.12.10"
                 pullPolicy: IfNotPresent
               dagsterApiGrpcArgs:
-                - "-f"
+                - "--python-file"
                 - "/example_project/example_repo/repo.py"
               port: 3030
   destination:
