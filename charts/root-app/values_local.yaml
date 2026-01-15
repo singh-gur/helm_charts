@@ -360,6 +360,15 @@ dagster:
     host: ""
     database: dagster
     existingSecret: ""
+  userCode:
+    enabled: true
+    image:
+      repository: regv2.gsingh.io/personal/sample-dagster
+      tag: latest
+      pullPolicy: Always
+    imagePullSecrets:
+      - regv2-secret
+    codeFile: /apps/sample-dagster/main.py
 
 prefect:
   enabled: true

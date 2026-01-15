@@ -26,18 +26,26 @@ spec:
           existingSecret: {{ .Values.dagster.postgresql.existingSecret | quote }}
           {{- end }}
         dagster-user-deployments:
-          enabled: true
-          enableSubchart: true
+          enabled: {{ .Values.dagster.userCode.enabled }}
+          enableSubchart: {{ .Values.dagster.userCode.enabled }}
+          {{- if .Values.dagster.userCode.enabled }}
+          {{- if .Values.dagster.userCode.imagePullSecrets }}
+          imagePullSecrets:
+            {{- range .Values.dagster.userCode.imagePullSecrets }}
+            - name: {{ . }}
+            {{- end }}
+          {{- end }}
           deployments:
             - name: "dagster-user-code"
               image:
-                repository: "docker.io/dagster/user-code-example"
-                tag: "1.12.10"
-                pullPolicy: IfNotPresent
+                repository: {{ .Values.dagster.userCode.image.repository | quote }}
+                tag: {{ .Values.dagster.userCode.image.tag | quote }}
+                pullPolicy: {{ .Values.dagster.userCode.image.pullPolicy }}
               dagsterApiGrpcArgs:
-                - "-m"
-                - "dagster_test.test_project.test_jobs.repo"
+                - "--python-file"
+                - {{ .Values.dagster.userCode.codeFile | quote }}
               port: 3030
+          {{- end }}
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ .Values.dagster.namespace }}
