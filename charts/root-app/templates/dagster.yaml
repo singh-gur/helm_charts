@@ -1,5 +1,4 @@
 {{- if .Values.dagster.enabled }}
-{{- $dagster := .Values.dagster }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -12,94 +11,26 @@ spec:
   source:
     repoURL: https://dagster-io.github.io/helm
     chart: dagster
-    targetRevision: {{ $dagster.version }}
+    targetRevision: {{ .Values.dagster.version }}
     helm:
       values: |
-        {{- if $dagster.ingress.enabled }}
         ingress:
           enabled: true
-          {{- if $dagster.ingress.annotations }}
-          annotations: {{ toYaml $dagster.ingress.annotations | indent 10 }}
-          {{- end }}
-          {{- if $dagster.ingress.ingressClassName }}
-          ingressClassName: {{ $dagster.ingress.ingressClassName }}
-          {{- end }}
           dagsterWebserver:
-            host: {{ $dagster.ingress.host }}
-            path: {{ $dagster.ingress.path | default "/*" }}
-            pathType: {{ $dagster.ingress.pathType | default "ImplementationSpecific" }}
-            {{- if $dagster.ingress.tls.enabled }}
-            tls:
-              - secretName: {{ $dagster.ingress.tls.secretName | default "dagster-tls" }}
-                hosts:
-                  - {{ $dagster.ingress.host }}
-            {{- end }}
-            {{- if not $dagster.dagsterUserDeployments.enabled }}
-            workspace:
-              enabled: false
-            {{- end }}
-        {{- end }}
-        {{- if not $dagster.postgresql.enabled }}
+            host: {{ .Values.dagster.ingress.host }}
         postgresql:
-          enabled: false
-          {{- if $dagster.postgresql.postgresqlHost }}
-          postgresqlHost: {{ $dagster.postgresql.postgresqlHost | quote }}
+          enabled: {{ .Values.dagster.postgresql.enabled }}
+          {{- if not .Values.dagster.postgresql.enabled }}
+          postgresqlHost: {{ .Values.dagster.postgresql.host | quote }}
+          postgresqlDatabase: {{ .Values.dagster.postgresql.database | quote }}
+          existingSecret: {{ .Values.dagster.postgresql.existingSecret | quote }}
           {{- end }}
-          {{- if $dagster.postgresql.postgresqlUsername }}
-          postgresqlUsername: {{ $dagster.postgresql.postgresqlUsername | quote }}
-          {{- end }}
-          {{- if $dagster.postgresql.postgresqlDatabase }}
-          postgresqlDatabase: {{ $dagster.postgresql.postgresqlDatabase | quote }}
-          {{- end }}
-          {{- if $dagster.postgresql.postgresqlPort }}
-          postgresqlPort: {{ $dagster.postgresql.postgresqlPort }}
-          {{- end }}
-          {{- if $dagster.postgresql.existingSecret }}
-          existingSecret: {{ $dagster.postgresql.existingSecret | quote }}
-          {{- end }}
-        {{- end }}
-        {{- if $dagster.rabbitmq.enabled }}
-        rabbitmq:
-          enabled: true
-          {{- if $dagster.rabbitmq.host }}
-          host: {{ $dagster.rabbitmq.host | quote }}
-          {{- end }}
-          {{- if $dagster.rabbitmq.port }}
-          port: {{ $dagster.rabbitmq.port }}
-          {{- end }}
-        {{- else }}
-        rabbitmq:
-          enabled: false
-        {{- end }}
-        {{- if $dagster.redis.enabled }}
-        redis:
-          enabled: true
-          {{- if $dagster.redis.host }}
-          host: {{ $dagster.redis.host | quote }}
-          {{- end }}
-          {{- if $dagster.redis.port }}
-          port: {{ $dagster.redis.port }}
-          {{- end }}
-        {{- else }}
-        redis:
-          enabled: false
-        {{- end }}
-        {{- if $dagster.dagsterUserDeployments.enabled }}
-        dagster-user-deployments:
-          enabled: true
-          deployments: {{ toYaml $dagster.dagsterUserDeployments.deployments | indent 10 }}
-        {{- else }}
         dagster-user-deployments:
           enabled: false
           enableSubchart: false
-        {{- end }}
-        {{- if $dagster.migrate.enabled }}
-        migrate:
-          enabled: true
-        {{- end }}
   destination:
     server: https://kubernetes.default.svc
-    namespace: {{ $dagster.namespace | default "dagster" }}
+    namespace: {{ .Values.dagster.namespace }}
   syncPolicy:
     automated:
       prune: true
