@@ -25,19 +25,12 @@ spec:
           postgresqlDatabase: {{ .Values.dagster.postgresql.database | quote }}
           existingSecret: {{ .Values.dagster.postgresql.existingSecret | quote }}
           {{- end }}
+        dagsterWebserver:
+          workspace:
+            enabled: false
         dagster-user-deployments:
-          enabled: true
-          enableSubchart: true
-          deployments:
-            - name: "dagster-user-code"
-              image:
-                repository: "docker.io/dagster/user-code-example"
-                tag: "1.12.10"
-                pullPolicy: IfNotPresent
-              dagsterApiGrpcArgs:
-                - "--python-file"
-                - "/iris_analysis/definitions.py"
-              port: 3030
+          enabled: false
+          enableSubchart: false
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ .Values.dagster.namespace }}
