@@ -25,12 +25,19 @@ spec:
           postgresqlDatabase: {{ .Values.dagster.postgresql.database | quote }}
           existingSecret: {{ .Values.dagster.postgresql.existingSecret | quote }}
           {{- end }}
-        dagsterWebserver:
-          workspace:
-            enabled: false
         dagster-user-deployments:
-          enabled: false
-          enableSubchart: false
+          enabled: true
+          enableSubchart: true
+          deployments:
+            - name: "dagster-user-code"
+              image:
+                repository: "docker.io/dagster/user-code-example"
+                tag: "1.12.10"
+                pullPolicy: IfNotPresent
+              dagsterApiGrpcArgs:
+                - "-m"
+                - "dagster_test.test_project.test_jobs.repo"
+              port: 3030
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ .Values.dagster.namespace }}
