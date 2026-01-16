@@ -21,6 +21,13 @@ spec:
         generatePostgresqlPasswordSecret: {{ .Values.dagster.postgresql.enabled }}
         ingress:
           enabled: true
+          {{- if .Values.dagster.ingress.ingressClassName }}
+          ingressClassName: {{ .Values.dagster.ingress.ingressClassName | quote }}
+          {{- end }}
+          {{- if .Values.dagster.ingress.annotations }}
+          annotations:
+            {{- toYaml .Values.dagster.ingress.annotations | nindent 12 }}
+          {{- end }}
           dagsterWebserver:
             host: {{ .Values.dagster.ingress.host }}
         postgresql:
