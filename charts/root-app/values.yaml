@@ -362,7 +362,10 @@ dagster:
       pullPolicy: Always
     imagePullSecrets:
       - regv2-secret
-    codeFile: /apps/sample-dagster/main.py
+    # For modern Dagster projects (uv/module-based), use moduleName
+    moduleName: sample_dagster
+    # For legacy projects (file-based), use codeFile instead
+    # codeFile: /apps/sample-dagster/main.py
 
 prefect:
   enabled: true

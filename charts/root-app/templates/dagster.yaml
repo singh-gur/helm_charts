@@ -42,8 +42,13 @@ spec:
                 tag: {{ .Values.dagster.userCode.image.tag | quote }}
                 pullPolicy: {{ .Values.dagster.userCode.image.pullPolicy }}
               dagsterApiGrpcArgs:
+                {{- if .Values.dagster.userCode.moduleName }}
+                - "--module-name"
+                - {{ .Values.dagster.userCode.moduleName | quote }}
+                {{- else if .Values.dagster.userCode.codeFile }}
                 - "--python-file"
                 - {{ .Values.dagster.userCode.codeFile | quote }}
+                {{- end }}
               port: 3030
           {{- end }}
   destination:
