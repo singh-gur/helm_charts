@@ -344,7 +344,7 @@ trino:
       credentialsSecret: trino-iceberg-s3
 
 dagster:
-  enabled: false
+  enabled: true
   version: 1.12.10
   namespace: dagster
   ingress:
