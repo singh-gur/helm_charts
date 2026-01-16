@@ -22,6 +22,7 @@ spec:
           enabled: {{ .Values.dagster.postgresql.enabled }}
           {{- if not .Values.dagster.postgresql.enabled }}
           postgresqlHost: {{ .Values.dagster.postgresql.host | quote }}
+          postgresqlUsername: {{ .Values.dagster.postgresql.username | quote }}
           postgresqlDatabase: {{ .Values.dagster.postgresql.database | quote }}
           existingSecret: {{ .Values.dagster.postgresql.existingSecret | quote }}
           {{- end }}

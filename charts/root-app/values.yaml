@@ -352,6 +352,7 @@ dagster:
   postgresql:
     enabled: false
     host: 192.168.2.119
+    username: dagster
     database: dagster
     existingSecret: dagster-postgresql-secret
   userCode:

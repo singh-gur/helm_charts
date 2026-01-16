@@ -1088,17 +1088,26 @@
             "enabled": {
               "type": "boolean",
               "default": false,
-              "description": "Use embedded PostgreSQL. When false, requires host and existingSecret."
+              "description": "Use embedded PostgreSQL. When false, requires host, username, and existingSecret."
             },
             "host": {
-              "type": "string"
+              "type": "string",
+              "description": "PostgreSQL host address (required when enabled=false)"
+            },
+            "username": {
+              "type": "string",
+              "minLength": 1,
+              "description": "PostgreSQL username (required when enabled=false)",
+              "default": "dagster"
             },
             "database": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "default": "dagster"
             },
             "existingSecret": {
-              "type": "string"
+              "type": "string",
+              "description": "Name of secret containing postgresql-password key"
             }
           },
           "required": ["enabled"]
