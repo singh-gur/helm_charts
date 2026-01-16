@@ -14,6 +14,11 @@ spec:
     targetRevision: {{ .Values.dagster.version }}
     helm:
       values: |
+        global:
+          {{- if not .Values.dagster.postgresql.enabled }}
+          postgresqlSecretName: {{ .Values.dagster.postgresql.existingSecret | quote }}
+          {{- end }}
+        generatePostgresqlPasswordSecret: {{ .Values.dagster.postgresql.enabled }}
         ingress:
           enabled: true
           dagsterWebserver:
@@ -24,7 +29,6 @@ spec:
           postgresqlHost: {{ .Values.dagster.postgresql.host | quote }}
           postgresqlUsername: {{ .Values.dagster.postgresql.username | quote }}
           postgresqlDatabase: {{ .Values.dagster.postgresql.database | quote }}
-          existingSecret: {{ .Values.dagster.postgresql.existingSecret | quote }}
           {{- end }}
         dagster-user-deployments:
           enabled: {{ .Values.dagster.userCode.enabled }}
