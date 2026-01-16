@@ -1,0 +1,45 @@
+{{- if .Values.oauth2Proxy.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: {{ .Values.argocdNamespace | default "default" }}
+  name: oauth2-proxy
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://oauth2-proxy.github.io/manifests
+    chart: oauth2-proxy
+    targetRevision: {{ .Values.oauth2Proxy.version }}
+    helm:
+      values: |
+        config:
+          existingSecret: {{ .Values.oauth2Proxy.existingSecret | quote }}
+        {{- if .Values.oauth2Proxy.extraArgs }}
+        extraArgs:
+          {{- range $key, $value := .Values.oauth2Proxy.extraArgs }}
+          {{ $key }}: {{ $value | quote }}
+          {{- end }}
+        {{- end }}
+        ingress:
+          enabled: {{ .Values.oauth2Proxy.ingress.enabled | default true }}
+          className: {{ .Values.oauth2Proxy.ingress.className | default "traefik" | quote }}
+          {{- if .Values.oauth2Proxy.ingress.annotations }}
+          annotations:
+            {{- toYaml .Values.oauth2Proxy.ingress.annotations | nindent 12 }}
+          {{- end }}
+          hosts:
+            - {{ .Values.oauth2Proxy.ingress.host }}
+          path: /
+          pathType: Prefix
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.oauth2Proxy.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}

@@ -374,6 +374,25 @@ dagster:
     # For legacy projects (file-based), use codeFile instead
     # codeFile: /apps/sample-dagster/main.py
 
+oauth2Proxy:
+  enabled: true
+  version: "10.1.0"
+  namespace: dagster
+  existingSecret: oauth2-proxy-dagster-secret
+  ingress:
+    enabled: true
+    host: dagster.gsingh.io
+    className: traefik
+    annotations: {}
+  extraArgs:
+    provider: "oidc"
+    oidc-issuer-url: "https://auth2.gsingh.io"
+    email-domain: "*"
+    upstream: "http://dagster-dagster-webserver.dagster.svc.cluster.local"
+    redirect-url: "https://dagster.gsingh.io/oauth2/callback"
+    scope: "openid profile email"
+    skip-provider-button: "true"
+
 prefect:
   enabled: true
   version: "2026.1.8195301"

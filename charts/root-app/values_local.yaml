@@ -350,7 +350,7 @@ trino:
       credentialsSecret: trino-iceberg-s3
 
 dagster:
-  enabled: true
+  enabled: false
   version: 1.12.10
   namespace: dagster
   ingress:
@@ -373,6 +373,25 @@ dagster:
     moduleName: sample_dagster
     # For legacy projects (file-based), use codeFile instead
     # codeFile: /apps/sample-dagster/main.py
+
+oauth2Proxy:
+  enabled: false
+  version: "10.1.0"
+  namespace: dagster
+  existingSecret: oauth2-proxy-dagster-secret
+  ingress:
+    enabled: true
+    host: dagster.gsingh.io
+    className: traefik
+    annotations: {}
+  extraArgs:
+    provider: "oidc"
+    oidc-issuer-url: "https://auth2.gsingh.io"
+    email-domain: "*"
+    upstream: "http://dagster-dagster-webserver.dagster.svc.cluster.local"
+    redirect-url: "https://dagster.gsingh.io/oauth2/callback"
+    scope: "openid profile email"
+    skip-provider-button: "true"
 
 prefect:
   enabled: true

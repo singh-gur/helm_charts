@@ -20,6 +20,10 @@ spec:
           {{- end }}
         generatePostgresqlPasswordSecret: {{ .Values.dagster.postgresql.enabled }}
         ingress:
+          {{- if .Values.oauth2Proxy.enabled }}
+          # Ingress disabled when OAuth2 Proxy is enabled (OAuth2 Proxy handles ingress)
+          enabled: false
+          {{- else }}
           enabled: true
           {{- if .Values.dagster.ingress.ingressClassName }}
           ingressClassName: {{ .Values.dagster.ingress.ingressClassName | quote }}
@@ -30,6 +34,7 @@ spec:
           {{- end }}
           dagsterWebserver:
             host: {{ .Values.dagster.ingress.host }}
+          {{- end }}
         postgresql:
           enabled: {{ .Values.dagster.postgresql.enabled }}
           {{- if not .Values.dagster.postgresql.enabled }}
