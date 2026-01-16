@@ -392,7 +392,6 @@ oauth2Proxy:
     redirect-url: "https://dagster.gsingh.io/oauth2/callback"
     scope: "openid profile email"
     skip-provider-button: "true"
-    whitelist-domain: ".gsingh.io"
 
 prefect:
   enabled: true
