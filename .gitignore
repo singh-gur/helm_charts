@@ -5,3 +5,4 @@ charts/**/charts
 .test
 .zed/settings.json
 .crush
+.backups
