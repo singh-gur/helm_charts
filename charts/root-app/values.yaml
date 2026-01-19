@@ -146,6 +146,13 @@ argowf:
 
 argocd:
   enabled: true
+  # Sync policy configuration for ArgoCD self-management
+  # Set automated to false to disable auto-sync (requires manual sync)
+  # Set selfHeal to false to disable drift correction
+  syncPolicy:
+    automated: true    # Enable/disable automatic sync
+    selfHeal: true     # Enable/disable self-healing on drift
+    prune: true        # Enable/disable automatic pruning of resources
 
 coder:
   enabled: true

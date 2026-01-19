@@ -17,7 +17,30 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: default
+  {{- if .Values.argocd.syncPolicy.automated }}
   syncPolicy:
     automated:
-      selfHeal: true
+      selfHeal: {{ .Values.argocd.syncPolicy.selfHeal | default true }}
+      prune: {{ .Values.argocd.syncPolicy.prune | default true }}
+    syncOptions:
+      - CreateNamespace=false
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  {{- else }}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  {{- end }}
 {{- end }}

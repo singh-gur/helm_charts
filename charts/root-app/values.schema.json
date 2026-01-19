@@ -460,9 +460,31 @@
         "enabled": {
           "type": "boolean",
           "default": false
+        },
+        "syncPolicy": {
+          "type": "object",
+          "description": "Sync policy configuration for ArgoCD self-management",
+          "properties": {
+            "automated": {
+              "type": "boolean",
+              "default": true,
+              "description": "Enable automatic sync from Git. Set to false for manual sync only."
+            },
+            "selfHeal": {
+              "type": "boolean",
+              "default": true,
+              "description": "Enable self-healing to revert manual changes. Only applies when automated=true."
+            },
+            "prune": {
+              "type": "boolean",
+              "default": true,
+              "description": "Enable automatic pruning of resources not in Git. Only applies when automated=true."
+            }
+          },
+          "required": ["automated", "selfHeal", "prune"]
         }
       },
-      "required": ["enabled"]
+      "required": ["enabled", "syncPolicy"]
     },
     "coder": {
       "type": "object",
