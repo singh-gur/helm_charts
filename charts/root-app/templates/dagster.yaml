@@ -43,30 +43,38 @@ spec:
           postgresqlDatabase: {{ .Values.dagster.postgresql.database | quote }}
           {{- end }}
         dagster-user-deployments:
-          enabled: {{ .Values.dagster.userCode.enabled }}
-          enableSubchart: {{ .Values.dagster.userCode.enabled }}
-          {{- if .Values.dagster.userCode.enabled }}
-          {{- if .Values.dagster.userCode.imagePullSecrets }}
+          enabled: {{ .Values.dagster.userDeployments.enabled }}
+          enableSubchart: {{ .Values.dagster.userDeployments.enabled }}
+          {{- if .Values.dagster.userDeployments.enabled }}
+          {{- if .Values.dagster.userDeployments.imagePullSecrets }}
           imagePullSecrets:
-            {{- range .Values.dagster.userCode.imagePullSecrets }}
+            {{- range .Values.dagster.userDeployments.imagePullSecrets }}
             - name: {{ . }}
             {{- end }}
           {{- end }}
           deployments:
-            - name: "dagster-user-code"
+            {{- range .Values.dagster.userDeployments.deployments }}
+            - name: {{ .name | quote }}
               image:
-                repository: {{ .Values.dagster.userCode.image.repository | quote }}
-                tag: {{ .Values.dagster.userCode.image.tag | quote }}
-                pullPolicy: {{ .Values.dagster.userCode.image.pullPolicy }}
+                repository: {{ .image.repository | quote }}
+                tag: {{ .image.tag | quote }}
+                pullPolicy: {{ .image.pullPolicy | default "Always" }}
+              {{- if .imagePullSecrets }}
+              imagePullSecrets:
+                {{- range .imagePullSecrets }}
+                - name: {{ . }}
+                {{- end }}
+              {{- end }}
               dagsterApiGrpcArgs:
-                {{- if .Values.dagster.userCode.moduleName }}
+                {{- if .moduleName }}
                 - "--module-name"
-                - {{ .Values.dagster.userCode.moduleName | quote }}
-                {{- else if .Values.dagster.userCode.codeFile }}
+                - {{ .moduleName | quote }}
+                {{- else if .codeFile }}
                 - "--python-file"
-                - {{ .Values.dagster.userCode.codeFile | quote }}
+                - {{ .codeFile | quote }}
                 {{- end }}
               port: 3030
+            {{- end }}
           {{- end }}
   destination:
     server: https://kubernetes.default.svc

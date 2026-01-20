@@ -368,18 +368,23 @@ dagster:
     username: dagster
     database: dagster
     existingSecret: ""
-  userCode:
+  # User code deployments - supports multiple deployments
+  userDeployments:
     enabled: true
-    image:
-      repository: regv2.gsingh.io/personal/sample-dagster
-      tag: latest
-      pullPolicy: Always
+    # Global image pull secrets applied to all deployments (can be overridden per deployment)
     imagePullSecrets:
       - regv2-secret
-    # For modern Dagster projects (uv/module-based), use moduleName
-    moduleName: sample_dagster
-    # For legacy projects (file-based), use codeFile instead
-    # codeFile: /apps/sample-dagster/main.py
+    # List of user code deployments
+    deployments:
+      - name: "sample-dagster"
+        image:
+          repository: regv2.gsingh.io/personal/sample-dagster
+          tag: latest
+          pullPolicy: Always
+        # For modern Dagster projects (uv/module-based), use moduleName
+        moduleName: sample_dagster
+        # For legacy projects (file-based), use codeFile instead
+        # codeFile: /apps/sample-dagster/main.py
 
 oauth2Proxy:
   enabled: false

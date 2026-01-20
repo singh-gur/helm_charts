@@ -1100,6 +1100,17 @@
             "host": {
               "type": "string",
               "format": "hostname"
+            },
+            "ingressClassName": {
+              "type": "string",
+              "description": "Ingress class name (e.g., 'traefik', 'nginx')"
+            },
+            "annotations": {
+              "type": "object",
+              "description": "Additional annotations for the ingress resource",
+              "additionalProperties": {
+                "type": "string"
+              }
             }
           },
           "required": ["host"]
@@ -1134,48 +1145,85 @@
           },
           "required": ["enabled"]
         },
-        "userCode": {
+        "userDeployments": {
           "type": "object",
+          "description": "User code deployments configuration - supports multiple deployments",
           "properties": {
             "enabled": {
               "type": "boolean",
-              "default": false
-            },
-            "image": {
-              "type": "object",
-              "properties": {
-                "repository": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "tag": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "pullPolicy": {
-                  "type": "string",
-                  "enum": ["Always", "IfNotPresent", "Never"],
-                  "default": "Always"
-                }
-              },
-              "required": ["repository", "tag", "pullPolicy"]
+              "default": false,
+              "description": "Enable user code deployments"
             },
             "imagePullSecrets": {
               "type": "array",
+              "description": "Global image pull secrets applied to all deployments (can be overridden per deployment)",
               "items": {
                 "type": "string"
               }
             },
-            "moduleName": {
-              "type": "string",
-              "description": "Python module name for modern Dagster projects (e.g., 'sample_dagster'). Use this OR codeFile, not both."
-            },
-            "codeFile": {
-              "type": "string",
-              "description": "Path to Python file for legacy Dagster projects (e.g., '/app/main.py'). Use this OR moduleName, not both."
+            "deployments": {
+              "type": "array",
+              "description": "List of user code deployments",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Unique name for this deployment (e.g., 'sample-dagster', 'analytics-pipeline')"
+                  },
+                  "image": {
+                    "type": "object",
+                    "properties": {
+                      "repository": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Container image repository"
+                      },
+                      "tag": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Container image tag"
+                      },
+                      "pullPolicy": {
+                        "type": "string",
+                        "enum": ["Always", "IfNotPresent", "Never"],
+                        "default": "Always",
+                        "description": "Image pull policy"
+                      }
+                    },
+                    "required": ["repository", "tag"]
+                  },
+                  "imagePullSecrets": {
+                    "type": "array",
+                    "description": "Override global imagePullSecrets for this specific deployment",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "moduleName": {
+                    "type": "string",
+                    "description": "Python module name for modern Dagster projects (e.g., 'sample_dagster'). Use this OR codeFile, not both."
+                  },
+                  "codeFile": {
+                    "type": "string",
+                    "description": "Path to Python file for legacy Dagster projects (e.g., '/app/main.py'). Use this OR moduleName, not both."
+                  }
+                },
+                "required": ["name", "image"],
+                "oneOf": [
+                  {
+                    "required": ["moduleName"]
+                  },
+                  {
+                    "required": ["codeFile"]
+                  }
+                ]
+              },
+              "minItems": 1
             }
           },
-          "required": ["enabled", "image"]
+          "required": ["enabled", "deployments"]
         }
       },
       "required": ["enabled"]
