@@ -172,14 +172,14 @@ ghost:
   ghostEmail: hello@gsingh.io
 langfuse:
   enabled: true
-  version: 1.5.15
+  version: 1.5.18
   ingress:
     host: langfuse.gsingh.io
   clickhouse:
     enabled: true
     deploy: true
     migration:
-      autoMigrate: true
+      autoMigrate: false
 protonbridge:
   enabled: false
   version: 5.4.2
