@@ -171,7 +171,7 @@ ghost:
     hostname: blog.gsingh.io
   ghostEmail: hello@gsingh.io
 langfuse:
-  enabled: true
+  enabled: false
   version: 1.5.18
   ingress:
     host: langfuse.gsingh.io
@@ -179,7 +179,7 @@ langfuse:
     enabled: true
     deploy: true
     migration:
-      autoMigrate: false
+      autoMigrate: true
 protonbridge:
   enabled: false
   version: 5.4.2
