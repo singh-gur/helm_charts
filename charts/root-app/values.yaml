@@ -156,7 +156,7 @@ argocd:
 
 coder:
   enabled: true
-  version: 2.29.1
+  version: 2.29.4
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
@@ -191,7 +191,7 @@ rootapp:
   enabled: true
 uptime:
   enabled: true
-  version: 2.21.3
+  version: 2.24.0
   ingress:
     host: uptime.gsingh.io
 whoami:
@@ -232,7 +232,7 @@ openproject:
     scope: "[openid profile email]"
 zitadel:
   enabled: true
-  version: 9.16.0
+  version: 9.17.1
   externalDomain: auth.gsingh.io
   ingress:
     host: auth.gsingh.io
@@ -326,7 +326,7 @@ kyuubi:
 
 trino:
   enabled: true
-  version: "1.41.0"
+  version: "1.42.0"
   namespace: data-platform
   ingress:
     host: trino.gsingh.io
@@ -352,7 +352,7 @@ trino:
 
 dagster:
   enabled: true
-  version: 1.12.10
+  version: 1.12.13
   namespace: dagster
   ingress:
     host: dagster.gsingh.io
@@ -398,7 +398,7 @@ dagster:
 
 oauth2Proxy:
   enabled: true
-  version: "10.1.0"
+  version: "10.1.2"
   namespace: dagster
   existingSecret: oauth2-proxy-dagster-secret
   ingress:
@@ -417,7 +417,7 @@ oauth2Proxy:
 
 prefect:
   enabled: true
-  version: "2026.1.8195301"
+  version: "2026.1.30002458"
   namespace: prefect
   ingress:
     host: prefect.gsingh.io
@@ -438,7 +438,7 @@ prefect:
 
 prefectWorker:
   enabled: true
-  version: "2026.1.8195301"
+  version: "2026.1.30002458"
   namespace: prefect
   replicaCount: 5
   workPool: "kubernetes"
