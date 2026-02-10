@@ -156,13 +156,14 @@ argocd:
 
 coder:
   enabled: true
-  version: 2.29.4
+  version: 2.29.6
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
   oidc:
     ignoreEmailVerified: true
     signInText: "SSO Login"
+
 ghost:
   enabled: false
   version: 24.0.1
@@ -170,6 +171,7 @@ ghost:
   ingress:
     hostname: blog.gsingh.io
   ghostEmail: hello@gsingh.io
+
 langfuse:
   enabled: true
   version: 1.5.18
@@ -180,20 +182,25 @@ langfuse:
     deploy: true
     migration:
       autoMigrate: true
+
 protonbridge:
   enabled: false
   version: 5.4.2
+
 rancher:
   enabled: true
   version: 2.11.2
   hostname: rancher.gsingh.io
+
 rootapp:
   enabled: true
+
 uptime:
   enabled: true
   version: 2.24.0
   ingress:
     host: uptime.gsingh.io
+
 whoami:
   enabled: false
 
@@ -230,6 +237,7 @@ openproject:
     displayName: "Zitadel SSO"
     host: "auth.gsingh.io"
     scope: "[openid profile email]"
+
 zitadel:
   enabled: true
   version: 9.17.1
@@ -253,6 +261,7 @@ windmill:
     name: windmill-secrets
     key: database-url
     enabled: false
+
 promtail:
   enabled: true
   version: 6.17.0
@@ -266,6 +275,7 @@ promtail:
     requests:
       cpu: 100m
       memory: 128Mi
+
 k8sMonitoring:
   enabled: false
   version: 3.5.7
@@ -309,6 +319,7 @@ k8sMonitoring:
     enabled: true
     cost:
       enabled: false
+
 kyuubi:
   enabled: false
   namespace: default
