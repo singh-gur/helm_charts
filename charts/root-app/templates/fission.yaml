@@ -1,0 +1,84 @@
+{{- if .Values.fission.enabled }}
+{{- $fission := .Values.fission }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: {{ $.Values.argocdNamespace | default "default" }}
+  name: fission
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://fission.github.io/fission-charts/
+    chart: fission-all
+    targetRevision: {{ $fission.version }}
+    helm:
+      values: |
+        routerServiceType: {{ $fission.routerServiceType | default "ClusterIP" }}
+        {{- if $fission.canaryDeployment }}
+        canaryDeployment:
+          enabled: {{ $fission.canaryDeployment.enabled | default false }}
+        {{- end }}
+        {{- if $fission.openTelemetry }}
+        openTelemetry:
+          otlpCollectorEndpoint: {{ $fission.openTelemetry.otlpCollectorEndpoint | quote }}
+          otlpInsecure: {{ $fission.openTelemetry.otlpInsecure | default true }}
+          {{- if $fission.openTelemetry.otlpHeaders }}
+          otlpHeaders: {{ $fission.openTelemetry.otlpHeaders | quote }}
+          {{- end }}
+          tracesSampler: {{ $fission.openTelemetry.tracesSampler | default "parentbased_traceidratio" | quote }}
+          tracesSamplingRate: {{ $fission.openTelemetry.tracesSamplingRate | default "0.1" | quote }}
+        {{- end }}
+        {{- if $fission.serviceMonitor }}
+        serviceMonitor:
+          enabled: {{ $fission.serviceMonitor.enabled | default false }}
+          {{- if $fission.serviceMonitor.namespace }}
+          namespace: {{ $fission.serviceMonitor.namespace }}
+          {{- end }}
+        {{- end }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ $fission.namespace | default "fission" }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+{{- if $fission.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fission-router
+  namespace: {{ $fission.namespace | default "fission" }}
+  {{- if $fission.ingress.annotations }}
+  annotations:
+    {{- toYaml $fission.ingress.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $fission.ingress.ingressClassName }}
+  ingressClassName: {{ $fission.ingress.ingressClassName }}
+  {{- end }}
+  rules:
+    - host: {{ $fission.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: router
+                port:
+                  number: 80
+  {{- if $fission.ingress.tls }}
+  tls:
+    - hosts:
+        - {{ $fission.ingress.host }}
+      {{- if $fission.ingress.tlsSecretName }}
+      secretName: {{ $fission.ingress.tlsSecretName }}
+      {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}

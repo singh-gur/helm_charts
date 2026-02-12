@@ -164,6 +164,32 @@ coder:
     ignoreEmailVerified: true
     signInText: "SSO Login"
 
+fission:
+  enabled: false
+  version: "1.22.1"
+  namespace: fission
+  # Fission serverless framework configuration
+  # CRDs must be installed separately:
+  #   kubectl create -k "github.com/fission/fission/crds/v1?ref=v1.22.0"
+  routerServiceType: ClusterIP
+  # Canary deployments (requires prometheus.serviceEndpoint)
+  canaryDeployment:
+    enabled: false
+  # OpenTelemetry tracing -- sends traces to Tempo via OTLP gRPC
+  openTelemetry:
+    otlpCollectorEndpoint: "lgtm-tempo.default.svc.cluster.local:4317"
+    otlpInsecure: true
+    tracesSampler: "parentbased_traceidratio"
+    tracesSamplingRate: "0.1"
+  # Prometheus ServiceMonitor for Mimir scraping
+  serviceMonitor:
+    enabled: true
+    namespace: fission
+  # Ingress for Fission router
+  ingress:
+    enabled: true
+    host: fission.gsingh.io
+
 ghost:
   enabled: false
   version: 24.0.1
