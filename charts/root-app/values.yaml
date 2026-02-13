@@ -168,9 +168,9 @@ fission:
   enabled: true
   version: "1.22.1"
   namespace: fission
-  # Fission serverless framework configuration
-  # CRDs must be installed separately:
-  #   kubectl create -k "github.com/fission/fission/crds/v1?ref=v1.22.0"
+  # Fission CRDs - set install: false after initial install to skip CRD upgrades
+  crds:
+    install: true
   routerServiceType: ClusterIP
   # Canary deployments (requires prometheus.serviceEndpoint)
   canaryDeployment:
