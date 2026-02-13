@@ -7,5 +7,5 @@ metadata:
 spec:
   runtime:
     image: {{ .Values.environment.image }}
-    version: {{ .Values.environment.version | quote }}
+  version: {{ .Values.environment.version }}
 {{- end }}

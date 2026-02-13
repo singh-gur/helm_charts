@@ -5,7 +5,7 @@ metadata:
   name: {{ .Values.function.name }}-trigger
   namespace: {{ .Values.namespace }}
 spec:
-  function:
+  functionRef:
     name: {{ .Values.function.name }}
     namespace: {{ .Values.namespace }}
   route:

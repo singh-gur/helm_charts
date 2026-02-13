@@ -8,6 +8,11 @@ spec:
   environment:
     name: {{ .Values.environment.name }}
     namespace: {{ .Values.namespace }}
-  code: |
-{{ .Values.function.code | indent 4 }}
+  package:
+    inline:
+      source: |
+{{ .Values.function.code | indent 8 }}
+  invokeStrategy:
+    executionStrategy: ExecutionMode
+    strategyType: Execution
 {{- end }}
