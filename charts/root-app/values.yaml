@@ -250,7 +250,7 @@ whoami:
   enabled: false
 
 fissionHello:
-  enabled: false
+  enabled: true
 
 openproject:
   enabled: false
