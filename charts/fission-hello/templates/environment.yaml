@@ -1,0 +1,11 @@
+{{- if .Values.enabled }}
+apiVersion: fission.io/v1
+kind: Environment
+metadata:
+  name: {{ .Values.environment.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  runtime:
+    image: {{ .Values.environment.image }}
+    version: {{ .Values.environment.version | quote }}
+{{- end }}

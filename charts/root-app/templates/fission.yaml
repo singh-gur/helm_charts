@@ -16,8 +16,9 @@ spec:
     helm:
       values: |
         routerServiceType: {{ $fission.routerServiceType | default "ClusterIP" }}
-        crds:
-          install: {{ $fission.crds.install | default true }}
+        defaultNamespace: {{ $fission.namespace | default "fission" }}
+        functionNamespace: {{ $fission.namespace | default "fission" }}
+        builderNamespace: {{ $fission.namespace | default "fission" }}
         {{- if $fission.canaryDeployment }}
         canaryDeployment:
           enabled: {{ $fission.canaryDeployment.enabled | default false }}

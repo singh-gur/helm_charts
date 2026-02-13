@@ -1,0 +1,4 @@
+apiVersion: v2
+name: fission-hello
+description: Sample Hello World Fission Function
+version: 1.0.0

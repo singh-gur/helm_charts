@@ -1,0 +1,21 @@
+{{- if .Values.fissionHello.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: {{ .Values.argocdNamespace | default "default" }}
+  name: fission-hello
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/singh-gur/helm_charts.git
+    path: charts/fission-hello
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.fission.namespace | default "fission" }}
+  syncPolicy:
+    automated:
+      selfHeal: true
+{{- end }}

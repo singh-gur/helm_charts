@@ -1,0 +1,15 @@
+{{- if .Values.enabled }}
+apiVersion: fission.io/v1
+kind: HTTPTrigger
+metadata:
+  name: {{ .Values.function.name }}-trigger
+  namespace: {{ .Values.namespace }}
+spec:
+  function:
+    name: {{ .Values.function.name }}
+    namespace: {{ .Values.namespace }}
+  route:
+    methods:
+      - {{ .Values.httptrigger.method }}
+    url: {{ .Values.httptrigger.url }}
+{{- end }}

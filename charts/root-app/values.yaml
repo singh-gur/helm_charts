@@ -168,9 +168,6 @@ fission:
   enabled: true
   version: "1.22.1"
   namespace: fission
-  # Fission CRDs - set install: false after initial install to skip CRD upgrades
-  crds:
-    install: true
   routerServiceType: ClusterIP
   # Canary deployments (requires prometheus.serviceEndpoint)
   canaryDeployment:
@@ -250,6 +247,9 @@ uptime:
     host: uptime.gsingh.io
 
 whoami:
+  enabled: false
+
+fissionHello:
   enabled: false
 
 openproject:
