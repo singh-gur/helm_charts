@@ -5,11 +5,9 @@ metadata:
   name: {{ .Values.function.name }}-trigger
   namespace: {{ .Values.namespace }}
 spec:
-  functionRef:
+  functionref:
     name: {{ .Values.function.name }}
     namespace: {{ .Values.namespace }}
-  route:
-    methods:
-      - {{ .Values.httptrigger.method }}
-    url: {{ .Values.httptrigger.url }}
+  relativeurl: {{ .Values.httptrigger.url }}
+  method: {{ .Values.httptrigger.method }}
 {{- end }}

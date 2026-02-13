@@ -3,7 +3,7 @@ namespace: fission
 environment:
   name: nodejs
   image: ghcr.io/fission/node-env
-  version: v1
+  version: 1
 function:
   name: hello
   code: |

@@ -13,6 +13,7 @@ spec:
       source: |
 {{ .Values.function.code | indent 8 }}
   invokeStrategy:
-    executionStrategy: ExecutionMode
     strategyType: Execution
+    executionStrategy:
+      executorType: poolmgr
 {{- end }}
