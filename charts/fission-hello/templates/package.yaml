@@ -1,15 +1,13 @@
 {{- if .Values.enabled }}
 apiVersion: fission.io/v1
-kind: Function
+kind: Package
 metadata:
-  name: {{ .Values.function.name }}
+  name: {{ .Values.function.name }}-pkg
   namespace: {{ .Values.namespace }}
 spec:
   environment:
     name: {{ .Values.environment.name }}
     namespace: {{ .Values.namespace }}
-  package:
-    packageref:
-      name: {{ .Values.function.name }}-pkg
-      namespace: {{ .Values.namespace }}
+  deployment:
+    literal: {{ .Values.function.code | b64enc | quote }}
 {{- end }}
