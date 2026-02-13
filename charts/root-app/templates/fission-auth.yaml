@@ -21,8 +21,7 @@ spec:
           {{ $key }}: {{ $value | quote }}
           {{- end }}
         service:
-          type: ClusterIP
-          port: 80
+          portNumber: 80
         ingress:
           enabled: {{ .Values.oauth2ProxyFission.ingress.enabled | default true }}
           className: {{ .Values.oauth2ProxyFission.ingress.className | default "traefik" | quote }}
