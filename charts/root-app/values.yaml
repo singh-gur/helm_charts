@@ -165,7 +165,7 @@ coder:
     signInText: "SSO Login"
 
 fission:
-  enabled: false
+  enabled: true
   version: "1.22.1"
   namespace: fission
   # Fission serverless framework configuration
@@ -192,7 +192,7 @@ fission:
   # OAuth2 Proxy for Fission (reverse proxy mode)
   # Supports both browser (session) and programmatic (JWT bearer token) access
 oauth2ProxyFission:
-  enabled: false
+  enabled: true
   version: "10.1.2"
   namespace: fission
   existingSecret: oauth2-proxy-fission-secret
