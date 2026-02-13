@@ -8,6 +8,7 @@ spec:
   functionref:
     name: {{ .Values.function.name }}
     namespace: {{ .Values.namespace }}
+    type: name
   relativeurl: {{ .Values.httptrigger.url }}
   method: {{ .Values.httptrigger.method }}
 {{- end }}

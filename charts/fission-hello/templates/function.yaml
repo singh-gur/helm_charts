@@ -12,8 +12,8 @@ spec:
     inline:
       source: |
 {{ .Values.function.code | indent 8 }}
-  invokeStrategy:
-    strategyType: Execution
-    executionStrategy:
-      executorType: poolmgr
+  InvokeStrategy:
+    StrategyType: Execution
+    ExecutionStrategy:
+      ExecutorType: poolmgr
 {{- end }}
