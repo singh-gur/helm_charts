@@ -46,39 +46,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
----
-{{- if $fission.ingress.enabled }}
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: fission-router
-  namespace: {{ $fission.namespace | default "fission" }}
-  {{- if $fission.ingress.annotations }}
-  annotations:
-    {{- toYaml $fission.ingress.annotations | nindent 4 }}
-  {{- end }}
-spec:
-  {{- if $fission.ingress.ingressClassName }}
-  ingressClassName: {{ $fission.ingress.ingressClassName }}
-  {{- end }}
-  rules:
-    - host: {{ $fission.ingress.host }}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: router
-                port:
-                  number: 80
-  {{- if $fission.ingress.tls }}
-  tls:
-    - hosts:
-        - {{ $fission.ingress.host }}
-      {{- if $fission.ingress.tlsSecretName }}
-      secretName: {{ $fission.ingress.tlsSecretName }}
-      {{- end }}
-  {{- end }}
-{{- end }}
 {{- end }}

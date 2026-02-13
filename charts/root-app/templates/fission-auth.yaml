@@ -1,0 +1,42 @@
+{{- if and .Values.fission.enabled .Values.oauth2ProxyFission.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: {{ .Values.argocdNamespace | default "default" }}
+  name: oauth2-proxy-fission
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://oauth2-proxy.github.io/manifests
+    chart: oauth2-proxy
+    targetRevision: {{ .Values.oauth2ProxyFission.version }}
+    helm:
+      values: |
+        config:
+          existingSecret: {{ .Values.oauth2ProxyFission.existingSecret | quote }}
+        extraArgs:
+          {{- range $key, $value := .Values.oauth2ProxyFission.extraArgs }}
+          {{ $key }}: {{ $value | quote }}
+          {{- end }}
+        service:
+          type: ClusterIP
+          port: 80
+        ingress:
+          enabled: {{ .Values.oauth2ProxyFission.ingress.enabled | default true }}
+          className: {{ .Values.oauth2ProxyFission.ingress.className | default "traefik" | quote }}
+          hosts:
+            - {{ .Values.oauth2ProxyFission.ingress.host }}
+          path: /
+          pathType: Prefix
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.oauth2ProxyFission.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}

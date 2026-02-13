@@ -189,6 +189,28 @@ fission:
   ingress:
     enabled: true
     host: fission.gsingh.io
+  # OAuth2 Proxy for Fission (reverse proxy mode)
+  # Supports both browser (session) and programmatic (JWT bearer token) access
+oauth2ProxyFission:
+  enabled: false
+  version: "10.1.2"
+  namespace: fission
+  existingSecret: oauth2-proxy-fission-secret
+  ingress:
+    enabled: true
+    host: fission.gsingh.io
+    className: traefik
+  extraArgs:
+    provider: "oidc"
+    oidc-issuer-url: "https://auth.gsingh.io"
+    email-domain: "*"
+    upstream: "http://router.fission.svc.cluster.local"
+    redirect-url: "https://fission.gsingh.io/oauth2/callback"
+    scope: "openid profile email"
+    skip-provider-button: "true"
+    skip-jwt-bearer-tokens: "true"
+    pass-authorization-header: "true"
+    pass-access-token: "true"
 
 ghost:
   enabled: false
