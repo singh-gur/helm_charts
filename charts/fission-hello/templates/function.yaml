@@ -12,4 +12,8 @@ spec:
     packageref:
       name: {{ .Values.function.name }}-pkg
       namespace: {{ .Values.namespace }}
+  InvokeStrategy:
+    StrategyType: execution
+    ExecutionStrategy:
+      ExecutorType: poolmgr
 {{- end }}
