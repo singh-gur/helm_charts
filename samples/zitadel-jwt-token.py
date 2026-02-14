@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Generate a JWT access token from a Zitadel service account key file.
+Generate a JWT access token from a Zitadel key JSON file.
+Supports both Service Account keys and Application (API) keys.
 
 Prerequisites:
     pip install pyjwt cryptography requests
@@ -12,15 +13,26 @@ Usage:
     # Get token and call a fission function
     python zitadel-jwt-token.py --key /path/to/key.json --url https://fission.gsingh.io/hello
 
-    # Custom issuer (if different from key file)
+    # Custom issuer (if different from default)
     python zitadel-jwt-token.py --key /path/to/key.json --issuer https://auth.gsingh.io
 
-Key JSON format (downloaded from Zitadel Service Account → Keys → Add Key):
+Supported key JSON formats:
+
+    Service Account key (Users → Service Accounts → Keys → Add Key):
     {
         "type": "serviceaccount",
         "keyId": "123456",
-        "key": "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----\n",
+        "key": "-----BEGIN RSA PRIVATE KEY-----\\n...\\n-----END RSA PRIVATE KEY-----\\n",
         "userId": "789012"
+    }
+
+    Application key (Projects → App → Keys → Add Key):
+    {
+        "type": "application",
+        "keyId": "123456",
+        "key": "-----BEGIN RSA PRIVATE KEY-----\\n...\\n-----END RSA PRIVATE KEY-----\\n",
+        "appId": "789012",
+        "clientId": "789012@project-name"
     }
 """
 
@@ -39,13 +51,43 @@ def load_key_file(path: str) -> dict:
         return json.load(f)
 
 
+def get_subject(key_data: dict) -> str:
+    """Extract the subject (issuer/sub) from key data based on key type."""
+    key_type = key_data.get("type", "").lower()
+
+    if key_type == "application":
+        if "clientId" not in key_data:
+            print("Error: Application key missing 'clientId' field", file=sys.stderr)
+            sys.exit(1)
+        return key_data["clientId"]
+    elif key_type == "serviceaccount":
+        if "userId" not in key_data:
+            print("Error: Service account key missing 'userId' field", file=sys.stderr)
+            sys.exit(1)
+        return key_data["userId"]
+    else:
+        # Try to auto-detect based on available fields
+        if "clientId" in key_data:
+            return key_data["clientId"]
+        elif "userId" in key_data:
+            return key_data["userId"]
+        else:
+            print(
+                f"Error: Unknown key type '{key_type}' and cannot auto-detect. "
+                "Expected 'serviceaccount' or 'application'",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+
 def create_signed_jwt(key_data: dict, issuer: str) -> str:
     """Create a signed JWT assertion for Zitadel token exchange."""
     now = int(time.time())
+    subject = get_subject(key_data)
 
     payload = {
-        "iss": key_data["userId"],
-        "sub": key_data["userId"],
+        "iss": subject,
+        "sub": subject,
         "aud": issuer,
         "iat": now,
         "exp": now + 3600,
@@ -96,7 +138,7 @@ def call_function(url: str, token: str) -> None:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate JWT access token from Zitadel service account key"
+        description="Generate JWT access token from Zitadel key (service account or application)"
     )
     parser.add_argument("--key", required=True, help="Path to Zitadel key JSON file")
     parser.add_argument(
@@ -115,6 +157,11 @@ def main():
     # Load key file
     key_data = load_key_file(args.key)
     issuer = args.issuer or "https://auth.gsingh.io"
+    key_type = key_data.get("type", "unknown")
+    subject = get_subject(key_data)
+
+    print(f"Key type: {key_type}", file=sys.stderr)
+    print(f"Subject: {subject}", file=sys.stderr)
 
     # Create signed JWT
     signed_jwt = create_signed_jwt(key_data, issuer)
