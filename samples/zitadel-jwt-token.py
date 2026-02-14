@@ -7,13 +7,14 @@ Prerequisites:
     pip install pyjwt cryptography requests
 
 Usage:
-    # Get token and print it
+    # Get token
     python zitadel-jwt-token.py --key /path/to/key.json
 
-    # Get token and call a fission function
-    python zitadel-jwt-token.py --key /path/to/key.json --url https://fission.gsingh.io/hello
+    # Use with curl
+    curl https://fission.gsingh.io/hello \
+      -H "Authorization: Bearer $(python zitadel-jwt-token.py --key /path/to/key.json)"
 
-    # Custom issuer (if different from default)
+    # Custom issuer
     python zitadel-jwt-token.py --key /path/to/key.json --issuer https://auth.gsingh.io
 
 Supported key JSON formats:
@@ -66,7 +67,6 @@ def get_subject(key_data: dict) -> str:
             sys.exit(1)
         return key_data["userId"]
     else:
-        # Try to auto-detect based on available fields
         if "clientId" in key_data:
             return key_data["clientId"]
         elif "userId" in key_data:
@@ -129,13 +129,6 @@ def exchange_for_access_token(
     return response.json()
 
 
-def call_function(url: str, token: str) -> None:
-    """Call a fission function with the bearer token."""
-    response = requests.get(url, headers={"Authorization": f"Bearer {token}"})
-    print(f"Status: {response.status_code}")
-    print(f"Response: {response.text}")
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Generate JWT access token from Zitadel key (service account or application)"
@@ -146,7 +139,6 @@ def main():
         default=None,
         help="Zitadel issuer URL (default: https://auth.gsingh.io)",
     )
-    parser.add_argument("--url", default=None, help="URL to call with the token")
     parser.add_argument(
         "--scopes",
         default="openid profile email",
@@ -154,30 +146,17 @@ def main():
     )
     args = parser.parse_args()
 
-    # Load key file
     key_data = load_key_file(args.key)
     issuer = args.issuer or "https://auth.gsingh.io"
-    key_type = key_data.get("type", "unknown")
-    subject = get_subject(key_data)
 
-    print(f"Key type: {key_type}", file=sys.stderr)
-    print(f"Subject: {subject}", file=sys.stderr)
+    print(f"Key type: {key_data.get('type', 'unknown')}", file=sys.stderr)
+    print(f"Subject: {get_subject(key_data)}", file=sys.stderr)
 
-    # Create signed JWT
     signed_jwt = create_signed_jwt(key_data, issuer)
-
-    # Exchange for access token
     token_response = exchange_for_access_token(signed_jwt, issuer, args.scopes)
-    access_token = token_response["access_token"]
 
-    if args.url:
-        # Call the URL with the token
-        call_function(args.url, access_token)
-    else:
-        # Print token info
-        print(f"Access Token: {access_token}")
-        print(f"Token Type: {token_response.get('token_type', 'Bearer')}")
-        print(f"Expires In: {token_response.get('expires_in', 'unknown')}s")
+    # Print only the access token to stdout for easy piping
+    print(token_response["access_token"])
 
 
 if __name__ == "__main__":
