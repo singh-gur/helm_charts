@@ -205,7 +205,8 @@ oauth2ProxyFission:
     redirect-url: "https://fission.gsingh.io/oauth2/callback"
     scope: "openid profile email"
     skip-provider-button: "true"
-    skip-jwt-bearer-tokens: "true"
+    skip-jwt-bearer-tokens: "false"
+    token-validation: "userinfo"
     pass-authorization-header: "true"
     pass-access-token: "true"
 
