@@ -1,4 +1,4 @@
-{{- if and .Values.fission.enabled .Values.oauth2ProxyFission.enabled }}
+{{- if and .Values.fission.enabled .Values.fissionauth.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -11,27 +11,27 @@ spec:
   source:
     repoURL: https://oauth2-proxy.github.io/manifests
     chart: oauth2-proxy
-    targetRevision: {{ .Values.oauth2ProxyFission.version }}
+    targetRevision: {{ .Values.fissionauth.version }}
     helm:
       values: |
         config:
-          existingSecret: {{ .Values.oauth2ProxyFission.existingSecret | quote }}
+          existingSecret: {{ .Values.fissionauth.existingSecret | quote }}
         extraArgs:
-          {{- range $key, $value := .Values.oauth2ProxyFission.extraArgs }}
+          {{- range $key, $value := .Values.fissionauth.extraArgs }}
           {{ $key }}: {{ $value | quote }}
           {{- end }}
         service:
           portNumber: 80
         ingress:
-          enabled: {{ .Values.oauth2ProxyFission.ingress.enabled | default true }}
-          className: {{ .Values.oauth2ProxyFission.ingress.className | default "traefik" | quote }}
+          enabled: {{ .Values.fissionauth.ingress.enabled | default true }}
+          className: {{ .Values.fissionauth.ingress.className | default "traefik" | quote }}
           hosts:
-            - {{ .Values.oauth2ProxyFission.ingress.host }}
+            - {{ .Values.fissionauth.ingress.host }}
           path: /
           pathType: Prefix
   destination:
     server: https://kubernetes.default.svc
-    namespace: {{ .Values.oauth2ProxyFission.namespace }}
+    namespace: {{ .Values.fissionauth.namespace }}
   syncPolicy:
     automated:
       prune: true
