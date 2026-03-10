@@ -308,7 +308,7 @@ windmill:
   databaseSecret:
     name: windmill-secrets
     key: database-url
-    enabled: false
+    enabled: true
 
 promtail:
   enabled: true
