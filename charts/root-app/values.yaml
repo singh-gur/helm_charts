@@ -300,8 +300,8 @@ zitadel:
       enabled: true
 
 windmill:
-  enabled: false
-  version: 4.0.21
+  enabled: true
+  version: 4.0.97
   host: windmill.gsingh.io
   postgresql:
     enabled: false
