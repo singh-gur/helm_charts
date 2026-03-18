@@ -1,539 +1,977 @@
-# Implementation Plan: Helm Sub-App Upgrades
+# Implementation Plan: Add Apache Polaris alongside Trino
 
 ## Overview
 
-Upgrade all sub-applications managed by the `root-app` ArgoCD App-of-Apps pattern to their latest Helm chart versions. Work is organized into phases by risk level: patch upgrades first, then minor upgrades, then manual-verification apps, then major/breaking upgrades for disabled apps, and finally a deprecation review. ArgoCD itself is excluded from this plan and will be handled separately.
+Add Apache Polaris (Iceberg REST Catalog) to the Kubernetes cluster alongside the existing Trino deployment. Polaris will replace Trino's current JDBC-based Iceberg catalog with a centralized REST catalog, enabling multi-engine access (Trino, Spark, Flink) through a standard API. Polaris will use external OIDC authentication via Zitadel (`auth.gsingh.io`), persist metadata in the existing external PostgreSQL (`192.168.2.119`), and be deployed to the `data-platform` namespace with an ingress at `polaris.gsingh.io`.
 
 ## Global Context
 
 ### Current Architecture
 - **Pattern**: ArgoCD App-of-Apps. `charts/root-app/` contains ArgoCD Application CRDs that point to external Helm repos.
 - **Version pinning**: All chart versions are pinned in `charts/root-app/values.yaml` via `<app>.version`.
-- **ArgoCD self-management**: ArgoCD manages itself via `charts/argo-cd/` (a wrapper chart with a dependency on `argo-cd` from `argoproj/argo-helm`). Version is pinned in `charts/argo-cd/Chart.yaml`.
-- **Testing**: Use `helm lint charts/root-app/` and `just test-render <app>` to validate templates.
+- **Trino**: Deployed in `data-platform` namespace, version `1.42.0`, with a JDBC-based Iceberg catalog connecting directly to PostgreSQL + S3 (`s3v2.gsingh.io`).
+- **Trino Iceberg catalog**: Uses `iceberg.catalog.type=jdbc` with PostgreSQL for metadata and S3 for data storage at `s3a://datastore/iceberg`.
+- **Zitadel**: Running at `auth.gsingh.io` (chart v9.17.1), used as OIDC provider by multiple apps (Coder, Fission, Dagster/OAuth2Proxy, ArgoWF).
+- **External PostgreSQL**: `192.168.2.119` used by Airflow, Dagster, OpenProject, Langfuse, Windmill, and Prefect.
+- **Secrets pattern**: All apps use `existingSecret` references to pre-created Kubernetes secrets.
+- **Testing**: `helm lint charts/root-app/` and `just test-render <app>` for validation.
 
-### Version Audit Summary (as of 2026-03-04)
+### Apache Polaris Key Facts
+- **Official Helm chart**: `https://downloads.apache.org/polaris/helm-chart` (chart name: `polaris`)
+- **Docker image**: `apache/polaris` on Docker Hub
+- **Latest release**: `1.3.0-incubating` (note: Helm treats `-incubating` as pre-release, may need `--devel` flag or use the chart version directly via ArgoCD)
+- **Ports**: 8181 (REST API), 8182 (management/health/metrics)
+- **Persistence**: Supports `in-memory`, `relational-jdbc` (PostgreSQL), `nosql` (MongoDB)
+- **Authentication**: `internal`, `external` (OIDC), or `mixed`
+- **External OIDC**: Validates JWT bearer tokens from an external IdP via JWKS discovery. Built on Quarkus OIDC.
 
-| App | Chart | Repo | Current | Latest (AH) | Delta | Enabled | Risk |
-|-----|-------|------|---------|-------------|-------|---------|------|
-| lgtm | lgtm-distributed | grafana | 3.0.1 | 3.0.1 | None | Yes | **DEPRECATED** |
-| alloy | alloy | grafana | 1.0.3 | 1.6.1 | Minor (+6) | Yes | Medium |
-| authentik | authentik | goauthentik | 2025.10.3 | 2026.2.1 | **Major** (year) | No | High |
-| airflow | airflow | bitnami | 25.0.2 | 25.0.2 | None | No | N/A |
-| argowf | argo-workflows | argoproj | 0.45.6 | 0.47.4 | Minor (+2) | No | Low |
-| argocd | argo-cd | argoproj | 7.3.6 | 9.4.7 | **MAJOR** (3 chart majors) | Yes | **Critical** |
-| coder | coder | coder-v2 | 2.29.6 | 2.31.2 | Minor (+2) | Yes | Low |
-| fission | fission-all | fission | 1.22.1 | ? (not on AH) | Unknown | Yes | Unknown |
-| fissionauth | oauth2-proxy | oauth2-proxy | 10.1.2 | 10.1.4 | Patch | Yes | Very Low |
-| ghost | ghost | bitnami | 24.0.1 | 25.0.4 | **Major** (+1) | No | Medium |
-| langfuse | langfuse | langfuse-k8s | 1.5.18 | ? (not on AH) | Unknown | Yes | Unknown |
-| protonbridge | protonmail-bridge | k8s-at-home | 5.4.2 | N/A | **Repo archived** | No | Dead |
-| rancher | rancher | rancher | 2.11.2 | ? (not on AH) | Unknown | Yes | Unknown |
-| uptime | uptime-kuma | dirsigler | 2.24.0 | ? (not on AH) | Unknown | Yes | Unknown |
-| promtail | promtail | grafana | 6.17.0 | 6.17.1 | Patch | Yes | **DEPRECATED** |
-| k8sMonitoring | k8s-monitoring | grafana | 3.5.7 | 3.8.1 | Minor (+3) | No | Low |
-| zitadel | zitadel | zitadel | 9.17.1 | 9.24.0 | Minor (+7) | Yes | Medium |
-| windmill | windmill | windmill-labs | 4.0.21 | ? (not on AH) | Unknown | No | Unknown |
-| trino | trino | trinodb | 1.42.0 | 1.42.0 | None | Yes | N/A |
-| dagster | dagster | dagster-io | 1.12.13 | 1.12.17 | Patch | Yes | Very Low |
-| oauth2Proxy | oauth2-proxy | oauth2-proxy | 10.1.2 | 10.1.4 | Patch | Yes | Very Low |
-| prefect | prefect-server | prefecthq | 2026.1.30002458 | ? (not on AH) | Unknown | Yes | Unknown |
-| prefectWorker | prefect-worker | prefecthq | 2026.1.30002458 | ? (not on AH) | Unknown | Yes | Unknown |
-| openproject | openproject | openproject | 10.3.0 | ? (not on AH) | Unknown | No | Unknown |
-| kyuubi | kyuubi (git) | awesome-kyuubi | HEAD | HEAD | N/A | No | N/A |
-
-**Already at latest (no action):** lgtm (3.0.1, but deprecated), airflow (25.0.2), trino (1.42.0)
+### Trino-Polaris Integration
+When switching from JDBC to Polaris REST catalog, Trino's catalog config changes from:
+```properties
+# BEFORE (JDBC)
+connector.name=iceberg
+iceberg.catalog.type=jdbc
+iceberg.jdbc-catalog.connection-url=jdbc:postgresql://...
+```
+to:
+```properties
+# AFTER (REST via Polaris)
+connector.name=iceberg
+iceberg.catalog.type=rest
+iceberg.rest-catalog.uri=http://polaris.data-platform.svc.cluster.local:8181/api/catalog
+iceberg.rest-catalog.security=OAUTH2
+iceberg.rest-catalog.oauth2.credential=<client_id>:<client_secret>
+iceberg.rest-catalog.oauth2.server-uri=https://auth.gsingh.io/oauth/v2/token
+```
 
 ## Architecture Decisions
 
-1. **Upgrade enabled apps before disabled apps** -- production stability first; disabled apps can be upgraded with less urgency.
-2. **ArgoCD upgrade is out of scope** -- it self-manages and crosses 3 chart majors + 1 app major (v2 -> v3). It will be handled in a dedicated separate plan.
-3. **Apps not on Artifact Hub require manual version checks** -- these are grouped into a research phase before any version bumps.
-4. **Deprecation review is a separate final phase** -- lgtm-distributed, promtail, and protonbridge all have upstream deprecation/archival issues that need migration planning.
+1. **Replace JDBC catalog with Polaris REST catalog**: Trino's existing `iceberg` catalog will switch from `jdbc` to `rest` type, pointing to Polaris. This provides centralized catalog management and multi-engine support.
+
+2. **External OIDC via Zitadel**: Polaris will use `authentication.type: external` with Zitadel as the OIDC provider. Trino will authenticate to Polaris using OAuth2 client credentials flow against Zitadel's token endpoint.
+
+3. **Same namespace as Trino**: Both Polaris and Trino will live in `data-platform` for simpler networking. Trino connects to Polaris via `polaris.data-platform.svc.cluster.local:8181`.
+
+4. **External PostgreSQL for Polaris metadata**: Reuse the existing PostgreSQL server at `192.168.2.119` with a new `polaris` database, consistent with the pattern used by other apps.
+
+5. **Ingress enabled**: Polaris will be accessible at `polaris.gsingh.io` for external tools (Spark, Flink, etc.) to access the REST catalog.
+
+6. **Phased approach**: Deploy Polaris first, configure and verify it, then modify Trino to use it. This avoids breaking the existing Trino setup during Polaris deployment.
+
+## Phase Versioning Strategy
+
+### Git Feature Branch
+
+Each top-level phase executes on its own feature branch:
+
+**Branch naming convention**: `feature/[phase-number]-[kebab-case-name]`
+- Example: `feature/1-deploy-polaris`, `feature/2-configure-zitadel-oidc`
+
+**Benefits**:
+- Clean isolation between phases
+- Easy to review and merge completed phases via PRs
+- Clear commit history per phase
+
+**For phases with dependencies**: After completing a phase, merge its branch into main before starting dependent phases.
 
 ## Assumptions
 
-1. ArgoCD auto-sync is enabled, so version bumps in `values.yaml` will trigger automatic rollout.
-2. All apps use the existing secrets pattern -- no secrets will need rotation during upgrades.
-3. For apps not on Artifact Hub, the implementer will need to manually check the Helm repo index or GitHub releases for latest versions.
+1. The external PostgreSQL at `192.168.2.119` is accessible from the `data-platform` namespace and can host a new `polaris` database.
+2. Zitadel at `auth.gsingh.io` supports creating new OIDC applications (service users) for Polaris and Trino.
+3. The S3 endpoint at `s3v2.gsingh.io` and bucket `datastore` will remain the same for Iceberg data storage.
+4. ArgoCD auto-sync is enabled, so changes to `values.yaml` will trigger automatic rollout.
+5. The Polaris Helm chart version `1.3.0-incubating` is compatible with ArgoCD's chart fetching (ArgoCD handles pre-release semver differently than Helm CLI).
+6. Zitadel's role claim format (`urn:zitadel:iam:org:project:roles`) can be mapped to Polaris principal roles, or a Zitadel Action can be configured to emit roles in a simpler format.
 
 ---
 
 ## Phases
 
-### Phase 1: Patch Upgrades (Enabled Apps)
+### Phase 1: Create Polaris Database and Kubernetes Secrets
 
-**Objective**: Bump all enabled apps with patch-level updates to latest -- minimal risk, no breaking changes expected.
-
-**Complexity**: low
-**Estimated Time**: 15 min
-
-**Prerequisites**:
-- None
-
-**Context for this Phase**:
-- All changes are in `charts/root-app/values.yaml`
-- Patch upgrades are backward-compatible by semver convention
-- After changes, validate with `helm lint charts/root-app/` and `just test-render <app>` for each modified app
-- These apps are all **currently enabled** in the cluster, so ArgoCD will auto-sync the changes
-
-**Files**:
-| File | Action | Purpose |
-|------|--------|---------|
-| `charts/root-app/values.yaml` | modify | Bump version strings for patch-level upgrades |
-
-**Implementation Steps**:
-1. In `charts/root-app/values.yaml`, update the following versions:
-   - `promtail.version`: `6.17.0` -> `6.17.1` (line 315)
-   - `dagster.version`: `1.12.13` -> `1.12.17` (line 414)
-   - `oauth2Proxy.version`: `"10.1.2"` -> `"10.1.4"` (line 460)
-   - `fissionauth.version`: `"10.1.2"` -> `"10.1.4"` (line 193)
-2. Run `helm lint charts/root-app/` to validate chart syntax
-3. Run `just test-render promtail` to verify promtail template renders correctly
-4. Run `just test-render dagster` to verify dagster template renders correctly
-5. Run `just test-render oauth2-proxy` to verify oauth2-proxy template renders
-6. Visually inspect rendered output for any unexpected changes
-
-**Verification**:
-- [ ] `helm lint charts/root-app/` passes with no errors
-- [ ] `just test-render promtail` renders without errors
-- [ ] `just test-render dagster` renders without errors
-- [ ] Rendered templates show only the version number changed in `targetRevision`
-
-**Outputs**:
-- Updated `values.yaml` with 4 patch-level version bumps
-
-**Git**: Commit after this phase
-```
-git add charts/root-app/values.yaml
-git commit -m "phase 1: patch upgrades for promtail, dagster, oauth2-proxy, fission-auth"
-```
-
----
-
-### Phase 2: Minor Upgrades - Alloy (1.0.3 -> 1.6.1)
-
-**Objective**: Upgrade Grafana Alloy from 1.0.3 to 1.6.1 (6 minor versions, enabled app).
-
-**Complexity**: medium
-**Estimated Time**: 30 min
-
-**Prerequisites**:
-- Phase 1 completed
-
-**Context for this Phase**:
-- Alloy chart is at `https://grafana.github.io/helm-charts`, chart name `alloy`
-- Template is at `charts/root-app/templates/alloy.yaml` -- very simple, no helm values passthrough (just targetRevision)
-- Jumping 6 minor versions (1.0 -> 1.6). The alloy template passes no custom values, so breaking changes in values schema are unlikely to affect this deployment.
-- Alloy appVersion moves from an older version to v1.13.2
-- Check the Alloy changelog at https://github.com/grafana/alloy/releases for any behavioral changes
-
-**Files**:
-| File | Action | Purpose |
-|------|--------|---------|
-| `charts/root-app/values.yaml` | modify | Bump `alloy.version` from `1.0.3` to `1.6.1` |
-
-**Implementation Steps**:
-1. Review the Alloy Helm chart changelog for versions 1.1.0 through 1.6.1 for any breaking changes or new required values. Check https://github.com/grafana/alloy/releases and https://grafana.github.io/helm-charts
-2. In `charts/root-app/values.yaml`, update `alloy.version`: `1.0.3` -> `1.6.1` (line 38)
-3. Run `helm lint charts/root-app/`
-4. Run `just test-render alloy` and compare output with pre-upgrade render
-5. Verify the rendered ArgoCD Application CRD has the correct `targetRevision: 1.6.1`
-
-**Verification**:
-- [ ] `helm lint charts/root-app/` passes
-- [ ] `just test-render alloy` renders without errors
-- [ ] No new required values were introduced that need to be added to the template
-
-**Outputs**:
-- Updated alloy version to 1.6.1
-
-**Git**: Commit after this phase
-```
-git add charts/root-app/values.yaml
-git commit -m "phase 2: upgrade alloy 1.0.3 -> 1.6.1"
-```
-
----
-
-### Phase 3: Minor Upgrades - Coder (2.29.6 -> 2.31.2)
-
-**Objective**: Upgrade Coder from 2.29.6 to 2.31.2 (2 minor versions, enabled app).
+**Objective**: Provision the PostgreSQL database for Polaris and create all required Kubernetes secrets in the `data-platform` namespace.
 
 **Complexity**: low
 **Estimated Time**: 20 min
 
 **Prerequisites**:
-- Phase 1 completed (can run in parallel with Phase 2)
+- None
 
 **Context for this Phase**:
-- Coder chart is at `https://helm.coder.com/v2`, chart name `coder`
-- Template is at `charts/root-app/templates/coder.yaml`
-- The template passes env vars for OIDC, DB connection, access URL, and ingress config via `coder.env[]`
-- Coder uses environment variables for configuration (not Helm values), so chart value schema changes are unlikely to break this setup
-- AppVersion moves from 2.29.6 to 2.31.2 -- review https://github.com/coder/coder/releases for breaking changes
+- Polaris needs a PostgreSQL database for metadata persistence (`relational-jdbc` backend).
+- The external PostgreSQL server is at `192.168.2.119`. Other apps (Airflow, Dagster, etc.) already use it.
+- Use the existing `just generate-db-sql` recipe to **generate** SQL (it only prints to stdout -- you must manually run the SQL on the PostgreSQL server).
+- Kubernetes secrets are documented as sample YAML manifests in the `samples/` directory, following the existing convention (see `samples/dagster-postgresql-secret.yaml`, `samples/prefect-db-secret.yaml`, `samples/oauth2-proxy-secret-example.yaml` for reference).
+- Sample files contain placeholder values (`PASSWORD_HERE`, `YOUR_CLIENT_ID_HERE`, etc.) and comments with `kubectl create` commands. **Actual secrets are never committed** -- the user creates them manually via `kubectl apply` or `kubectl create`.
+- Polaris requires these secrets in the `data-platform` namespace:
+  1. **`polaris-db-credentials`**: PostgreSQL connection details (keys: `username`, `password`, `jdbcUrl`)
+  2. **`polaris-oidc-client`**: Zitadel OIDC client ID and secret (keys: `clientId`, `clientSecret`) -- placeholder for now, actual values created in Phase 2
+  3. **`trino-polaris-oauth`**: Trino's OAuth2 client credential for authenticating to Polaris via Zitadel (key: `POLARIS_OAUTH_CREDENTIAL`) -- placeholder for now, actual value created in Phase 2
+- The `data-platform` namespace already exists (Trino is deployed there).
 
 **Files**:
 | File | Action | Purpose |
 |------|--------|---------|
-| `charts/root-app/values.yaml` | modify | Bump `coder.version` from `2.29.6` to `2.31.2` |
+| `samples/polaris-db-credentials.yaml` | create | Sample secret manifest for Polaris PostgreSQL connection |
+| `samples/polaris-oidc-client.yaml` | create | Sample secret manifest for Polaris Zitadel OIDC client |
+| `samples/trino-polaris-oauth.yaml` | create | Sample secret manifest for Trino's OAuth2 credential to Polaris |
 
 **Implementation Steps**:
-1. Review Coder release notes for 2.30.x and 2.31.x at https://github.com/coder/coder/releases for any breaking changes
-2. In `charts/root-app/values.yaml`, update `coder.version`: `2.29.6` -> `2.31.2` (line 159)
-3. Run `helm lint charts/root-app/`
-4. Run `just test-render coder` and verify template renders correctly
-5. Verify all env var names are still valid in the new version (check Coder docs if any were renamed/removed)
+1. **Generate PostgreSQL setup SQL** by running `just generate-db-sql polaris polaris`. This prints SQL and a random password to the terminal. **Manually connect** to the PostgreSQL server at `192.168.2.119` (e.g., `psql -h 192.168.2.119 -U postgres`) and execute the generated SQL statements.
+
+2. **Create `samples/polaris-db-credentials.yaml`** following the pattern of `samples/dagster-postgresql-secret.yaml`:
+   - Include header comments explaining:
+     - Prerequisites (database must exist on `192.168.2.119`)
+     - `kubectl create` command alternative
+     - How to test the connection
+   - Secret keys: `username`, `password`, `jdbcUrl`
+   - Example structure:
+     ```yaml
+     apiVersion: v1
+     kind: Secret
+     metadata:
+       name: polaris-db-credentials
+       namespace: data-platform
+       labels:
+         app.kubernetes.io/name: polaris
+         app.kubernetes.io/instance: polaris
+     type: Opaque
+     stringData:
+       username: polaris
+       password: PASSWORD_HERE
+       jdbcUrl: "jdbc:postgresql://192.168.2.119:5432/polaris"
+     ```
+
+3. **Create `samples/polaris-oidc-client.yaml`** following the pattern of `samples/oauth2-proxy-secret-example.yaml`:
+   - Include header comments explaining this is for Polaris's Zitadel OIDC integration
+   - Note that actual values come from Phase 2 (Zitadel configuration)
+   - Secret keys: `clientId`, `clientSecret`
+   - Example structure:
+     ```yaml
+     apiVersion: v1
+     kind: Secret
+     metadata:
+       name: polaris-oidc-client
+       namespace: data-platform
+     type: Opaque
+     stringData:
+       clientId: "YOUR_POLARIS_CLIENT_ID_HERE"
+       clientSecret: "YOUR_POLARIS_CLIENT_SECRET_HERE"
+     ```
+
+4. **Create `samples/trino-polaris-oauth.yaml`**:
+   - Include header comments explaining this is for Trino's OAuth2 client credentials to authenticate to Polaris via Zitadel
+   - Note the format is `client_id:client_secret`
+   - Note that actual values come from Phase 2 (Zitadel service user creation)
+   - Secret key: `POLARIS_OAUTH_CREDENTIAL`
+   - Example structure:
+     ```yaml
+     apiVersion: v1
+     kind: Secret
+     metadata:
+       name: trino-polaris-oauth
+       namespace: data-platform
+     type: Opaque
+     stringData:
+       POLARIS_OAUTH_CREDENTIAL: "YOUR_TRINO_CLIENT_ID:YOUR_TRINO_CLIENT_SECRET"
+     ```
+
+5. **Create the database secret** in the cluster using the password from step 1:
+   ```bash
+   kubectl apply -f samples/polaris-db-credentials.yaml  # after replacing PASSWORD_HERE
+   # Or equivalently:
+   kubectl create secret generic polaris-db-credentials \
+     --from-literal=username=polaris \
+     --from-literal=password='<password-from-step-1>' \
+     --from-literal=jdbcUrl='jdbc:postgresql://192.168.2.119:5432/polaris' \
+     --namespace data-platform
+   ```
+
+6. **Verify** secrets and database:
+   ```bash
+   kubectl get secrets -n data-platform | grep polaris
+   ```
 
 **Verification**:
-- [ ] `helm lint charts/root-app/` passes
-- [ ] `just test-render coder` renders without errors
-- [ ] No env var names were deprecated or renamed in the version range
+- [ ] PostgreSQL database `polaris` exists on `192.168.2.119` with user `polaris`
+- [ ] `samples/polaris-db-credentials.yaml` exists with correct structure and placeholder values
+- [ ] `samples/polaris-oidc-client.yaml` exists with correct structure and placeholder values
+- [ ] `samples/trino-polaris-oauth.yaml` exists with correct structure and placeholder values
+- [ ] Secret `polaris-db-credentials` exists in `data-platform` namespace with keys `username`, `password`, `jdbcUrl`
+- [ ] Sample files follow the conventions of existing samples (comments, labels, `stringData`)
+
+**Completion Gate**:
+> This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done. Do not proceed to dependent phases or mark this phase as finished without user approval.
 
 **Outputs**:
-- Updated coder version to 2.31.2
+- PostgreSQL database `polaris` on external server
+- Kubernetes secret `polaris-db-credentials` in `data-platform` namespace (applied to cluster)
+- Sample YAML files in `samples/` for all three Polaris-related secrets (committed to repo)
 
-**Git**: Commit after this phase
+**Git Branch Setup**:
+```bash
+git checkout -b feature/1-polaris-db-and-secret-samples
 ```
-git add charts/root-app/values.yaml
-git commit -m "phase 3: upgrade coder 2.29.6 -> 2.31.2"
+
+**After completing this phase**:
+```bash
+git add .
+git commit -m "feat: add Polaris database secret samples and provision PostgreSQL database"
+git push -u origin feature/1-polaris-db-and-secret-samples
+git checkout main
+git merge feature/1-polaris-db-and-secret-samples
+git branch -d feature/1-polaris-db-and-secret-samples
 ```
 
 ---
 
-### Phase 4: Minor Upgrades - Zitadel (9.17.1 -> 9.24.0)
+### Phase 2: Configure Zitadel OIDC for Polaris and Trino
 
-**Objective**: Upgrade Zitadel from 9.17.1 to 9.24.0 (7 minor versions, enabled app, identity provider).
+**Objective**: Create OIDC applications and service users in Zitadel for Polaris token validation and Trino client credentials authentication.
 
 **Complexity**: medium
 **Estimated Time**: 30 min
 
 **Prerequisites**:
-- Phase 1 completed (can run in parallel with Phases 2-3)
+- Phase 1 completed (secrets exist in cluster)
+- Access to Zitadel admin console at `https://auth.gsingh.io`
 
 **Context for this Phase**:
-- Zitadel chart is at `https://charts.zitadel.com`, chart name `zitadel`
-- Template is at `charts/root-app/templates/zitadel.yaml`
-- The template configures: `masterkeySecretName`, `configmapConfig` (ExternalPort, ExternalSecure, ExternalDomain, TLS), `configSecretName`, `login` (new login UI toggle), `initJob`, and ingress
-- Zitadel is the identity provider (auth.gsingh.io) -- other apps depend on it for OIDC (argowf, coder, openproject, fission-auth, oauth2-proxy)
-- AppVersion moves to v4.10.1 -- this is a significant app version jump
-- **Risk**: As the IdP, a failed upgrade could break authentication for multiple services
-- Check https://github.com/zitadel/zitadel/releases for breaking changes and https://github.com/zitadel/zitadel-charts/releases for chart changes
-- The `login.enabled` field was recently introduced -- verify it's still supported in 9.24.0
+- Zitadel is the OIDC provider running at `auth.gsingh.io` (chart version 9.17.1, template at `charts/root-app/templates/zitadel.yaml`).
+- Polaris uses Quarkus OIDC bearer token validation. It needs:
+  - A Zitadel **API Application** (or project) so Polaris can validate JWT tokens against Zitadel's JWKS endpoint.
+  - The OIDC discovery URL: `https://auth.gsingh.io/.well-known/openid-configuration`
+- Trino needs a **Service User** (machine account) in Zitadel with client credentials to obtain tokens for authenticating to Polaris.
+- Zitadel puts roles in `urn:zitadel:iam:org:project:roles` as a JSON object. Polaris needs roles in a format it can map to `PRINCIPAL_ROLE:<name>`. A Zitadel **Action** (custom script) may be needed to flatten roles into a simple array claim.
+- After creating the Zitadel application, create the `polaris-oidc-client` and `trino-polaris-oauth` secrets using the sample YAML files from Phase 1 (`samples/polaris-oidc-client.yaml` and `samples/trino-polaris-oauth.yaml`), replacing placeholder values with the actual credentials from Zitadel.
 
 **Files**:
 | File | Action | Purpose |
 |------|--------|---------|
-| `charts/root-app/values.yaml` | modify | Bump `zitadel.version` from `9.17.1` to `9.24.0` |
-| `charts/root-app/templates/zitadel.yaml` | possibly modify | If chart values schema changed |
+| (no code files) | manual | Zitadel admin console configuration + secret creation from samples |
 
 **Implementation Steps**:
-1. Review Zitadel Helm chart changelog from 9.18.0 to 9.24.0 at https://github.com/zitadel/zitadel-charts/releases
-2. Review Zitadel app release notes for any database migration or breaking API changes
-3. Check if `login.enabled` and `login.ingress.enabled` values are still supported in v9.24.0
-4. Check if `initJob.command` is still required or has changed
-5. In `charts/root-app/values.yaml`, update `zitadel.version`: `9.17.1` -> `9.24.0` (line 291)
-6. Run `helm lint charts/root-app/`
-7. Run `just test-render zitadel` and carefully compare output
-8. Verify all passed helm values (`masterkeySecretName`, `configmapConfig`, `configSecretName`, `login`, `initJob`, `ingress`) are still valid
+1. **In Zitadel admin console** (`https://auth.gsingh.io`):
+   a. Create a new **Project** called `polaris` (or add to an existing project).
+   b. Create an **API Application** named `polaris-server` within the project:
+      - Auth method: `BASIC` (client_id + client_secret)
+      - Note the generated `client_id` and `client_secret`
+   c. Create a **Service User** (machine user) named `trino-polaris-client`:
+      - Auth method: Client credentials (JWT or client secret)
+      - Note the generated `client_id` and `client_secret`
+      - Assign this user the project role(s) that Polaris will recognize (e.g., `catalog_admin`, `service_admin`)
+   d. Define project roles that map to Polaris principal roles:
+      - `service_admin` -- full Polaris admin access
+      - `catalog_admin` -- catalog management
+      - `table_read` -- read-only table access (optional, for future use)
+   e. (Optional) Create a Zitadel **Action** to flatten the role claim:
+      - Zitadel emits roles as `{"role_name": {"orgid": "orgname"}}` under `urn:zitadel:iam:org:project:roles`
+      - If Polaris's `principalRolesMapper` regex can handle this format, no Action is needed
+      - Otherwise, create an Action that emits roles as a simple array under a custom claim (e.g., `polaris_roles`)
+
+2. **Create Kubernetes secrets** using the sample files from Phase 1:
+   a. Copy `samples/polaris-oidc-client.yaml`, replace placeholders with actual values from step 1b, and apply:
+      ```bash
+      # Edit the sample with real values, then:
+      kubectl apply -f samples/polaris-oidc-client.yaml
+      # Or create directly:
+      kubectl create secret generic polaris-oidc-client \
+        --namespace data-platform \
+        --from-literal=clientId='<polaris-server-client-id>' \
+        --from-literal=clientSecret='<polaris-server-client-secret>'
+      ```
+   b. Copy `samples/trino-polaris-oauth.yaml`, replace placeholders with actual values from step 1c, and apply:
+      ```bash
+      # Edit the sample with real values, then:
+      kubectl apply -f samples/trino-polaris-oauth.yaml
+      # Or create directly:
+      kubectl create secret generic trino-polaris-oauth \
+        --namespace data-platform \
+        --from-literal=POLARIS_OAUTH_CREDENTIAL='<trino-client-id>:<trino-client-secret>'
+      ```
+
+3. **Verify Zitadel OIDC discovery** is accessible:
+   ```bash
+   curl -s https://auth.gsingh.io/.well-known/openid-configuration | jq .jwks_uri
+   ```
 
 **Verification**:
-- [ ] `helm lint charts/root-app/` passes
-- [ ] `just test-render zitadel` renders without errors
-- [ ] All existing values still appear in the chart's values reference
-- [ ] No new required values were introduced
+- [ ] Zitadel project `polaris` exists with API application `polaris-server`
+- [ ] Zitadel service user `trino-polaris-client` exists with client credentials
+- [ ] Project roles are defined and assigned to the service user
+- [ ] Secret `polaris-oidc-client` updated with actual client secret and client ID
+- [ ] Secret `trino-polaris-oauth` created with Trino's OAuth2 credential
+- [ ] OIDC discovery endpoint returns valid JWKS URI
+
+**Completion Gate**:
+> This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done. Do not proceed to dependent phases or mark this phase as finished without user approval.
 
 **Outputs**:
-- Updated zitadel version to 9.24.0
+- Zitadel OIDC applications configured for Polaris and Trino
+- Updated `polaris-oidc-client` secret with real credentials
+- New `trino-polaris-oauth` secret for Trino's client credentials
+- Knowledge of the exact role claim path and format for Polaris configuration
 
-**Git**: Commit after this phase
+**Git Branch Setup**:
+```bash
+git checkout -b feature/2-configure-zitadel-oidc
 ```
-git add charts/root-app/
-git commit -m "phase 4: upgrade zitadel 9.17.1 -> 9.24.0"
+
+**After completing this phase**:
+```bash
+git add .
+git commit -m "feat: document Zitadel OIDC configuration for Polaris and Trino"
+git push -u origin feature/2-configure-zitadel-oidc
+git checkout main
+git merge feature/2-configure-zitadel-oidc
+git branch -d feature/2-configure-zitadel-oidc
 ```
 
 ---
 
-### Phase 5: Manual Version Check (Apps Not on Artifact Hub)
+### Phase 3: Deploy Apache Polaris via ArgoCD
 
-**Objective**: Research and determine latest versions for apps whose Helm repos are not indexed on Artifact Hub, then bump versions where appropriate.
+**Objective**: Add the Polaris ArgoCD Application template and values configuration to deploy Polaris into the `data-platform` namespace with PostgreSQL persistence and Zitadel OIDC authentication.
 
-**Complexity**: medium
+**Complexity**: high
 **Estimated Time**: 45 min
 
 **Prerequisites**:
-- Phase 1 completed
+- Phase 1 completed (database and secrets exist)
+- Phase 2 completed (Zitadel OIDC configured, secrets updated)
 
 **Context for this Phase**:
-Several apps use Helm repositories not indexed on Artifact Hub. Each needs manual version discovery by checking the Helm repo index or GitHub releases. The apps to check are:
+- This follows the App-of-Apps pattern used by all other applications in this repo.
+- The ArgoCD Application CRD template goes in `charts/root-app/templates/polaris.yaml`.
+- Values go in `charts/root-app/values.yaml` under a new `polaris:` key.
+- The official Polaris Helm chart is at `https://downloads.apache.org/polaris/helm-chart`, chart name `polaris`.
+- **Important**: The latest version `1.3.0-incubating` uses a pre-release semver suffix. ArgoCD may handle this differently than Helm CLI. If ArgoCD cannot resolve the version, try using the chart version without the suffix or check if the Helm repo index lists it differently.
+- Polaris Helm chart key values sections:
+  - `persistence.type`: `relational-jdbc`
+  - `persistence.relationalJdbc.secret`: references `polaris-db-credentials`
+  - `authentication.type`: `external`
+  - `authentication.tokenService.type`: `disabled` (no internal token endpoint)
+  - `oidc.authServeUrl`: `https://auth.gsingh.io`
+  - `oidc.client.id`: Polaris client ID from Zitadel
+  - `oidc.client.secret.name`: `polaris-oidc-client`
+  - `oidc.principalMapper`: maps JWT `sub` and `preferred_username` claims
+  - `oidc.principalRolesMapper`: maps Zitadel role claims to Polaris roles
+  - `ingress.enabled`: true, host `polaris.gsingh.io`
+  - `storage.secret`: references S3 credentials for Iceberg warehouse access
+- Existing templates to reference for patterns:
+  - `charts/root-app/templates/trino.yaml` -- external Helm chart with complex values passthrough
+  - `charts/root-app/templates/dagster.yaml` -- external chart with PostgreSQL and ingress config
+  - `charts/root-app/templates/langfuse.yaml` -- external chart with secrets references
+- The template must be wrapped in `{{- if .Values.polaris.enabled }}` / `{{- end }}`.
+- Include `resources-finalizer.argocd.argoproj.io` finalizer.
+- Include `syncPolicy.automated` with `selfHeal: true`, `prune: true`, and `CreateNamespace=true`.
 
-| App | Current Version | Helm Repo URL | Enabled |
-|-----|----------------|---------------|---------|
-| fission | 1.22.1 | https://fission.github.io/fission-charts/ | Yes |
-| rancher | 2.11.2 | https://releases.rancher.com/server-charts/latest | Yes |
-| uptime | 2.24.0 | https://dirsigler.github.io/uptime-kuma-helm | Yes |
-| langfuse | 1.5.18 | https://langfuse.github.io/langfuse-k8s | Yes |
-| prefect | 2026.1.30002458 | https://prefecthq.github.io/prefect-helm | Yes |
-| prefectWorker | 2026.1.30002458 | https://prefecthq.github.io/prefect-helm | Yes |
-| windmill | 4.0.21 | https://windmill-labs.github.io/windmill-helm-charts/ | No |
-| openproject | 10.3.0 | https://charts.openproject.org | No |
+**Files**:
+| File | Action | Purpose |
+|------|--------|---------|
+| `charts/root-app/templates/polaris.yaml` | create | ArgoCD Application CRD for Polaris |
+| `charts/root-app/values.yaml` | modify | Add `polaris:` configuration block |
 
-To find the latest version, fetch the `index.yaml` from each Helm repo:
+**Implementation Steps**:
+1. Add the `polaris` configuration block to `charts/root-app/values.yaml` (insert after the `trino` block, around line 411, to keep data-platform apps together):
+   ```yaml
+   polaris:
+     enabled: true
+     version: "1.3.0-incubating"
+     namespace: data-platform
+     ingress:
+       enabled: true
+       host: polaris.gsingh.io
+     persistence:
+       type: relational-jdbc
+       secret: polaris-db-credentials
+     storage:
+       s3:
+         enabled: true
+         credentialsSecret: trino-iceberg-s3  # Reuse existing S3 credentials
+     oidc:
+       authServerUrl: "https://auth.gsingh.io"
+       clientId: "<polaris-server-client-id>"  # From Phase 2
+       clientSecret:
+         name: polaris-oidc-client
+         key: clientSecret
+       principalMapper:
+         idClaim: "sub"
+         nameClaim: "preferred_username"
+       rolesClaimPath: "urn:zitadel:iam:org:project:roles"
+     features:
+       supportedStorageTypes:
+         - S3
+   ```
+
+2. Create `charts/root-app/templates/polaris.yaml` following the ArgoCD Application CRD pattern:
+   - Use `{{- if .Values.polaris.enabled }}` guard
+   - Source: `repoURL: https://downloads.apache.org/polaris/helm-chart`, `chart: polaris`, `targetRevision: {{ .Values.polaris.version }}`
+   - Pass helm values for:
+     - `persistence` (type + JDBC secret reference)
+     - `authentication` (type: external, tokenService disabled)
+     - `oidc` (authServeUrl, client, principalMapper, principalRolesMapper)
+     - `ingress` (enabled, host)
+     - `storage` (S3 credentials secret)
+     - `features` (SUPPORTED_CATALOG_STORAGE_TYPES)
+   - Destination: `namespace: {{ .Values.polaris.namespace | default "data-platform" }}`
+   - SyncPolicy: automated, selfHeal, prune, CreateNamespace
+
+3. Run `helm lint charts/root-app/` to validate the chart.
+
+4. Run `just test-render polaris` to verify the template renders correctly.
+
+5. Inspect the rendered output to verify:
+   - Correct Helm repo URL and chart version
+   - PostgreSQL secret reference is correct
+   - OIDC configuration matches Zitadel setup from Phase 2
+   - Ingress host is `polaris.gsingh.io`
+   - S3 storage credentials are referenced
+
+6. If ArgoCD has issues resolving `1.3.0-incubating` as a chart version, investigate alternatives:
+   - Use the Git source approach instead: `repoURL: https://github.com/apache/polaris.git`, `path: helm/polaris`, `targetRevision: apache-polaris-1.3.0-incubating` (git tag)
+   - Or check the Helm repo index for the exact version string
+
+**Verification**:
+- [ ] `helm lint charts/root-app/` passes with no errors
+- [ ] `just test-render polaris` renders a valid ArgoCD Application CRD
+- [ ] Rendered YAML contains correct `repoURL`, `chart`, and `targetRevision`
+- [ ] Rendered YAML contains PostgreSQL persistence configuration
+- [ ] Rendered YAML contains external OIDC authentication configuration
+- [ ] Rendered YAML contains ingress with host `polaris.gsingh.io`
+- [ ] Rendered YAML contains S3 storage configuration
+- [ ] After ArgoCD sync: Polaris pods are running in `data-platform` namespace
+- [ ] Polaris health endpoint responds: `curl http://polaris.data-platform.svc.cluster.local:8182/q/health`
+- [ ] Polaris REST API responds: `curl https://polaris.gsingh.io/api/catalog/v1/config`
+
+**Completion Gate**:
+> This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done. Do not proceed to dependent phases or mark this phase as finished without user approval.
+
+**Outputs**:
+- `charts/root-app/templates/polaris.yaml` -- ArgoCD Application CRD
+- Updated `charts/root-app/values.yaml` with `polaris:` configuration
+- Running Polaris instance in `data-platform` namespace
+
+**Git Branch Setup**:
 ```bash
-curl -s <repoURL>/index.yaml | head -50
-# or
-helm repo add <name> <repoURL> && helm search repo <name>/<chart> --versions | head -5
+git checkout -b feature/3-deploy-polaris
 ```
 
-All changes are in `charts/root-app/values.yaml`. For each app, validate the template renders after the version bump.
-
-**Files**:
-| File | Action | Purpose |
-|------|--------|---------|
-| `charts/root-app/values.yaml` | modify | Bump versions for non-AH apps after manual verification |
-
-**Implementation Steps**:
-1. For each of the 8 apps listed above, determine the latest chart version:
-   - Add the Helm repo: `helm repo add <name> <url>`
-   - Search for latest: `helm search repo <name>/<chart> --versions | head -5`
-2. For each enabled app where a newer version exists:
-   - Review the changelog/release notes for breaking changes
-   - If the upgrade is patch or minor with no breaking changes, bump the version in `values.yaml`
-   - If the upgrade is major or has breaking changes, **do not bump** -- document it for a later phase
-3. For disabled apps (windmill, openproject), record the latest version but only bump if it's a safe minor/patch update
-4. Run `helm lint charts/root-app/` after all changes
-5. Run `just test-render <app>` for each modified enabled app
-6. Document findings: for each app, record current version, latest version, and whether it was upgraded or deferred
-
-**Verification**:
-- [ ] Latest versions documented for all 8 apps
-- [ ] `helm lint charts/root-app/` passes
-- [ ] `just test-render <app>` passes for each modified app
-- [ ] Any major/breaking upgrades are documented for future phases
-
-**Outputs**:
-- Updated versions for non-AH apps (where safe)
-- Documentation of latest available versions and any deferred major upgrades
-
-**Git**: Commit after this phase
-```
-git add charts/root-app/values.yaml
-git commit -m "phase 5: version bumps for non-artifact-hub apps (fission, rancher, uptime, langfuse, prefect)"
+**After completing this phase**:
+```bash
+git add .
+git commit -m "feat: add Apache Polaris ArgoCD application with OIDC and PostgreSQL persistence"
+git push -u origin feature/3-deploy-polaris
+git checkout main
+git merge feature/3-deploy-polaris
+git branch -d feature/3-deploy-polaris
 ```
 
 ---
 
-### Phase 6: Minor Upgrades (Disabled Apps)
+### Phase 4: Initialize Polaris Catalog and Verify
 
-**Objective**: Upgrade disabled apps with minor-level updates: argo-workflows and k8s-monitoring.
-
-**Complexity**: low
-**Estimated Time**: 15 min
-
-**Prerequisites**:
-- Phase 1 completed (can run in parallel with Phases 2-5)
-
-**Context for this Phase**:
-- These apps are **disabled** (`enabled: false`), so version bumps won't trigger any cluster changes until they are re-enabled
-- `argowf` (argo-workflows): 0.45.6 -> 0.47.4, chart at `https://argoproj.github.io/argo-helm`, chart name `argo-workflows`. Template at `charts/root-app/templates/argo-wf.yaml` configures SSO, ingress, workflow service accounts.
-- `k8sMonitoring` (k8s-monitoring): 3.5.7 -> 3.8.1, chart at `https://grafana.github.io/helm-charts`, chart name `k8s-monitoring`. Template at `charts/root-app/templates/k8s-monitoring.yaml` is complex with many value passthroughs for metrics, logs, traces, and alloy instances.
-- Since these are disabled, template rendering still works but won't produce output. The lint check is still valuable.
-
-**Files**:
-| File | Action | Purpose |
-|------|--------|---------|
-| `charts/root-app/values.yaml` | modify | Bump `argowf.version` and `k8sMonitoring.version` |
-
-**Implementation Steps**:
-1. In `charts/root-app/values.yaml`, update:
-   - `argowf.version`: `0.45.6` -> `0.47.4` (line 140)
-   - `k8sMonitoring.version`: `3.5.7` -> `3.8.1` (line 329)
-2. Review argo-workflows chart changelog (0.46.x, 0.47.x) for any renamed/removed values that affect the template at `templates/argo-wf.yaml`
-3. Review k8s-monitoring chart changelog (3.6.x, 3.7.x, 3.8.x) for any renamed/removed values that affect the template at `templates/k8s-monitoring.yaml`
-4. Run `helm lint charts/root-app/`
-5. If any values schema changes are found, update the corresponding template and/or values
-
-**Verification**:
-- [ ] `helm lint charts/root-app/` passes
-- [ ] No template syntax errors when apps are conditionally enabled for test renders
-
-**Outputs**:
-- Updated disabled app versions
-
-**Git**: Commit after this phase
-```
-git add charts/root-app/
-git commit -m "phase 6: upgrade disabled apps - argo-workflows 0.47.4, k8s-monitoring 3.8.1"
-```
-
----
-
-### Phase 7: MAJOR Upgrade - Authentik (2025.10.3 -> 2026.2.1)
-
-**Objective**: Upgrade authentik Helm chart from 2025.10.3 to 2026.2.1 (year-based major version, currently disabled).
+**Objective**: Create the initial Polaris catalog, namespace, and principal roles via the Polaris REST API, and verify end-to-end connectivity.
 
 **Complexity**: medium
 **Estimated Time**: 30 min
 
 **Prerequisites**:
-- Phase 1 completed
-- App is currently disabled, so this is safe to merge without cluster impact
+- Phase 3 completed (Polaris is running and accessible)
 
 **Context for this Phase**:
-- Authentik chart is at `https://charts.goauthentik.io`, chart name `authentik`
-- Template is at `charts/root-app/templates/authentik.yaml`
-- Currently **disabled** (`authentik.enabled: false`)
-- The template passes: postgresql config (external), authentik core settings, global env vars (secrets), server config (replicas, ingress, TLS), worker config, serviceAccount
-- Version jump: 2025.10.3 -> 2026.2.1 (year-based versioning, so this is a "major" jump by convention)
-- Key concern: The authentik chart readme shows the values schema uses `authentik.existingSecret` pattern differently in 2026.x -- it now uses `authentik.existingSecret.secretName` (an object) instead of a plain string. **This may require template changes.**
-- Dependencies changed: The 2026.2.1 chart uses `authentik-remote-cluster` serviceAccount sub-chart (v2.1.0) and bitnami postgresql (16.7.27)
+- Polaris requires catalogs and namespaces to be created via its REST API before Trino can use them.
+- Even with external OIDC auth, Polaris requires that **principals and principal roles exist in its metastore**. The `sub`/`preferred_username` from the JWT must match a pre-created principal.
+- The Polaris Management API (port 8182 or via the main API) is used to create:
+  1. A **principal** matching the Trino service user's `sub` claim from Zitadel
+  2. **Principal roles** (e.g., `catalog_admin`) matching the roles in the JWT
+  3. A **catalog** (e.g., `iceberg`) pointing to the S3 warehouse
+  4. **Catalog roles** with appropriate privileges
+  5. A **namespace** within the catalog
+- The Polaris REST API base URL: `https://polaris.gsingh.io/api` (or internal: `http://polaris.data-platform.svc.cluster.local:8181/api`)
+- All API calls require a valid Bearer token from Zitadel.
+- A helper script will make this repeatable.
 
 **Files**:
 | File | Action | Purpose |
 |------|--------|---------|
-| `charts/root-app/values.yaml` | modify | Bump `authentik.version` from `2025.10.3` to `2026.2.1` |
-| `charts/root-app/templates/authentik.yaml` | possibly modify | If values schema changed for secrets handling |
+| `scripts/init-polaris-catalog.sh` | create | Script to initialize Polaris catalog, principals, and roles |
 
 **Implementation Steps**:
-1. Review authentik changelog from 2025.10 to 2026.2: https://goauthentik.io/docs/releases and https://github.com/goauthentik/helm/releases
-2. Specifically check if the `global.env` approach for passing secrets is still supported, or if `authentik.existingSecret.secretName` is now required
-3. Check if `authentik.postgresql.host/port/name/user` keys are still valid or have been renamed
-4. In `charts/root-app/values.yaml`, update `authentik.version`: `"2025.10.3"` -> `"2026.2.1"` (line 42)
-5. If the values schema changed, update `charts/root-app/templates/authentik.yaml` to match the new schema
-6. Run `helm lint charts/root-app/`
-7. Temporarily enable authentik in values (`enabled: true`) and run `just test-render authentik` to verify template renders, then set it back to `false`
+1. Create `scripts/init-polaris-catalog.sh` that:
+   a. Obtains an OAuth2 token from Zitadel using the Trino service user's client credentials:
+      ```bash
+      TOKEN=$(curl -s -X POST https://auth.gsingh.io/oauth/v2/token \
+        -d "grant_type=client_credentials" \
+        -d "client_id=<trino-client-id>" \
+        -d "client_secret=<trino-client-secret>" \
+        -d "scope=openid" | jq -r .access_token)
+      ```
+   b. Creates a principal in Polaris matching the Trino service user:
+      ```bash
+      curl -X POST https://polaris.gsingh.io/api/management/v1/principals \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        -d '{"name": "trino-polaris-client", "type": "SERVICE"}'
+      ```
+      Note: With external auth, principals may be auto-created on first token validation. Check Polaris docs for the exact behavior.
+   c. Creates principal roles:
+      ```bash
+      curl -X POST https://polaris.gsingh.io/api/management/v1/principal-roles \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        -d '{"principalRole": {"name": "service_admin"}}'
+      ```
+   d. Assigns principal roles to the principal.
+   e. Creates an Iceberg catalog:
+      ```bash
+      curl -X POST https://polaris.gsingh.io/api/management/v1/catalogs \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "catalog": {
+            "name": "iceberg",
+            "type": "INTERNAL",
+            "properties": {
+              "default-base-location": "s3://datastore/iceberg"
+            },
+            "storageConfigInfo": {
+              "storageType": "S3",
+              "allowedLocations": ["s3://datastore/iceberg"],
+              "s3": {
+                "endpoint": "https://s3v2.gsingh.io",
+                "region": "us-east-1",
+                "pathStyleAccess": true
+              }
+            }
+          }
+        }'
+      ```
+   f. Creates catalog roles and grants privileges.
+   g. Creates an initial namespace (e.g., `default`):
+      ```bash
+      curl -X POST "https://polaris.gsingh.io/api/catalog/v1/iceberg/namespaces" \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        -d '{"namespace": ["default"]}'
+      ```
+
+2. Make the script configurable with environment variables or flags for:
+   - Polaris URL (default: `https://polaris.gsingh.io`)
+   - Zitadel token endpoint
+   - Client credentials (read from environment or prompt)
+   - Catalog name (default: `iceberg`)
+   - S3 warehouse location
+
+3. Run the script and verify each API call succeeds.
+
+4. Verify the catalog is accessible:
+   ```bash
+   curl -H "Authorization: Bearer $TOKEN" https://polaris.gsingh.io/api/catalog/v1/iceberg/namespaces
+   ```
 
 **Verification**:
-- [ ] `helm lint charts/root-app/` passes
-- [ ] Template renders correctly when temporarily enabled
-- [ ] Secret reference pattern is compatible with the new chart version
-- [ ] PostgreSQL configuration keys are valid
+- [ ] Script `scripts/init-polaris-catalog.sh` is executable and documented
+- [ ] OAuth2 token can be obtained from Zitadel using service user credentials
+- [ ] Principal exists in Polaris for the Trino service user
+- [ ] Principal roles are created and assigned
+- [ ] Catalog `iceberg` exists with S3 storage configuration
+- [ ] Namespace `default` exists within the `iceberg` catalog
+- [ ] API call to list namespaces returns successfully
+
+**Completion Gate**:
+> This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done. Do not proceed to dependent phases or mark this phase as finished without user approval.
 
 **Outputs**:
-- Updated authentik version to 2026.2.1
-- Template updated if needed for schema changes
+- Initialized Polaris catalog with principals, roles, and namespaces
+- Reusable script `scripts/init-polaris-catalog.sh`
+- Confirmed end-to-end OIDC authentication flow (Zitadel -> Polaris)
 
-**Git**: Commit after this phase
+**Git Branch Setup**:
+```bash
+git checkout -b feature/4-init-polaris-catalog
 ```
-git add charts/root-app/
-git commit -m "phase 7: upgrade authentik 2025.10.3 -> 2026.2.1 (disabled)"
+
+**After completing this phase**:
+```bash
+git add .
+git commit -m "feat: add Polaris catalog initialization script with OIDC auth"
+git push -u origin feature/4-init-polaris-catalog
+git checkout main
+git merge feature/4-init-polaris-catalog
+git branch -d feature/4-init-polaris-catalog
 ```
 
 ---
 
-### Phase 8: MAJOR Upgrade - Ghost (24.0.1 -> 25.0.4)
+### Phase 5: Switch Trino Iceberg Catalog from JDBC to Polaris REST
 
-**Objective**: Upgrade Bitnami Ghost from chart 24.0.1 to 25.0.4 (major version bump, currently disabled).
-
-**Complexity**: medium
-**Estimated Time**: 30 min
-
-**Prerequisites**:
-- Phase 1 completed
-
-**Context for this Phase**:
-- Ghost chart is from `registry-1.docker.io/bitnamicharts`, chart name `ghost` (OCI registry)
-- Template is at `charts/root-app/templates/ghost.yaml`
-- Currently **disabled** (`ghost.enabled: false`)
-- The template passes: ghostHost, ingress hostname, ghostUsername, existingSecret, ghostEmail, ghostBlogTitle, mysql disabled, external database config
-- Bitnami major version bumps typically involve significant values restructuring
-- AppVersion moves from Ghost 5.x to 6.0.5 -- this is a major Ghost application upgrade
-- Key concerns: Bitnami charts often rename values keys in major bumps (e.g., `ghostHost` -> different key, ingress structure changes)
-
-**Files**:
-| File | Action | Purpose |
-|------|--------|---------|
-| `charts/root-app/values.yaml` | modify | Bump `ghost.version` from `24.0.1` to `25.0.4` |
-| `charts/root-app/templates/ghost.yaml` | possibly modify | If Bitnami values schema changed |
-
-**Implementation Steps**:
-1. Review Bitnami Ghost chart changelog for breaking changes between 24.x and 25.x
-2. Check if these values are still valid in 25.x:
-   - `ghostHost`, `ghostUsername`, `ghostEmail`, `ghostBlogTitle`
-   - `ingress.enabled`, `ingress.hostname`
-   - `existingSecret`
-   - `mysql.enabled`, `externalDatabase.*`
-3. In `charts/root-app/values.yaml`, update `ghost.version`: `24.0.1` -> `25.0.4` (line 213)
-4. Update `charts/root-app/templates/ghost.yaml` if any values were renamed
-5. Run `helm lint charts/root-app/`
-6. Temporarily enable ghost and run `just test-render ghost` to verify, then disable again
-
-**Verification**:
-- [ ] `helm lint charts/root-app/` passes
-- [ ] Template renders correctly when temporarily enabled
-- [ ] All passed values are valid in the new chart version
-
-**Outputs**:
-- Updated ghost version to 25.0.4
-- Template updated if needed
-
-**Git**: Commit after this phase
-```
-git add charts/root-app/
-git commit -m "phase 8: upgrade ghost 24.0.1 -> 25.0.4 (disabled)"
-```
-
----
-
-### Phase 9: Deprecation & End-of-Life Review
-
-**Objective**: Address deprecated and archived upstream charts: lgtm-distributed, promtail, and protonmail-bridge.
+**Objective**: Modify the Trino ArgoCD Application template and values to use Polaris REST catalog instead of the direct JDBC catalog for Iceberg.
 
 **Complexity**: high
-**Estimated Time**: 45 min (research and planning only; migration implementation is out of scope)
+**Estimated Time**: 45 min
 
 **Prerequisites**:
-- Phases 1-8 completed
+- Phase 4 completed (Polaris is running with initialized catalog)
+- Polaris REST API is verified accessible from within the cluster
 
 **Context for this Phase**:
-Three charts have upstream deprecation or archival issues:
-
-1. **lgtm-distributed** (grafana): Marked as **deprecated** on Artifact Hub. Current version 3.0.1 is the final version. The Grafana team recommends migrating to individual charts (grafana, loki, mimir, tempo) or the `k8s-monitoring` chart. This is currently **enabled** and provides the entire observability stack.
-
-2. **promtail** (grafana): Marked as **deprecated** on Artifact Hub. Grafana recommends migrating to Grafana Alloy for log collection. This is currently **enabled** alongside Alloy (both are running). Version 6.17.1 is likely the last release.
-
-3. **protonmail-bridge** (k8s-at-home): The entire k8s-at-home Helm chart repository has been **archived**. No further updates will be released. Chart URL `https://k8s-at-home.com/charts` may stop working. Currently **disabled**.
-
-This phase produces a migration plan document, not code changes.
+- The Trino template is at `charts/root-app/templates/trino.yaml` (88 lines).
+- Current Trino values in `charts/root-app/values.yaml` (lines 386-410) configure an Iceberg JDBC catalog.
+- The template currently generates these Iceberg catalog properties:
+  ```
+  connector.name=iceberg
+  iceberg.catalog.type=jdbc
+  iceberg.jdbc-catalog.connection-url=jdbc:postgresql://...
+  iceberg.jdbc-catalog.default-warehouse-dir=s3a://datastore/iceberg
+  iceberg.jdbc-catalog.driver-class=org.postgresql.Driver
+  iceberg.jdbc-catalog.catalog-name=iceberg
+  iceberg.jdbc-catalog.connection-user=${ENV:POSTGRES_USER}
+  iceberg.jdbc-catalog.connection-password=${ENV:POSTGRES_PASSWORD}
+  fs.native-s3.enabled=true
+  s3.endpoint=...
+  s3.region=...
+  s3.path-style-access=...
+  ```
+- This needs to change to:
+  ```
+  connector.name=iceberg
+  iceberg.catalog.type=rest
+  iceberg.rest-catalog.uri=http://polaris.data-platform.svc.cluster.local:8181/api/catalog
+  iceberg.rest-catalog.warehouse=iceberg
+  iceberg.rest-catalog.security=OAUTH2
+  iceberg.rest-catalog.oauth2.credential=${ENV:POLARIS_OAUTH_CREDENTIAL}
+  iceberg.rest-catalog.oauth2.server-uri=https://auth.gsingh.io/oauth/v2/token
+  iceberg.rest-catalog.oauth2.scope=openid
+  fs.native-s3.enabled=true
+  s3.endpoint=...
+  s3.region=...
+  s3.path-style-access=...
+  ```
+- The `envFrom` section needs to reference `trino-polaris-oauth` secret (created in Phase 2) instead of (or in addition to) `trino-iceberg-s3`.
+- S3 credentials may still be needed by Trino for direct file access, OR Polaris can vend credentials. Determine which approach to use:
+  - **Option A**: Trino uses its own S3 credentials (keep `trino-iceberg-s3` envFrom) -- simpler, no vended credentials
+  - **Option B**: Polaris vends S3 credentials to Trino (`iceberg.rest-catalog.vended-credentials-enabled=true`) -- more secure, centralized credential management
+- The values schema should support both `jdbc` and `rest` catalog types to allow easy rollback.
 
 **Files**:
 | File | Action | Purpose |
 |------|--------|---------|
-| (no code changes) | research | Document migration paths |
+| `charts/root-app/templates/trino.yaml` | modify | Update Iceberg catalog config from JDBC to REST |
+| `charts/root-app/values.yaml` | modify | Update `trino.catalogs.iceberg` to use REST catalog type |
 
 **Implementation Steps**:
-1. **lgtm-distributed migration research**:
-   - Investigate `k8s-monitoring` chart (already in values at v3.8.1, currently disabled) as a replacement
-   - Determine if k8s-monitoring can fully replace lgtm-distributed + promtail + alloy
-   - Document the migration path: what values need to be carried over, what endpoints change
-   - Check if Grafana dashboards/datasources will still work after migration
+1. Update `charts/root-app/values.yaml` -- modify the `trino.catalogs.iceberg` section:
+   ```yaml
+   trino:
+     enabled: true
+     version: "1.42.0"
+     namespace: data-platform
+     ingress:
+       host: trino.gsingh.io
+     server:
+       workers: 4
+     auth:
+       enabled: true
+       passwordAuthSecret: "trino-password-auth"
+       sharedSecretName: "trino-shared-secret"
+       groups:
+         enabled: false
+         groupsAuthSecret: "trino-groups-auth"
+     catalogs:
+       iceberg:
+         enabled: true
+         catalogName: iceberg
+         catalogType: rest  # Changed from implicit jdbc to explicit rest
+         rest:
+           uri: http://polaris.data-platform.svc.cluster.local:8181/api/catalog
+           warehouse: iceberg
+           security: OAUTH2
+           oauth2:
+             credentialsSecret: trino-polaris-oauth
+             serverUri: https://auth.gsingh.io/oauth/v2/token
+             scope: openid
+         s3:
+           endpoint: https://s3v2.gsingh.io
+           region: us-east-1
+           pathStyleAccess: true
+         credentialsSecret: trino-iceberg-s3  # Keep for direct S3 access
+   ```
 
-2. **promtail deprecation**:
-   - Alloy is already deployed (1.0.3 -> 1.6.1 after Phase 2)
-   - Determine if Alloy can fully replace promtail for log shipping to Loki
-   - Document the overlap: are both currently sending logs to the same Loki endpoint?
-   - Plan to disable promtail once Alloy log collection is confirmed working
+2. Update `charts/root-app/templates/trino.yaml` -- modify the catalogs section to support the REST catalog type:
+   - Replace the JDBC catalog properties block with REST catalog properties
+   - The template should check `$iceberg.catalogType` (defaulting to `rest`) and render the appropriate properties
+   - Add `trino-polaris-oauth` to the `envFrom` list
+   - Keep `trino-iceberg-s3` in `envFrom` for S3 file access credentials
+   - Keep the S3 configuration properties (`fs.native-s3.enabled`, `s3.endpoint`, `s3.region`, `s3.path-style-access`)
 
-3. **protonmail-bridge archival**:
-   - Search for community forks or alternative charts
-   - Consider creating a local chart under `charts/proton-bridge/` if no alternatives exist
-   - Since it's disabled, this is low priority but should be documented
+3. The updated catalog properties in the template should render as:
+   ```yaml
+   catalogs:
+     {{ default "iceberg" $iceberg.catalogName }}: |
+       connector.name=iceberg
+       iceberg.catalog.type=rest
+       iceberg.rest-catalog.uri={{ $iceberg.rest.uri }}
+       iceberg.rest-catalog.warehouse={{ $iceberg.rest.warehouse }}
+       iceberg.rest-catalog.security={{ $iceberg.rest.security }}
+       iceberg.rest-catalog.oauth2.credential=${ENV:POLARIS_OAUTH_CREDENTIAL}
+       iceberg.rest-catalog.oauth2.server-uri={{ $iceberg.rest.oauth2.serverUri }}
+       iceberg.rest-catalog.oauth2.scope={{ $iceberg.rest.oauth2.scope }}
+       fs.native-s3.enabled=true
+       s3.endpoint={{ $icebergS3.endpoint }}
+       s3.region={{ $icebergS3.region }}
+       s3.path-style-access={{ ternary "true" "false" $icebergS3.pathStyleAccess }}
+   ```
 
-4. Document findings and recommended migration timeline
+4. Update the `envFrom` section to include the Polaris OAuth secret:
+   ```yaml
+   envFrom:
+   - secretRef:
+       name: {{ $iceberg.credentialsSecret }}
+   - secretRef:
+       name: {{ $iceberg.rest.oauth2.credentialsSecret }}
+   - secretRef:
+       name: {{ $trino.auth.sharedSecretName }}
+   ```
+
+5. Run `helm lint charts/root-app/` to validate.
+
+6. Run `just test-render trino` and carefully inspect the rendered output:
+   - Verify catalog properties use `rest` type
+   - Verify `envFrom` includes both S3 and OAuth secrets
+   - Verify S3 properties are still present
+   - Verify no JDBC properties remain
+
+7. After ArgoCD syncs, verify Trino can connect to Polaris:
+   ```bash
+   # Connect to Trino and test
+   trino --server https://trino.gsingh.io --user <username> --password
+   > SHOW CATALOGS;
+   > USE iceberg.default;
+   > SHOW TABLES;
+   ```
 
 **Verification**:
-- [ ] Migration path documented for lgtm-distributed
-- [ ] Promtail -> Alloy migration feasibility confirmed
-- [ ] Protonmail-bridge alternatives identified or local chart plan documented
+- [ ] `helm lint charts/root-app/` passes
+- [ ] `just test-render trino` renders without errors
+- [ ] Rendered catalog properties use `iceberg.catalog.type=rest`
+- [ ] Rendered catalog properties include `iceberg.rest-catalog.uri` pointing to Polaris
+- [ ] Rendered catalog properties include OAuth2 configuration
+- [ ] Rendered `envFrom` includes `trino-polaris-oauth` secret
+- [ ] No JDBC catalog properties remain in the rendered output
+- [ ] S3 configuration properties are still present
+- [ ] After sync: `SHOW CATALOGS` in Trino includes `iceberg`
+- [ ] After sync: `SHOW SCHEMAS FROM iceberg` returns the `default` namespace from Polaris
+- [ ] After sync: Creating a table in Trino via Polaris catalog succeeds
+
+**Completion Gate**:
+> This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done. Do not proceed to dependent phases or mark this phase as finished without user approval.
 
 **Outputs**:
-- Deprecation migration plan (can be added as comments in values.yaml or a separate doc)
-- Clear understanding of which deprecated apps can be safely removed
+- Updated `charts/root-app/templates/trino.yaml` with REST catalog support
+- Updated `charts/root-app/values.yaml` with REST catalog configuration
+- Trino successfully querying Iceberg tables through Polaris
 
-**Git**: Commit after this phase (if any values.yaml comments are added)
+**Git Branch Setup**:
+```bash
+git checkout -b feature/5-switch-trino-to-polaris
 ```
-git add charts/root-app/values.yaml
-git commit -m "phase 9: document deprecation migration paths for lgtm, promtail, protonbridge"
+
+**After completing this phase**:
+```bash
+git add .
+git commit -m "feat: switch Trino Iceberg catalog from JDBC to Polaris REST with OIDC auth"
+git push -u origin feature/5-switch-trino-to-polaris
+git checkout main
+git merge feature/5-switch-trino-to-polaris
+git branch -d feature/5-switch-trino-to-polaris
+```
+
+---
+
+### Phase 6: Data Migration and Validation
+
+**Objective**: Migrate existing Iceberg table metadata from the JDBC catalog to Polaris and validate that all existing tables are accessible through the new REST catalog.
+
+**Complexity**: medium
+**Estimated Time**: 30 min
+
+**Prerequisites**:
+- Phase 5 completed (Trino is connected to Polaris)
+
+**Context for this Phase**:
+- If there are existing Iceberg tables registered in the old JDBC catalog (PostgreSQL), their metadata needs to be registered in Polaris.
+- Polaris supports registering existing tables via the REST API using `POST /v1/{prefix}/namespaces/{namespace}/register` with the table's metadata location in S3.
+- The actual Iceberg data files in S3 (`s3a://datastore/iceberg`) do not need to move -- only the catalog metadata registration changes.
+- If no tables exist yet (fresh setup), this phase is a simple verification.
+- A migration script should:
+  1. Query the old JDBC catalog (PostgreSQL) for existing table metadata
+  2. For each table, register it in Polaris using the REST API
+  3. Verify the table is accessible through Trino via the new Polaris catalog
+
+**Files**:
+| File | Action | Purpose |
+|------|--------|---------|
+| `scripts/migrate-iceberg-to-polaris.sh` | create | Script to migrate table registrations from JDBC to Polaris |
+
+**Implementation Steps**:
+1. **Assess existing tables**: Connect to Trino (or directly to PostgreSQL) and list all existing Iceberg tables and their metadata locations:
+   ```sql
+   -- In the old JDBC catalog (if still accessible)
+   SELECT * FROM iceberg.information_schema.tables;
+   ```
+   If no tables exist, skip to step 4.
+
+2. **Create migration script** `scripts/migrate-iceberg-to-polaris.sh`:
+   - For each existing table, find its metadata location in S3
+   - Register the table in Polaris using the REST API:
+     ```bash
+     curl -X POST "https://polaris.gsingh.io/api/catalog/v1/iceberg/namespaces/{namespace}/register" \
+       -H "Authorization: Bearer $TOKEN" \
+       -H "Content-Type: application/json" \
+       -d '{
+         "name": "<table_name>",
+         "metadata-location": "s3://datastore/iceberg/<namespace>/<table>/metadata/<version>.metadata.json"
+       }'
+     ```
+
+3. **Create namespaces in Polaris** for any namespaces that exist in the old catalog but weren't created in Phase 4.
+
+4. **Verify all tables are accessible** through Trino:
+   ```sql
+   SHOW SCHEMAS FROM iceberg;
+   -- For each schema:
+   SHOW TABLES FROM iceberg.<schema>;
+   -- For each table:
+   SELECT * FROM iceberg.<schema>.<table> LIMIT 1;
+   ```
+
+5. **Test write operations**:
+   ```sql
+   CREATE SCHEMA IF NOT EXISTS iceberg.test;
+   CREATE TABLE iceberg.test.validation (id INT, name VARCHAR);
+   INSERT INTO iceberg.test.validation VALUES (1, 'polaris-test');
+   SELECT * FROM iceberg.test.validation;
+   DROP TABLE iceberg.test.validation;
+   DROP SCHEMA iceberg.test;
+   ```
+
+**Verification**:
+- [ ] All existing Iceberg tables (if any) are registered in Polaris
+- [ ] All tables are queryable through Trino via the Polaris REST catalog
+- [ ] Write operations (CREATE TABLE, INSERT, SELECT, DROP) work correctly
+- [ ] S3 data files are accessible through the new catalog path
+- [ ] Migration script is documented and reusable (if tables existed)
+
+**Completion Gate**:
+> This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done. Do not proceed to dependent phases or mark this phase as finished without user approval.
+
+**Outputs**:
+- All existing Iceberg tables migrated to Polaris (if applicable)
+- Verified end-to-end read/write through Trino -> Polaris -> S3
+- Migration script for future use
+
+**Git Branch Setup**:
+```bash
+git checkout -b feature/6-migrate-validate-data
+```
+
+**After completing this phase**:
+```bash
+git add .
+git commit -m "feat: add Iceberg table migration script and validate Polaris integration"
+git push -u origin feature/6-migrate-validate-data
+git checkout main
+git merge feature/6-migrate-validate-data
+git branch -d feature/6-migrate-validate-data
+```
+
+---
+
+### Phase 7: Cleanup and Documentation
+
+**Objective**: Remove unused JDBC catalog configuration, update AGENTS.md with Polaris documentation, and add Polaris to the justfile recipes.
+
+**Complexity**: low
+**Estimated Time**: 20 min
+
+**Prerequisites**:
+- Phase 6 completed (migration verified, all tables accessible)
+
+**Context for this Phase**:
+- After confirming Polaris works correctly, clean up any leftover JDBC-specific configuration.
+- The old PostgreSQL database that Trino used directly for Iceberg metadata (if it was a dedicated database) can be decommissioned. However, if it was shared with other apps, only the Iceberg-specific tables should be cleaned up.
+- Update `AGENTS.md` to document Polaris as part of the available applications and data platform architecture.
+- Add `just` recipes for common Polaris operations.
+- The `trino-iceberg-s3` secret may still be needed if Trino accesses S3 directly. If Polaris vends credentials, this secret can be removed.
+
+**Files**:
+| File | Action | Purpose |
+|------|--------|---------|
+| `charts/root-app/values.yaml` | modify | Clean up any deprecated JDBC-specific values |
+| `AGENTS.md` | modify | Add Polaris to available applications and architecture docs |
+| `justfile` | modify | Add Polaris helper recipes |
+
+**Implementation Steps**:
+1. **Clean up values.yaml**:
+   - Remove any JDBC-specific values that are no longer used under `trino.catalogs.iceberg` (e.g., `warehouse` if it was JDBC-specific)
+   - Ensure the values are clean and well-commented
+   - Add comments explaining the Polaris REST catalog configuration
+
+2. **Update AGENTS.md**:
+   - Add Polaris to the "Data & Analytics" section under "Available Applications":
+     ```
+     - **polaris** - Apache Iceberg REST Catalog (v1.3.0-incubating)
+     ```
+   - Update the Trino entry to note it uses Polaris:
+     ```
+     - **trino** - Distributed SQL query engine (via Polaris REST catalog)
+     ```
+   - Add a note about the data platform architecture (Trino -> Polaris -> S3)
+
+3. **Add justfile recipes**:
+   ```just
+   # Test render Polaris template
+   # (already covered by: just test-render polaris)
+
+   # Initialize Polaris catalog (first-time setup)
+   init-polaris:
+       ./scripts/init-polaris-catalog.sh
+   ```
+
+4. Run `helm lint charts/root-app/` to validate final state.
+5. Run `just test-render polaris` and `just test-render trino` to verify both templates still render correctly.
+
+**Verification**:
+- [ ] `helm lint charts/root-app/` passes
+- [ ] `just test-render polaris` renders correctly
+- [ ] `just test-render trino` renders correctly
+- [ ] No unused JDBC configuration remains in values.yaml
+- [ ] AGENTS.md includes Polaris documentation
+- [ ] Justfile includes Polaris recipes
+- [ ] All scripts are executable (`chmod +x`)
+
+**Completion Gate**:
+> This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done. Do not proceed to dependent phases or mark this phase as finished without user approval.
+
+**Outputs**:
+- Clean, well-documented configuration
+- Updated project documentation
+- Helper recipes in justfile
+
+**Git Branch Setup**:
+```bash
+git checkout -b feature/7-cleanup-documentation
+```
+
+**After completing this phase**:
+```bash
+git add .
+git commit -m "feat: cleanup JDBC config, document Polaris in AGENTS.md, add justfile recipes"
+git push -u origin feature/7-cleanup-documentation
+git checkout main
+git merge feature/7-cleanup-documentation
+git branch -d feature/7-cleanup-documentation
 ```
 
 ---
@@ -541,33 +979,36 @@ git commit -m "phase 9: document deprecation migration paths for lgtm, promtail,
 ## Phase Dependencies
 
 ```
-Phase 1 (patch upgrades)
-    |-- Phase 2 (alloy minor)           \
-    |-- Phase 3 (coder minor)            |-- can run in parallel
-    |-- Phase 4 (zitadel minor)          |
-    |-- Phase 5 (manual version check)   |
-    |-- Phase 6 (disabled app minors)    |
-    |-- Phase 7 (MAJOR: authentik)       |
-    |-- Phase 8 (MAJOR: ghost)          /
-            |
-            v
-    Phase 9 (deprecation review)  <-- final phase, research only
+Phase 1 (database + secrets)
+    └── Phase 2 (Zitadel OIDC config)
+            └── Phase 3 (deploy Polaris)
+                    └── Phase 4 (init catalog + verify)
+                            └── Phase 5 (switch Trino to Polaris REST)
+                                    └── Phase 6 (data migration + validation)
+                                            └── Phase 7 (cleanup + docs)
 ```
 
-**Out of scope:** ArgoCD upgrade (7.3.6 -> 9.4.7) -- requires its own dedicated plan due to self-management complexity and v2->v3 app migration.
+All phases are strictly sequential -- each depends on the previous phase's outputs.
 
 ## Risks
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Zitadel upgrade breaks OIDC for dependent apps | Auth fails for coder, argowf, fission, dagster | Upgrade during low-usage window; have rollback version ready |
-| Values schema changes in minor upgrades | Templates render incorrectly | Always `helm lint` + `test-render` before pushing |
-| Apps not on AH have unknown latest versions | May miss important security patches | Phase 5 handles manual checking |
-| lgtm-distributed deprecation | No future security patches for observability stack | Phase 9 plans migration to k8s-monitoring |
-| protonmail-bridge repo goes offline | Chart URL stops resolving | Currently disabled; plan local chart if ever re-enabled |
+| Risk | Impact | Likelihood | Mitigation |
+|------|--------|------------|------------|
+| Polaris Helm chart version `1.3.0-incubating` not resolvable by ArgoCD | Deployment fails | Medium | Fall back to Git source approach (point to GitHub repo + tag) instead of Helm repo |
+| Zitadel role claim format incompatible with Polaris mapper | Auth fails, no access | Medium | Use `mixed` auth mode initially; configure Zitadel Action to flatten roles; test with `internal` auth first |
+| Trino cannot authenticate to Polaris via OAuth2 | Catalog unavailable | Low | Test OAuth2 flow manually with curl before configuring Trino; start with `security=NONE` for initial testing |
+| Existing Iceberg tables not accessible after migration | Data loss (metadata only) | Low | Keep old JDBC catalog database intact as backup; register tables in Polaris without deleting from PostgreSQL |
+| Polaris performance under load | Query latency increase | Low | Polaris adds one network hop; monitor latency; scale Polaris replicas via HPA if needed |
+| S3 credential management conflict | File access denied | Low | Initially use Trino's own S3 credentials (not vended); migrate to vended credentials later |
 
 ## Questions for User
 
-1. **Deprecation urgency**: How urgently do you want to address the lgtm-distributed/promtail deprecation? Should we add a full migration phase, or is the research phase sufficient for now?
-2. **Non-AH apps**: For apps not on Artifact Hub (fission, rancher, uptime, langfuse, prefect, windmill, openproject), do you have any known target versions, or should we just upgrade to whatever is latest?
-3. **Disabled apps**: Should we skip upgrading disabled apps entirely and focus only on enabled ones?
+1. **Existing Iceberg tables**: Do you currently have any Iceberg tables registered in the JDBC catalog, or is this a fresh setup? This affects the scope of Phase 6.
+
+2. **Zitadel role claim format**: Have you configured custom claims or Actions in Zitadel before? The default role claim format (`urn:zitadel:iam:org:project:roles` as a JSON object) may need a Zitadel Action to flatten into a simple array for Polaris.
+
+3. **Vended credentials**: Do you want Polaris to vend S3 credentials to Trino (more secure, centralized), or should Trino keep its own S3 credentials (simpler, current approach)?
+
+4. **Fallback strategy**: If Polaris has issues, do you want the template to support easy rollback to the JDBC catalog (e.g., a `catalogType: jdbc` flag that switches back)?
+
+5. **Polaris replicas/resources**: Do you have preferences for Polaris resource limits and replica count, or should we start with chart defaults and tune later?
