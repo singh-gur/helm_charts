@@ -193,12 +193,12 @@ Each top-level phase executes on its own feature branch:
    ```
 
 **Verification**:
-- [ ] PostgreSQL database `polaris` exists on `192.168.2.119` with user `polaris`
-- [ ] `samples/polaris-db-credentials.yaml` exists with correct structure and placeholder values
-- [ ] `samples/polaris-oidc-client.yaml` exists with correct structure and placeholder values
-- [ ] `samples/trino-polaris-oauth.yaml` exists with correct structure and placeholder values
-- [ ] Secret `polaris-db-credentials` exists in `data-platform` namespace with keys `username`, `password`, `jdbcUrl`
-- [ ] Sample files follow the conventions of existing samples (comments, labels, `stringData`)
+- [ ] PostgreSQL database `polaris` exists on `192.168.2.119` with user `polaris` *(manual step)*
+- [x] `samples/polaris-db-credentials.yaml` exists with correct structure and placeholder values
+- [x] `samples/polaris-oidc-client.yaml` exists with correct structure and placeholder values
+- [x] `samples/trino-polaris-oauth.yaml` exists with correct structure and placeholder values
+- [ ] Secret `polaris-db-credentials` exists in `data-platform` namespace with keys `username`, `password`, `jdbcUrl` *(manual step)*
+- [x] Sample files follow the conventions of existing samples (comments, labels, `stringData`)
 
 **Completion Gate**:
 > This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done. Do not proceed to dependent phases or mark this phase as finished without user approval.

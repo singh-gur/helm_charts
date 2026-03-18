@@ -1,0 +1,35 @@
+# Polaris OIDC Client Secret (Zitadel Integration)
+# Create this secret after configuring Zitadel OIDC in Phase 2
+#
+# This secret contains the OIDC client credentials for Polaris to validate
+# JWT tokens against Zitadel (auth.gsingh.io).
+#
+# Prerequisites:
+#   1. Create a Zitadel API Application named "polaris-server" (Phase 2)
+#   2. Note the generated client_id and client_secret from Zitadel
+#
+# Create with kubectl:
+#   kubectl create secret generic polaris-oidc-client \
+#     --from-literal=clientId='<polaris-server-client-id>' \
+#     --from-literal=clientSecret='<polaris-server-client-secret>' \
+#     --namespace data-platform
+#
+# Or update existing secret:
+#   kubectl create secret generic polaris-oidc-client \
+#     --from-literal=clientId='<polaris-server-client-id>' \
+#     --from-literal=clientSecret='<polaris-server-client-secret>' \
+#     --namespace data-platform \
+#     --dry-run=client -o yaml | kubectl apply -f -
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: polaris-oidc-client
+  namespace: data-platform
+  labels:
+    app.kubernetes.io/name: polaris
+    app.kubernetes.io/instance: polaris
+type: Opaque
+stringData:
+  clientId: "YOUR_POLARIS_CLIENT_ID_HERE"
+  clientSecret: "YOUR_POLARIS_CLIENT_SECRET_HERE"

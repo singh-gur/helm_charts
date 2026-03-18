@@ -1,0 +1,40 @@
+# Trino Polaris OAuth Credential Secret
+# Create this secret after configuring the Trino service user in Zitadel (Phase 2)
+#
+# This secret contains Trino's OAuth2 client credentials for authenticating
+# to Polaris via Zitadel's token endpoint. The credential format is:
+#   client_id:client_secret
+#
+# Prerequisites:
+#   1. Create a Zitadel Service User named "trino-polaris-client" (Phase 2)
+#   2. Note the generated client_id and client_secret from Zitadel
+#   3. Combine them as: client_id:client_secret
+#
+# Create with kubectl:
+#   kubectl create secret generic trino-polaris-oauth \
+#     --from-literal=POLARIS_OAUTH_CREDENTIAL='<trino-client-id>:<trino-client-secret>' \
+#     --namespace data-platform
+#
+# Or update existing secret:
+#   kubectl create secret generic trino-polaris-oauth \
+#     --from-literal=POLARIS_OAUTH_CREDENTIAL='<trino-client-id>:<trino-client-secret>' \
+#     --namespace data-platform \
+#     --dry-run=client -o yaml | kubectl apply -f -
+#
+# IMPORTANT:
+#   - The secret key MUST be "POLARIS_OAUTH_CREDENTIAL"
+#   - The value format is: client_id:client_secret (colon-separated)
+#   - Trino uses this in: iceberg.rest-catalog.oauth2.credential=${ENV:POLARIS_OAUTH_CREDENTIAL}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: trino-polaris-oauth
+  namespace: data-platform
+  labels:
+    app.kubernetes.io/name: trino
+    app.kubernetes.io/instance: trino
+    app.kubernetes.io/component: polaris-oauth
+type: Opaque
+stringData:
+  POLARIS_OAUTH_CREDENTIAL: "YOUR_TRINO_CLIENT_ID:YOUR_TRINO_CLIENT_SECRET"
