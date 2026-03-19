@@ -409,6 +409,57 @@ trino:
         pathStyleAccess: true
       credentialsSecret: trino-iceberg-s3
 
+# Apache Polaris - Iceberg REST Catalog
+# Deployed in the data-platform namespace alongside Trino.
+# Polaris uses PostgreSQL for metadata persistence (relational-jdbc) and
+# Zitadel (auth.gsingh.io) for external OIDC authentication.
+# Secrets required in data-platform namespace:
+#   - polaris-db-credentials  (keys: username, password, jdbcUrl)   -- created in Phase 1
+#   - polaris-oidc-client     (keys: clientId, clientSecret)         -- created in Phase 2
+#   - trino-iceberg-s3        (reused for S3 storage credentials)
+polaris:
+  enabled: true
+  version: "1.3.0-incubating"
+  namespace: data-platform
+  ingress:
+    enabled: true
+    host: polaris.gsingh.io
+  persistence:
+    type: relational-jdbc
+    # Secret name holding PostgreSQL connection details (keys: username, password, jdbcUrl)
+    secret: polaris-db-credentials
+  storage:
+    s3:
+      # Reuse the existing S3 credentials secret from Trino (keys: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+      credentialsSecret: trino-iceberg-s3
+      awsAccessKeyIdKey: AWS_ACCESS_KEY_ID
+      awsSecretAccessKeyKey: AWS_SECRET_ACCESS_KEY
+  oidc:
+    # Zitadel OIDC server URL (discovery endpoint: <authServerUrl>/.well-known/openid-configuration)
+    authServerUrl: "https://auth.gsingh.io"
+    # Client ID from the Zitadel 'polaris-server' API application (Phase 2)
+    clientId: "364792263672399345"
+    # Secret holding the Zitadel client secret (key: clientSecret)
+    clientSecretRef:
+      name: polaris-oidc-client
+      key: clientSecret
+    # JWT claim used as the Polaris principal ID (Zitadel 'sub' claim)
+    idClaimPath: "sub"
+    # JWT claim used as the Polaris principal name (Zitadel 'preferred_username')
+    nameClaimPath: "preferred_username"
+    # Path to the roles claim in the Zitadel JWT
+    # Zitadel emits roles as: urn:zitadel:iam:org:project:roles -> {"role_name": {"orgid": "orgname"}}
+    # The principalRolesMapper filter/mapping below transforms them to PRINCIPAL_ROLE:<name> format
+    rolesClaimPath: "urn:zitadel:iam:org:project:roles"
+    # Regex filter: only include roles that look like Polaris roles (adjust if needed)
+    rolesMappings:
+      - regex: "(.*)"
+        replacement: "PRINCIPAL_ROLE:$1"
+  features:
+    # Supported storage types for catalog entries
+    SUPPORTED_CATALOG_STORAGE_TYPES:
+      - S3
+
 dagster:
   enabled: true
   version: 1.12.13

@@ -1,0 +1,112 @@
+{{- if .Values.polaris.enabled }}
+{{- $polaris := .Values.polaris }}
+{{- $polarisOidc := $polaris.oidc | default dict }}
+{{- $polarisPersistence := $polaris.persistence | default dict }}
+{{- $polarisStorage := $polaris.storage | default dict }}
+{{- $polarisS3 := $polarisStorage.s3 | default dict }}
+{{- $polarisIngress := $polaris.ingress | default dict }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: {{ .Values.argocdNamespace | default "argocd" }}
+  name: polaris
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://downloads.apache.org/polaris/helm-chart
+    chart: polaris
+    targetRevision: {{ $polaris.version }}
+    helm:
+      values: |
+        # Persistence: relational-jdbc backed by external PostgreSQL
+        persistence:
+          type: {{ $polarisPersistence.type | default "relational-jdbc" }}
+          relationalJdbc:
+            secret:
+              name: {{ $polarisPersistence.secret }}
+              username: username
+              password: password
+              jdbcUrl: jdbcUrl
+
+        # Storage credentials for Iceberg data files in S3
+        {{- if $polarisS3.credentialsSecret }}
+        storage:
+          secret:
+            name: {{ $polarisS3.credentialsSecret }}
+            awsAccessKeyId: {{ $polarisS3.awsAccessKeyIdKey | default "AWS_ACCESS_KEY_ID" }}
+            awsSecretAccessKey: {{ $polarisS3.awsSecretAccessKeyKey | default "AWS_SECRET_ACCESS_KEY" }}
+        {{- end }}
+
+        # Authentication: external OIDC via Zitadel
+        authentication:
+          type: external
+          tokenService:
+            type: disabled
+
+        # OIDC configuration for Zitadel integration
+        oidc:
+          authServeUrl: {{ $polarisOidc.authServerUrl | quote }}
+          client:
+            id: {{ $polarisOidc.clientId | quote }}
+            {{- if and $polarisOidc.clientSecretRef $polarisOidc.clientSecretRef.name }}
+            secret:
+              name: {{ $polarisOidc.clientSecretRef.name }}
+              key: {{ $polarisOidc.clientSecretRef.key | default "clientSecret" }}
+            {{- end }}
+          principalMapper:
+            type: default
+            {{- if $polarisOidc.idClaimPath }}
+            idClaimPath: {{ $polarisOidc.idClaimPath | quote }}
+            {{- end }}
+            {{- if $polarisOidc.nameClaimPath }}
+            nameClaimPath: {{ $polarisOidc.nameClaimPath | quote }}
+            {{- end }}
+          principalRolesMapper:
+            type: default
+            {{- if $polarisOidc.rolesClaimPath }}
+            rolesClaimPath: {{ $polarisOidc.rolesClaimPath | quote }}
+            {{- end }}
+            {{- if $polarisOidc.rolesMappings }}
+            mappings:
+              {{- range $polarisOidc.rolesMappings }}
+              - regex: {{ .regex | quote }}
+                replacement: {{ .replacement | quote }}
+              {{- end }}
+            {{- end }}
+
+        # Features: restrict supported storage types to S3
+        {{- if and $polaris.features $polaris.features.SUPPORTED_CATALOG_STORAGE_TYPES }}
+        features:
+          SUPPORTED_CATALOG_STORAGE_TYPES:
+            {{- range $polaris.features.SUPPORTED_CATALOG_STORAGE_TYPES }}
+            - {{ . }}
+            {{- end }}
+        {{- end }}
+
+        # Ingress: expose Polaris REST API at polaris.gsingh.io
+        ingress:
+          enabled: {{ $polarisIngress.enabled | default false }}
+          {{- if $polarisIngress.enabled }}
+          hosts:
+          - host: {{ $polarisIngress.host }}
+            paths:
+            - path: /
+              pathType: Prefix
+          tls: []
+          {{- end }}
+
+        # ServiceMonitor disabled by default (lgtm/alloy handles scraping)
+        serviceMonitor:
+          enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ $polaris.namespace | default "data-platform" }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}
