@@ -87,7 +87,7 @@ Each top-level phase executes on its own feature branch:
 
 ## Phases
 
-### Phase 1: Create Polaris Database and Kubernetes Secrets
+### Phase 1: Create Polaris Database and Kubernetes Secrets ✅ COMPLETED
 
 **Objective**: Provision the PostgreSQL database for Polaris and create all required Kubernetes secrets in the `data-platform` namespace.
 
@@ -193,11 +193,11 @@ Each top-level phase executes on its own feature branch:
    ```
 
 **Verification**:
-- [ ] PostgreSQL database `polaris` exists on `192.168.2.119` with user `polaris` *(manual step)*
+- [x] PostgreSQL database `polaris` exists on `192.168.2.119` with user `polaris` *(manual step)*
 - [x] `samples/polaris-db-credentials.yaml` exists with correct structure and placeholder values
 - [x] `samples/polaris-oidc-client.yaml` exists with correct structure and placeholder values
 - [x] `samples/trino-polaris-oauth.yaml` exists with correct structure and placeholder values
-- [ ] Secret `polaris-db-credentials` exists in `data-platform` namespace with keys `username`, `password`, `jdbcUrl` *(manual step)*
+- [x] Secret `polaris-db-credentials` exists in `data-platform` namespace with keys `username`, `password`, `jdbcUrl` *(manual step)*
 - [x] Sample files follow the conventions of existing samples (comments, labels, `stringData`)
 
 **Completion Gate**:
