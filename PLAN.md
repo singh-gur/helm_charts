@@ -441,13 +441,13 @@ git branch -d feature/2-configure-zitadel-oidc
    - Or check the Helm repo index for the exact version string
 
 **Verification**:
-- [ ] `helm lint charts/root-app/` passes with no errors
-- [ ] `just test-render polaris` renders a valid ArgoCD Application CRD
-- [ ] Rendered YAML contains correct `repoURL`, `chart`, and `targetRevision`
-- [ ] Rendered YAML contains PostgreSQL persistence configuration
-- [ ] Rendered YAML contains external OIDC authentication configuration
-- [ ] Rendered YAML contains ingress with host `polaris.gsingh.io`
-- [ ] Rendered YAML contains S3 storage configuration
+- [ ] `helm lint charts/root-app/` passes with no errors *(blocked: pre-existing issue -- `postgresql` subchart exists in `charts/root-app/charts/` but is not declared in `Chart.yaml`; unrelated to Polaris)*
+- [x] `just test-render polaris` renders a valid ArgoCD Application CRD
+- [x] Rendered YAML contains correct `repoURL`, `chart`, and `targetRevision`
+- [x] Rendered YAML contains PostgreSQL persistence configuration
+- [x] Rendered YAML contains external OIDC authentication configuration
+- [x] Rendered YAML contains ingress with host `polaris.gsingh.io`
+- [x] Rendered YAML contains S3 storage configuration
 - [ ] After ArgoCD sync: Polaris pods are running in `data-platform` namespace
 - [ ] Polaris health endpoint responds: `curl http://polaris.data-platform.svc.cluster.local:8182/q/health`
 - [ ] Polaris REST API responds: `curl https://polaris.gsingh.io/api/catalog/v1/config`
