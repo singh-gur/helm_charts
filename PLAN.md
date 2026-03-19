@@ -260,11 +260,19 @@ git branch -d feature/1-polaris-db-and-secret-samples
       - Auth method: Client credentials (JWT or client secret)
       - Note the generated `client_id` and `client_secret`
       - Assign this user the project role(s) that Polaris will recognize (e.g., `catalog_admin`, `service_admin`)
-   d. Define project roles that map to Polaris principal roles:
-      - `service_admin` -- full Polaris admin access
-      - `catalog_admin` -- catalog management
-      - `table_read` -- read-only table access (optional, for future use)
-   e. (Optional) Create a Zitadel **Action** to flatten the role claim:
+    d. **Record the `polaris` project's numeric ID** from the Zitadel console URL when viewing the project (e.g. `364792263672399345`). This ID is required in Phase 4 and Phase 5 to construct the token scope:
+       ```
+       openid urn:zitadel:iam:org:projects:roles urn:zitadel:iam:org:project:id:<PROJECT_ID>:aud
+       ```
+       - `urn:zitadel:iam:org:projects:roles` — instructs Zitadel to include all project roles in the JWT
+       - `urn:zitadel:iam:org:project:id:<PROJECT_ID>:aud` — adds the project as a token audience, which is required for Zitadel to emit the project's roles
+       Without both scopes, the JWT will contain no role claims and Polaris will deny all requests.
+
+    e. Define project roles that map to Polaris principal roles:
+       - `service_admin` -- full Polaris admin access
+       - `catalog_admin` -- catalog management
+       - `table_read` -- read-only table access (optional, for future use)
+    f. (Optional) Create a Zitadel **Action** to flatten the role claim:
       - Zitadel emits roles as `{"role_name": {"orgid": "orgname"}}` under `urn:zitadel:iam:org:project:roles`
       - If Polaris's `principalRolesMapper` regex can handle this format, no Action is needed
       - Otherwise, create an Action that emits roles as a simple array under a custom claim (e.g., `polaris_roles`)
@@ -500,13 +508,14 @@ git branch -d feature/3-deploy-polaris
 **Implementation Steps**:
 1. Create `scripts/init-polaris-catalog.sh` that:
    a. Obtains an OAuth2 token from Zitadel using the Trino service user's client credentials:
-      ```bash
-      TOKEN=$(curl -s -X POST https://auth.gsingh.io/oauth/v2/token \
-        -d "grant_type=client_credentials" \
-        -d "client_id=<trino-client-id>" \
-        -d "client_secret=<trino-client-secret>" \
-        -d "scope=openid" | jq -r .access_token)
-      ```
+       ```bash
+       TOKEN=$(curl -s -X POST https://auth.gsingh.io/oauth/v2/token \
+         -d "grant_type=client_credentials" \
+         -d "client_id=<trino-client-id>" \
+         -d "client_secret=<trino-client-secret>" \
+         -d "scope=openid urn:zitadel:iam:org:projects:roles urn:zitadel:iam:org:project:id:<PROJECT_ID>:aud" | jq -r .access_token)
+       ```
+       Note: `<PROJECT_ID>` is the numeric ID of the `polaris` project in Zitadel, visible in the console URL when viewing the project (e.g. `https://auth.gsingh.io/ui/console/projects/364792263672399345`). The `urn:zitadel:iam:org:projects:roles` scope instructs Zitadel to include all project roles in the JWT. Without these scopes, the token will contain no role claims and Polaris will deny access.
    b. Creates a principal in Polaris matching the Trino service user:
       ```bash
       curl -X POST https://polaris.gsingh.io/api/management/v1/principals \
@@ -642,7 +651,7 @@ git branch -d feature/4-init-polaris-catalog
   iceberg.rest-catalog.security=OAUTH2
   iceberg.rest-catalog.oauth2.credential=${ENV:POLARIS_OAUTH_CREDENTIAL}
   iceberg.rest-catalog.oauth2.server-uri=https://auth.gsingh.io/oauth/v2/token
-  iceberg.rest-catalog.oauth2.scope=openid
+  iceberg.rest-catalog.oauth2.scope=openid urn:zitadel:iam:org:projects:roles urn:zitadel:iam:org:project:id:<PROJECT_ID>:aud
   fs.native-s3.enabled=true
   s3.endpoint=...
   s3.region=...
@@ -687,10 +696,10 @@ git branch -d feature/4-init-polaris-catalog
            uri: http://polaris.data-platform.svc.cluster.local:8181/api/catalog
            warehouse: iceberg
            security: OAUTH2
-           oauth2:
-             credentialsSecret: trino-polaris-oauth
-             serverUri: https://auth.gsingh.io/oauth/v2/token
-             scope: openid
+            oauth2:
+              credentialsSecret: trino-polaris-oauth
+              serverUri: https://auth.gsingh.io/oauth/v2/token
+              scope: "openid urn:zitadel:iam:org:projects:roles urn:zitadel:iam:org:project:id:<PROJECT_ID>:aud"
          s3:
            endpoint: https://s3v2.gsingh.io
            region: us-east-1
