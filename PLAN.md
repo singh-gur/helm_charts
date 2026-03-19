@@ -225,7 +225,7 @@ git branch -d feature/1-polaris-db-and-secret-samples
 
 ---
 
-### Phase 2: Configure Zitadel OIDC for Polaris and Trino
+### Phase 2: Configure Zitadel OIDC for Polaris and Trino ✅ COMPLETED
 
 **Objective**: Create OIDC applications and service users in Zitadel for Polaris token validation and Trino client credentials authentication.
 
@@ -296,12 +296,12 @@ git branch -d feature/1-polaris-db-and-secret-samples
    ```
 
 **Verification**:
-- [ ] Zitadel project `polaris` exists with API application `polaris-server`
-- [ ] Zitadel service user `trino-polaris-client` exists with client credentials
-- [ ] Project roles are defined and assigned to the service user
-- [ ] Secret `polaris-oidc-client` updated with actual client secret and client ID
-- [ ] Secret `trino-polaris-oauth` created with Trino's OAuth2 credential
-- [ ] OIDC discovery endpoint returns valid JWKS URI
+- [x] Zitadel project `polaris` exists with API application `polaris-server`
+- [x] Zitadel service user `trino-polaris-client` exists with client credentials
+- [x] Project roles are defined and assigned to the service user
+- [x] Secret `polaris-oidc-client` updated with actual client secret and client ID
+- [x] Secret `trino-polaris-oauth` created with Trino's OAuth2 credential
+- [x] OIDC discovery endpoint returns valid JWKS URI
 
 **Completion Gate**:
 > This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done. Do not proceed to dependent phases or mark this phase as finished without user approval.
