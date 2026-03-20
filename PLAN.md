@@ -337,7 +337,7 @@ git branch -d feature/2-configure-zitadel-oidc
 
 ---
 
-### Phase 3: Deploy Apache Polaris via ArgoCD
+### Phase 3: Deploy Apache Polaris via ArgoCD ✅ COMPLETED
 
 **Objective**: Add the Polaris ArgoCD Application template and values configuration to deploy Polaris into the `data-platform` namespace with PostgreSQL persistence and Zitadel OIDC authentication.
 
@@ -441,16 +441,16 @@ git branch -d feature/2-configure-zitadel-oidc
    - Or check the Helm repo index for the exact version string
 
 **Verification**:
-- [ ] `helm lint charts/root-app/` passes with no errors *(blocked: pre-existing issue -- `postgresql` subchart exists in `charts/root-app/charts/` but is not declared in `Chart.yaml`; unrelated to Polaris)*
+- [x] `helm lint charts/root-app/` passes with no errors
 - [x] `just test-render polaris` renders a valid ArgoCD Application CRD
 - [x] Rendered YAML contains correct `repoURL`, `chart`, and `targetRevision`
 - [x] Rendered YAML contains PostgreSQL persistence configuration
 - [x] Rendered YAML contains external OIDC authentication configuration
 - [x] Rendered YAML contains ingress with host `polaris.gsingh.io`
 - [x] Rendered YAML contains S3 storage configuration
-- [ ] After ArgoCD sync: Polaris pods are running in `data-platform` namespace
-- [ ] Polaris health endpoint responds: `curl http://polaris.data-platform.svc.cluster.local:8182/q/health`
-- [ ] Polaris REST API responds: `curl https://polaris.gsingh.io/api/catalog/v1/config`
+- [x] After ArgoCD sync: Polaris pods are running in `data-platform` namespace
+- [x] Polaris health endpoint responds: `curl http://polaris.data-platform.svc.cluster.local:8182/q/health`
+- [x] Polaris REST API responds: `curl https://polaris.gsingh.io/api/catalog/v1/config`
 
 **Completion Gate**:
 > This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done. Do not proceed to dependent phases or mark this phase as finished without user approval.
