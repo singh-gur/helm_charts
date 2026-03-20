@@ -448,9 +448,7 @@ polaris:
     # JWT claim used as the Polaris principal name (Zitadel 'preferred_username')
     nameClaimPath: "preferred_username"
     # Path to the roles claim in the Zitadel JWT
-    # Zitadel emits roles as: urn:zitadel:iam:org:project:roles -> {"role_name": {"orgid": "orgname"}}
-    # The principalRolesMapper filter/mapping below transforms them to PRINCIPAL_ROLE:<name> format
-    rolesClaimPath: "urn:zitadel:iam:org:project:roles"
+    rolesClaimPath: "roles"
     # Regex filter: only include roles that look like Polaris roles (adjust if needed)
     rolesMappings:
       - regex: "(.*)"
