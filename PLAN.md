@@ -477,124 +477,131 @@ git branch -d feature/3-deploy-polaris
 
 ---
 
-### Phase 4: Initialize Polaris Catalog and Verify
+### Phase 4: Bootstrap Polaris Principals, Initialize Catalog, and Verify
 
-**Objective**: Create the initial Polaris catalog, namespace, and principal roles via the Polaris REST API, and verify end-to-end connectivity.
+**Objective**: Use a temporary mixed-auth bootstrap path to seed Polaris principals/roles, initialize the catalog and namespace, then verify external OIDC works end-to-end.
 
-**Complexity**: medium
-**Estimated Time**: 30 min
+**Complexity**: high
+**Estimated Time**: 45 min
 
 **Prerequisites**:
 - Phase 3 completed (Polaris is running and accessible)
 
 **Context for this Phase**:
-- Polaris requires catalogs and namespaces to be created via its REST API before Trino can use them.
-- Even with external OIDC auth, Polaris requires that **principals and principal roles exist in its metastore**. The `sub`/`preferred_username` from the JWT must match a pre-created principal.
-- The Polaris Management API (port 8182 or via the main API) is used to create:
-  1. A **principal** matching the Trino service user's `sub` claim from Zitadel
-  2. **Principal roles** (e.g., `catalog_admin`) matching the roles in the JWT
-  3. A **catalog** (e.g., `iceberg`) pointing to the S3 warehouse
-  4. **Catalog roles** with appropriate privileges
-  5. A **namespace** within the catalog
-- The Polaris REST API base URL: `https://polaris.gsingh.io/api` (or internal: `http://polaris.data-platform.svc.cluster.local:8181/api`)
-- All API calls require a valid Bearer token from Zitadel.
-- A helper script will make this repeatable.
+- External OIDC-only mode can validate a Zitadel token but still fail with `Unable to fetch principal entity` if the mapped principal is not yet present in Polaris metastore.
+- Polaris management operations require principals and principal roles to already exist, which creates a bootstrap dependency when starting from a clean metastore.
+- Resolve this by temporarily using `authentication.type: mixed` so internal bootstrap credentials can seed entities, while keeping OIDC config in place.
+- In mixed mode, `authentication.tokenService.type` must be enabled (`default`), and token broker keys should come from a stable secret (`polaris-token-keys`).
+- After seeding, either:
+  1. Keep `mixed` as break-glass admin access, or
+  2. Revert to strict `external` + `tokenService.type: disabled`.
+- The Polaris REST API base URL: `https://polaris.gsingh.io/api` (or internal: `http://polaris.data-platform.svc.cluster.local:8181/api`).
 
 **Files**:
 | File | Action | Purpose |
 |------|--------|---------|
-| `scripts/init-polaris-catalog.sh` | create | Script to initialize Polaris catalog, principals, and roles |
+| `scripts/init-polaris-catalog.sh` | create | Idempotent bootstrap/init script for principals, roles, catalog, and namespace |
 
 **Implementation Steps**:
-1. Create `scripts/init-polaris-catalog.sh` that:
-   a. Obtains an OAuth2 token from Zitadel using the Trino service user's client credentials:
-       ```bash
-       TOKEN=$(curl -s -X POST https://auth.gsingh.io/oauth/v2/token \
-         -d "grant_type=client_credentials" \
-         -d "client_id=<trino-client-id>" \
-         -d "client_secret=<trino-client-secret>" \
-         -d "scope=openid urn:zitadel:iam:org:projects:roles urn:zitadel:iam:org:project:id:<PROJECT_ID>:aud" | jq -r .access_token)
-       ```
-       Note: `<PROJECT_ID>` is the numeric ID of the `polaris` project in Zitadel, visible in the console URL when viewing the project (e.g. `https://auth.gsingh.io/ui/console/projects/364792263672399345`). The `urn:zitadel:iam:org:projects:roles` scope instructs Zitadel to include all project roles in the JWT. Without these scopes, the token will contain no role claims and Polaris will deny access.
-   b. Creates a principal in Polaris matching the Trino service user:
+1. Temporarily switch Polaris auth mode to bootstrap-friendly mixed mode:
+   a. Create token broker key secret in `data-platform` (if it does not already exist):
       ```bash
-      curl -X POST https://polaris.gsingh.io/api/management/v1/principals \
-        -H "Authorization: Bearer $TOKEN" \
-        -H "Content-Type: application/json" \
-        -d '{"name": "trino-polaris-client", "type": "SERVICE"}'
+      openssl genrsa -out private.pem 2048
+      openssl rsa -in private.pem -pubout -out public.pem
+      kubectl create secret generic polaris-token-keys \
+        --namespace data-platform \
+        --from-file=private.pem \
+        --from-file=public.pem
       ```
-      Note: With external auth, principals may be auto-created on first token validation. Check Polaris docs for the exact behavior.
-   c. Creates principal roles:
-      ```bash
-      curl -X POST https://polaris.gsingh.io/api/management/v1/principal-roles \
-        -H "Authorization: Bearer $TOKEN" \
-        -H "Content-Type: application/json" \
-        -d '{"principalRole": {"name": "service_admin"}}'
+   b. Update Polaris runtime auth config (via temporary ArgoCD override or temporary values edit):
+      ```yaml
+      authentication:
+        type: mixed
+        tokenService:
+          type: default
+        tokenBroker:
+          type: rsa-key-pair
+          secret:
+            name: polaris-token-keys
+            rsaKeyPair:
+              publicKey: public.pem
+              privateKey: private.pem
       ```
-   d. Assigns principal roles to the principal.
-   e. Creates an Iceberg catalog:
-      ```bash
-      curl -X POST https://polaris.gsingh.io/api/management/v1/catalogs \
-        -H "Authorization: Bearer $TOKEN" \
-        -H "Content-Type: application/json" \
-        -d '{
-          "catalog": {
-            "name": "iceberg",
-            "type": "INTERNAL",
-            "properties": {
-              "default-base-location": "s3://datastore/iceberg"
-            },
-            "storageConfigInfo": {
-              "storageType": "S3",
-              "allowedLocations": ["s3://datastore/iceberg"],
-              "s3": {
-                "endpoint": "https://s3v2.gsingh.io",
-                "region": "us-east-1",
-                "pathStyleAccess": true
-              }
-            }
-          }
-        }'
-      ```
-   f. Creates catalog roles and grants privileges.
-   g. Creates an initial namespace (e.g., `default`):
-      ```bash
-      curl -X POST "https://polaris.gsingh.io/api/catalog/v1/iceberg/namespaces" \
-        -H "Authorization: Bearer $TOKEN" \
-        -H "Content-Type: application/json" \
-        -d '{"namespace": ["default"]}'
-      ```
+   c. Sync ArgoCD and wait for Polaris rollout to complete before running bootstrap calls.
 
-2. Make the script configurable with environment variables or flags for:
+2. Create bootstrap admin credentials for internal auth (one-time for empty metastore):
+   a. Run Polaris admin tool bootstrap job in-cluster (example command from Polaris docs):
+      ```bash
+      kubectl run polaris-bootstrap \
+        -n data-platform \
+        --image=apache/polaris-admin-tool:latest \
+        --restart=Never \
+        --rm -it \
+        --env="polaris.persistence.type=relational-jdbc" \
+        --env="quarkus.datasource.username=<db-user>" \
+        --env="quarkus.datasource.password=<db-password>" \
+        --env="quarkus.datasource.jdbc.url=<jdbc-url>" \
+        -- \
+        bootstrap -r POLARIS -c POLARIS,root,<bootstrap-password>
+      ```
+   b. Store bootstrap credentials securely (do not commit).
+
+3. Create `scripts/init-polaris-catalog.sh` that is idempotent and supports both bootstrap and validation tokens:
+   a. Obtain an internal Polaris token (bootstrap path) using the bootstrapped `root` principal.
+   b. Create or verify a principal matching the Zitadel service subject (`sub`) claim used by Polaris `oidc.principalMapper.idClaimPath`.
+   c. Create or verify required principal roles (for example `service_admin`, `catalog_admin`).
+   d. Assign principal roles to the target principal.
+   e. Create or verify catalog `iceberg` with S3 storage settings.
+   f. Create or verify catalog roles and grants.
+   g. Create or verify initial namespace (for example `default`).
+
+4. Make the script configurable with environment variables or flags:
    - Polaris URL (default: `https://polaris.gsingh.io`)
-   - Zitadel token endpoint
-   - Client credentials (read from environment or prompt)
-   - Catalog name (default: `iceberg`)
-   - S3 warehouse location
+   - Bootstrap principal and password
+   - Zitadel token endpoint and client credentials (for post-bootstrap validation)
+   - Zitadel project ID and scopes
+   - Catalog name (default: `iceberg`) and S3 warehouse location
 
-3. Run the script and verify each API call succeeds.
+5. Verify external OIDC path after seeding:
+   a. Obtain a Zitadel token using Trino service user credentials:
+      ```bash
+      ZITADEL_TOKEN=$(curl -s -X POST https://auth.gsingh.io/oauth/v2/token \
+        -d "grant_type=client_credentials" \
+        -d "client_id=<trino-client-id>" \
+        -d "client_secret=<trino-client-secret>" \
+        -d "scope=openid urn:zitadel:iam:org:projects:roles urn:zitadel:iam:org:project:id:<PROJECT_ID>:aud" | jq -r .access_token)
+      ```
+   b. Validate management/catalog calls succeed with the external token and no principal lookup error:
+      ```bash
+      curl -H "Authorization: Bearer $ZITADEL_TOKEN" https://polaris.gsingh.io/api/management/v1/principals
+      curl -H "Authorization: Bearer $ZITADEL_TOKEN" https://polaris.gsingh.io/api/catalog/v1/iceberg/namespaces
+      ```
 
-4. Verify the catalog is accessible:
-   ```bash
-   curl -H "Authorization: Bearer $TOKEN" https://polaris.gsingh.io/api/catalog/v1/iceberg/namespaces
-   ```
+6. Decide final auth mode and apply it explicitly:
+   - Option A: keep `mixed` for operational break-glass access.
+   - Option B: revert to strict `external` and set `authentication.tokenService.type: disabled`.
+   - Record the chosen mode in deployment notes so future operators understand expected behavior.
 
 **Verification**:
-- [ ] Script `scripts/init-polaris-catalog.sh` is executable and documented
-- [ ] OAuth2 token can be obtained from Zitadel using service user credentials
-- [ ] Principal exists in Polaris for the Trino service user
+- [ ] Polaris is temporarily running in `mixed` mode during bootstrap and healthy after sync
+- [ ] Bootstrap admin principal exists and can mint an internal token
+- [ ] Script `scripts/init-polaris-catalog.sh` is executable, idempotent, and documented
+- [ ] Principal exists in Polaris for the Zitadel `sub` claim used by Trino service user
 - [ ] Principal roles are created and assigned
 - [ ] Catalog `iceberg` exists with S3 storage configuration
 - [ ] Namespace `default` exists within the `iceberg` catalog
-- [ ] API call to list namespaces returns successfully
+- [ ] External Zitadel token can list namespaces without `Unable to fetch principal entity`
+- [ ] Final auth mode (`mixed` or `external`) is explicitly set and verified
 
 **Completion Gate**:
 > This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done. Do not proceed to dependent phases or mark this phase as finished without user approval.
 
 **Outputs**:
+- Bootstrapped Polaris principals/roles via temporary mixed-auth path
 - Initialized Polaris catalog with principals, roles, and namespaces
-- Reusable script `scripts/init-polaris-catalog.sh`
-- Confirmed end-to-end OIDC authentication flow (Zitadel -> Polaris)
+- Reusable script `scripts/init-polaris-catalog.sh` for repeatable initialization
+- Confirmed end-to-end OIDC authentication flow (Zitadel -> Polaris) after principal seeding
+- Explicit decision recorded for steady-state auth mode (`mixed` or `external`)
 
 **Git Branch Setup**:
 ```bash
