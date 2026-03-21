@@ -287,7 +287,7 @@ openproject:
     scope: "[openid profile email]"
 
 zitadel:
-  enabled: true
+  enabled: false
   version: 9.17.1
   externalDomain: auth.gsingh.io
   ingress:
