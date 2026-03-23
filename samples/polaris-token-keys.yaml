@@ -1,0 +1,49 @@
+# Polaris Token Broker RSA Key Pair Secret
+# Create this secret before running Polaris in mixed auth mode (Phase 4 bootstrap).
+#
+# This secret is used by Polaris tokenBroker (rsa-key-pair) when:
+#   authentication.type=mixed
+#   authentication.tokenService.type=default
+#
+# Prerequisites:
+#   1. Generate RSA key pair files:
+#      openssl genrsa -out private.pem 2048
+#      openssl rsa -in private.pem -pubout -out public.pem
+#   2. Create this secret in the data-platform namespace
+#
+# Recommended create command (avoids copy/paste errors):
+#   kubectl create secret generic polaris-token-keys \
+#     --namespace data-platform \
+#     --from-file=private.pem \
+#     --from-file=public.pem
+#
+# Or update existing secret:
+#   kubectl create secret generic polaris-token-keys \
+#     --namespace data-platform \
+#     --from-file=private.pem \
+#     --from-file=public.pem \
+#     --dry-run=client -o yaml | kubectl apply -f -
+#
+# IMPORTANT:
+#   - Do NOT commit real key material.
+#   - Secret keys must be exactly: public.pem and private.pem.
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: polaris-token-keys
+  namespace: data-platform
+  labels:
+    app.kubernetes.io/name: polaris
+    app.kubernetes.io/instance: polaris
+    app.kubernetes.io/component: token-broker
+type: Opaque
+stringData:
+  public.pem: |
+    -----BEGIN PUBLIC KEY-----
+    YOUR_PUBLIC_KEY_HERE
+    -----END PUBLIC KEY-----
+  private.pem: |
+    -----BEGIN PRIVATE KEY-----
+    YOUR_PRIVATE_KEY_HERE
+    -----END PRIVATE KEY-----

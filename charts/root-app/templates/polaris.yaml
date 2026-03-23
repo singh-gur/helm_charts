@@ -5,6 +5,11 @@
 {{- $polarisStorage := $polaris.storage | default dict }}
 {{- $polarisS3 := $polarisStorage.s3 | default dict }}
 {{- $polarisIngress := $polaris.ingress | default dict }}
+{{- $polarisAuth := $polaris.authentication | default dict }}
+{{- $polarisTokenService := $polarisAuth.tokenService | default dict }}
+{{- $polarisTokenBroker := $polarisAuth.tokenBroker | default dict }}
+{{- $polarisAuthType := $polarisAuth.type | default "external" }}
+{{- $polarisTokenServiceType := $polarisTokenService.type | default (ternary "disabled" "default" (eq $polarisAuthType "external")) }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -39,11 +44,25 @@ spec:
             awsSecretAccessKey: {{ $polarisS3.awsSecretAccessKeyKey | default "AWS_SECRET_ACCESS_KEY" }}
         {{- end }}
 
-        # Authentication: external OIDC via Zitadel
+        # Authentication mode is values-driven to support bootstrap (mixed)
+        # and steady-state (external) modes.
         authentication:
-          type: external
+          type: {{ $polarisAuthType }}
           tokenService:
-            type: disabled
+            type: {{ $polarisTokenServiceType }}
+          {{- if and (ne $polarisAuthType "external") $polarisTokenBroker.type }}
+          tokenBroker:
+            type: {{ $polarisTokenBroker.type }}
+            {{- if and $polarisTokenBroker.secret $polarisTokenBroker.secret.name }}
+            secret:
+              name: {{ $polarisTokenBroker.secret.name }}
+              {{- if and $polarisTokenBroker.secret.rsaKeyPair $polarisTokenBroker.secret.rsaKeyPair.publicKey $polarisTokenBroker.secret.rsaKeyPair.privateKey }}
+              rsaKeyPair:
+                publicKey: {{ $polarisTokenBroker.secret.rsaKeyPair.publicKey }}
+                privateKey: {{ $polarisTokenBroker.secret.rsaKeyPair.privateKey }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
 
         # OIDC configuration for Zitadel integration
         oidc:

@@ -411,12 +411,14 @@ trino:
 
 # Apache Polaris - Iceberg REST Catalog
 # Deployed in the data-platform namespace alongside Trino.
-# Polaris uses PostgreSQL for metadata persistence (relational-jdbc) and
-# Zitadel (auth.gsingh.io) for external OIDC authentication.
+# Polaris uses PostgreSQL for metadata persistence (relational-jdbc).
+# Phase 4 bootstrap runs in mixed auth mode so internal bootstrap credentials
+# can seed principals/roles/catalogs; switch back to strict external after init.
 # Secrets required in data-platform namespace:
 #   - polaris-db-credentials  (keys: username, password, jdbcUrl)   -- created in Phase 1
 #   - polaris-oidc-client     (keys: clientId, clientSecret)         -- created in Phase 2
 #   - trino-iceberg-s3        (reused for S3 storage credentials)
+#   - polaris-token-keys      (keys: public.pem, private.pem)         -- created in Phase 4
 polaris:
   enabled: true
   version: "1.3.0-incubating"
@@ -428,6 +430,19 @@ polaris:
     type: relational-jdbc
     # Secret name holding PostgreSQL connection details (keys: username, password, jdbcUrl)
     secret: polaris-db-credentials
+  authentication:
+    # Phase 4 bootstrap: use mixed mode to allow internal bootstrapping.
+    # After bootstrap, set type=external and tokenService.type=disabled.
+    type: mixed
+    tokenService:
+      type: default
+    tokenBroker:
+      type: rsa-key-pair
+      secret:
+        name: polaris-token-keys
+        rsaKeyPair:
+          publicKey: public.pem
+          privateKey: private.pem
   storage:
     s3:
       # Reuse the existing S3 credentials secret from Trino (keys: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
