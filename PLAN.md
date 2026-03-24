@@ -620,7 +620,7 @@ git branch -d feature/4-init-polaris-catalog
 
 ---
 
-### Phase 5: Switch Trino Iceberg Catalog from JDBC to Polaris REST
+### Phase 5: Switch Trino Iceberg Catalog from JDBC to Polaris REST ✅ COMPLETED
 
 **Objective**: Modify the Trino ArgoCD Application template and values to use Polaris REST catalog instead of the direct JDBC catalog for Iceberg.
 
@@ -768,17 +768,17 @@ git branch -d feature/4-init-polaris-catalog
    ```
 
 **Verification**:
-- [ ] `helm lint charts/root-app/` passes
-- [ ] `just test-render trino` renders without errors
-- [ ] Rendered catalog properties use `iceberg.catalog.type=rest`
-- [ ] Rendered catalog properties include `iceberg.rest-catalog.uri` pointing to Polaris
-- [ ] Rendered catalog properties include OAuth2 configuration
-- [ ] Rendered `envFrom` includes `trino-polaris-oauth` secret
-- [ ] No JDBC catalog properties remain in the rendered output
-- [ ] S3 configuration properties are still present
-- [ ] After sync: `SHOW CATALOGS` in Trino includes `iceberg`
-- [ ] After sync: `SHOW SCHEMAS FROM iceberg` returns the `default` namespace from Polaris
-- [ ] After sync: Creating a table in Trino via Polaris catalog succeeds
+- [x] `helm lint charts/root-app/` passes
+- [x] `just test-render trino` renders without errors
+- [x] Rendered catalog properties use `iceberg.catalog.type=rest`
+- [x] Rendered catalog properties include `iceberg.rest-catalog.uri` pointing to Polaris
+- [x] Rendered catalog properties include OAuth2 configuration
+- [x] Rendered `envFrom` includes `trino-polaris-oauth` secret
+- [x] No JDBC catalog properties remain in the rendered output
+- [x] S3 configuration properties are still present
+- [x] After sync: `SHOW CATALOGS` in Trino includes `iceberg`
+- [x] After sync: `SHOW SCHEMAS FROM iceberg` returns the `default` namespace from Polaris
+- [x] After sync: Creating a table in Trino via Polaris catalog succeeds
 
 **Completion Gate**:
 > This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done. Do not proceed to dependent phases or mark this phase as finished without user approval.
