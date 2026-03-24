@@ -42,6 +42,35 @@ spec:
             name: {{ $polarisS3.credentialsSecret }}
             awsAccessKeyId: {{ $polarisS3.awsAccessKeyIdKey | default "AWS_ACCESS_KEY_ID" }}
             awsSecretAccessKey: {{ $polarisS3.awsSecretAccessKeyKey | default "AWS_SECRET_ACCESS_KEY" }}
+
+        # Also expose standard AWS env vars for code paths that rely on the
+        # default AWS credential provider chain (e.g. table register validation).
+        extraEnv:
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ $polarisS3.credentialsSecret }}
+                key: {{ $polarisS3.awsAccessKeyIdKey | default "AWS_ACCESS_KEY_ID" }}
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ $polarisS3.credentialsSecret }}
+                key: {{ $polarisS3.awsSecretAccessKeyKey | default "AWS_SECRET_ACCESS_KEY" }}
+          - name: AWS_REGION
+            valueFrom:
+              secretKeyRef:
+                name: {{ $polarisS3.credentialsSecret }}
+                key: {{ $polarisS3.awsRegionKey | default "AWS_REGION" }}
+          - name: AWS_DEFAULT_REGION
+            valueFrom:
+              secretKeyRef:
+                name: {{ $polarisS3.credentialsSecret }}
+                key: {{ $polarisS3.awsRegionKey | default "AWS_REGION" }}
+          - name: AWS_ENDPOINT_URL
+            valueFrom:
+              secretKeyRef:
+                name: {{ $polarisS3.credentialsSecret }}
+                key: {{ $polarisS3.awsEndpointUrlKey | default "AWS_ENDPOINT_URL" }}
         {{- end }}
 
         # Authentication mode is values-driven to support bootstrap (mixed)
