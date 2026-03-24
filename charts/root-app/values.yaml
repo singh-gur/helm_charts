@@ -481,6 +481,11 @@ polaris:
     rolesMappings:
       - regex: "^(.+)$"
         replacement: "PRINCIPAL_ROLE:$1"
+  advancedConfig:
+    # Required for migrating legacy tables that live outside the default
+    # namespace-derived location hierarchy.
+    # After migration, this can be set back to "false".
+    polaris.config.namespace-custom-location.enabled: "true"
   features:
     # Supported storage types for catalog entries
     SUPPORTED_CATALOG_STORAGE_TYPES:

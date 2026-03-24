@@ -8,6 +8,7 @@
 {{- $polarisAuth := $polaris.authentication | default dict }}
 {{- $polarisTokenService := $polarisAuth.tokenService | default dict }}
 {{- $polarisTokenBroker := $polarisAuth.tokenBroker | default dict }}
+{{- $polarisAdvancedConfig := $polaris.advancedConfig | default dict }}
 {{- $polarisAuthType := $polarisAuth.type | default "external" }}
 {{- $polarisTokenServiceType := $polarisTokenService.type | default (ternary "disabled" "default" (eq $polarisAuthType "external")) }}
 apiVersion: argoproj.io/v1alpha1
@@ -131,6 +132,11 @@ spec:
             {{- range $polaris.features.SUPPORTED_CATALOG_STORAGE_TYPES }}
             - {{ . }}
             {{- end }}
+        {{- end }}
+
+        {{- if $polarisAdvancedConfig }}
+        advancedConfig:
+{{ toYaml $polarisAdvancedConfig | indent 10 }}
         {{- end }}
 
         # Ingress: expose Polaris REST API at polaris.gsingh.io
