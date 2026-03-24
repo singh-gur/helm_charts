@@ -2,6 +2,10 @@
 {{- $trino := .Values.trino }}
 {{- $iceberg := $trino.catalogs.iceberg | default dict }}
 {{- $icebergS3 := $iceberg.s3 | default dict }}
+{{- $icebergJdbc := $iceberg.jdbc | default dict }}
+{{- $icebergRest := $iceberg.rest | default dict }}
+{{- $icebergRestOAuth2 := $icebergRest.oauth2 | default dict }}
+{{- $icebergCatalogType := lower (default "rest" $iceberg.catalogType) }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -39,13 +43,32 @@ spec:
           {{- if and $iceberg $iceberg.enabled }}
           {{ default "iceberg" $iceberg.catalogName }}: |
             connector.name=iceberg
+            {{- if eq $icebergCatalogType "rest" }}
+            iceberg.catalog.type=rest
+            iceberg.rest-catalog.uri={{ $icebergRest.uri }}
+            iceberg.rest-catalog.warehouse={{ default (default "iceberg" $iceberg.catalogName) $icebergRest.warehouse }}
+            iceberg.rest-catalog.security={{ default "OAUTH2" $icebergRest.security }}
+            {{- if eq (upper (default "OAUTH2" $icebergRest.security)) "OAUTH2" }}
+            iceberg.rest-catalog.oauth2.credential=${ENV:POLARIS_OAUTH_CREDENTIAL}
+            iceberg.rest-catalog.oauth2.server-uri={{ $icebergRestOAuth2.serverUri }}
+            {{- if $icebergRestOAuth2.scope }}
+            iceberg.rest-catalog.oauth2.scope={{ $icebergRestOAuth2.scope }}
+            {{- end }}
+            {{- end }}
+            {{- if hasKey $icebergRest "vendedCredentialsEnabled" }}
+            iceberg.rest-catalog.vended-credentials-enabled={{ ternary "true" "false" (default false $icebergRest.vendedCredentialsEnabled) }}
+            {{- end }}
+            {{- else if eq $icebergCatalogType "jdbc" }}
             iceberg.catalog.type=jdbc
-            iceberg.jdbc-catalog.connection-url=jdbc:postgresql://${ENV:POSTGRES_HOST}:${ENV:POSTGRES_PORT}/${ENV:POSTGRES_DATABASE}
+            iceberg.jdbc-catalog.connection-url={{ default "jdbc:postgresql://${ENV:POSTGRES_HOST}:${ENV:POSTGRES_PORT}/${ENV:POSTGRES_DATABASE}" $icebergJdbc.connectionUrl }}
             iceberg.jdbc-catalog.default-warehouse-dir={{ $iceberg.warehouse }}
-            iceberg.jdbc-catalog.driver-class=org.postgresql.Driver
+            iceberg.jdbc-catalog.driver-class={{ default "org.postgresql.Driver" $icebergJdbc.driverClass }}
             iceberg.jdbc-catalog.catalog-name={{ default "iceberg" $iceberg.catalogName }}
-            iceberg.jdbc-catalog.connection-user=${ENV:POSTGRES_USER}
-            iceberg.jdbc-catalog.connection-password=${ENV:POSTGRES_PASSWORD}
+            iceberg.jdbc-catalog.connection-user={{ default "${ENV:POSTGRES_USER}" $icebergJdbc.connectionUser }}
+            iceberg.jdbc-catalog.connection-password={{ default "${ENV:POSTGRES_PASSWORD}" $icebergJdbc.connectionPassword }}
+            {{- else }}
+            {{- fail (printf "Unsupported trino.catalogs.iceberg.catalogType: %s (expected 'rest' or 'jdbc')" $icebergCatalogType) }}
+            {{- end }}
             fs.native-s3.enabled=true
             {{- if $icebergS3.endpoint }}
             s3.endpoint={{ $icebergS3.endpoint }}
@@ -65,11 +88,15 @@ spec:
             - path: /
               pathType: Prefix
           tls: []
-        {{- if or (and $iceberg $iceberg.enabled $iceberg.credentialsSecret) (and $trino.auth $trino.auth.enabled $trino.auth.sharedSecretName) }}
+        {{- if or (and $iceberg $iceberg.enabled $iceberg.credentialsSecret) (and $iceberg $iceberg.enabled (eq $icebergCatalogType "rest") $icebergRestOAuth2.credentialsSecret) (and $trino.auth $trino.auth.enabled $trino.auth.sharedSecretName) }}
         envFrom:
         {{- if and $iceberg $iceberg.enabled $iceberg.credentialsSecret }}
         - secretRef:
             name: {{ $iceberg.credentialsSecret }}
+        {{- end }}
+        {{- if and $iceberg $iceberg.enabled (eq $icebergCatalogType "rest") $icebergRestOAuth2.credentialsSecret }}
+        - secretRef:
+            name: {{ $icebergRestOAuth2.credentialsSecret }}
         {{- end }}
         {{- if and $trino.auth $trino.auth.enabled $trino.auth.sharedSecretName }}
         - secretRef:

@@ -402,11 +402,22 @@ trino:
     iceberg:
       enabled: true
       catalogName: iceberg
+      catalogType: rest
+      # JDBC settings kept for rollback, but REST is the default.
       warehouse: s3a://datastore/iceberg
+      rest:
+        uri: http://polaris.data-platform.svc.cluster.local:8181/api/catalog
+        warehouse: iceberg
+        security: OAUTH2
+        oauth2:
+          credentialsSecret: trino-polaris-oauth
+          serverUri: https://auth.gsingh.io/oauth/v2/token
+          scope: "openid urn:zitadel:iam:org:projects:roles urn:zitadel:iam:org:project:id:364792216679351793:aud"
       s3:
         endpoint: https://s3v2.gsingh.io
         region: us-east-1
         pathStyleAccess: true
+      # Keep direct S3 credentials for Trino file IO.
       credentialsSecret: trino-iceberg-s3
 
 # Apache Polaris - Iceberg REST Catalog
