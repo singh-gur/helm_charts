@@ -17,7 +17,7 @@ POLARIS_CATALOG_BASE="${POLARIS_CATALOG_BASE:-${POLARIS_API_BASE}/catalog/v1}"
 POLARIS_BOOTSTRAP_TOKEN="${POLARIS_BOOTSTRAP_TOKEN:-}"
 POLARIS_BOOTSTRAP_CLIENT_ID="${POLARIS_BOOTSTRAP_CLIENT_ID:-root}"
 POLARIS_BOOTSTRAP_CLIENT_SECRET="${POLARIS_BOOTSTRAP_CLIENT_SECRET:-}"
-POLARIS_BOOTSTRAP_SCOPE="${POLARIS_BOOTSTRAP_SCOPE:-}"
+POLARIS_BOOTSTRAP_SCOPE="${POLARIS_BOOTSTRAP_SCOPE:-PRINCIPAL_ROLE:ALL}"
 
 POLARIS_TARGET_PRINCIPAL="${POLARIS_TARGET_PRINCIPAL:-}"
 POLARIS_PRINCIPAL_ROLES="${POLARIS_PRINCIPAL_ROLES:-service_admin,catalog_admin}"
@@ -59,7 +59,7 @@ cleanup() {
 trap cleanup EXIT
 
 info() {
-  printf '[INFO] %s\n' "$*"
+  printf '[INFO] %s\n' "$*" >&2
 }
 
 warn() {
@@ -114,6 +114,12 @@ print_api_body() {
       cat "$API_BODY_FILE" >&2
     fi
   fi
+}
+
+is_duplicate_grant_error() {
+  [[ -n "$API_BODY_FILE" && -s "$API_BODY_FILE" ]] || return 1
+  jq -r '.error.message // empty' "$API_BODY_FILE" 2>/dev/null \
+    | grep -Eq 'duplicate key value violates unique constraint|grant_records_pkey'
 }
 
 request_json() {
@@ -477,6 +483,15 @@ ensure_catalog_role_assignment_to_principal_role() {
   case "$API_STATUS" in
     200|201|409)
       info "Mapped catalog role to principal role: ${principal_role} -> ${POLARIS_CATALOG_NAME}/${POLARIS_CATALOG_ROLE}"
+      ;;
+    500)
+      if is_duplicate_grant_error; then
+        info "Catalog role mapping already present: ${principal_role} -> ${POLARIS_CATALOG_NAME}/${POLARIS_CATALOG_ROLE}"
+      else
+        warn "Failed to map catalog role to principal role ${principal_role} (status ${API_STATUS})"
+        print_api_body
+        fatal "Cannot continue"
+      fi
       ;;
     *)
       warn "Failed to map catalog role to principal role ${principal_role} (status ${API_STATUS})"
