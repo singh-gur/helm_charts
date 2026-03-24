@@ -477,7 +477,7 @@ git branch -d feature/3-deploy-polaris
 
 ---
 
-### Phase 4: Bootstrap Polaris Principals, Initialize Catalog, and Verify
+### Phase 4: Bootstrap Polaris Principals, Initialize Catalog, and Verify ✅ COMPLETED
 
 **Objective**: Use a temporary mixed-auth bootstrap path to seed Polaris principals/roles, initialize the catalog and namespace, then verify external OIDC works end-to-end.
 
@@ -583,15 +583,15 @@ git branch -d feature/3-deploy-polaris
    - Record the chosen mode in deployment notes so future operators understand expected behavior.
 
 **Verification**:
-- [ ] Polaris is temporarily running in `mixed` mode during bootstrap and healthy after sync
-- [ ] Bootstrap admin principal exists and can mint an internal token
-- [ ] Script `scripts/init-polaris-catalog.sh` is executable, idempotent, and documented
-- [ ] Principal exists in Polaris for the Zitadel `sub` claim used by Trino service user
-- [ ] Principal roles are created and assigned
-- [ ] Catalog `iceberg` exists with S3 storage configuration
-- [ ] Namespace `default` exists within the `iceberg` catalog
-- [ ] External Zitadel token can list namespaces without `Unable to fetch principal entity`
-- [ ] Final auth mode (`mixed` or `external`) is explicitly set and verified
+- [x] Polaris is temporarily running in `mixed` mode during bootstrap and healthy after sync
+- [x] Bootstrap admin principal exists and can mint an internal token
+- [x] Script `scripts/init-polaris-catalog.sh` is executable, idempotent, and documented
+- [x] Principal exists in Polaris for the Zitadel `sub` claim used by Trino service user
+- [x] Principal roles are created and assigned
+- [x] Catalog `iceberg` exists with S3 storage configuration
+- [x] Namespace `default` exists within the `iceberg` catalog
+- [x] External Zitadel token can list namespaces without `Unable to fetch principal entity`
+- [x] Final auth mode (`mixed` or `external`) is explicitly set and verified
 
 **Completion Gate**:
 > This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done. Do not proceed to dependent phases or mark this phase as finished without user approval.
