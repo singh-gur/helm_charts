@@ -904,7 +904,7 @@ git branch -d feature/6-migrate-validate-data
 
 ---
 
-### Phase 7: Cleanup and Documentation
+### Phase 7: Cleanup and Documentation ✅ COMPLETED
 
 **Objective**: Remove unused JDBC catalog configuration, update AGENTS.md with Polaris documentation, and add Polaris to the justfile recipes.
 
@@ -959,13 +959,13 @@ git branch -d feature/6-migrate-validate-data
 5. Run `just test-render polaris` and `just test-render trino` to verify both templates still render correctly.
 
 **Verification**:
-- [ ] `helm lint charts/root-app/` passes
-- [ ] `just test-render polaris` renders correctly
-- [ ] `just test-render trino` renders correctly
-- [ ] No unused JDBC configuration remains in values.yaml
-- [ ] AGENTS.md includes Polaris documentation
-- [ ] Justfile includes Polaris recipes
-- [ ] All scripts are executable (`chmod +x`)
+- [x] `helm lint charts/root-app/` passes
+- [x] `just test-render polaris` renders correctly
+- [x] `just test-render trino` renders correctly
+- [x] No unused JDBC configuration remains in values.yaml
+- [x] AGENTS.md includes Polaris documentation
+- [x] Justfile includes Polaris recipes
+- [x] All scripts are executable (`chmod +x`)
 
 **Completion Gate**:
 > This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done. Do not proceed to dependent phases or mark this phase as finished without user approval.

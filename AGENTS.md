@@ -63,6 +63,11 @@ The `root-app` chart manages all child applications via ArgoCD Application CRDs.
 | **External** | `charts/argo-cd/` | Dependencies on external Helm repos (e.g., argo-helm) |
 | **Local** | `charts/whoami/` | Custom applications with local templates |
 
+### Data Platform Flow
+- Trino queries Iceberg metadata through Polaris REST Catalog, not direct JDBC.
+- Polaris manages Iceberg catalog metadata and authorization.
+- Table data and metadata files remain in S3-compatible object storage.
+
 ### Directory Structure
 ```
 charts/
@@ -144,7 +149,8 @@ spec:
 - **windmill** - Dev tool platform
 
 ### Data & Analytics
-- **trino** - Distributed SQL query engine
+- **trino** - Distributed SQL query engine (via Polaris REST catalog)
+- **polaris** - Apache Iceberg REST Catalog (v1.3.0-incubating)
 - **kyuubi** - Thrift JDBC/ODBC server
 
 ### Other

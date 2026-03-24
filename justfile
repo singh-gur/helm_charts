@@ -18,6 +18,18 @@ test-render template_name:
 expand-app app_name:
     ./scripts/expand-app.sh {{app_name}}
 
+# Initialize Polaris catalog, roles, and grants
+init-polaris:
+    ./scripts/init-polaris-catalog.sh
+
+# Get a Zitadel access token for Polaris/Trino flows
+get-zitadel-token *args:
+    ./scripts/get-zitadel-token.sh {{args}}
+
+# Register existing Iceberg table metadata in Polaris
+migrate-iceberg-to-polaris *args:
+    ./scripts/migrate-iceberg-to-polaris.sh {{args}}
+
 push message:
     @echo "Push changes to the repository"
     git add .
