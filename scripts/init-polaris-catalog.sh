@@ -25,7 +25,8 @@ POLARIS_PRINCIPAL_ROLES="${POLARIS_PRINCIPAL_ROLES:-service_admin,catalog_admin}
 POLARIS_CATALOG_NAME="${POLARIS_CATALOG_NAME:-iceberg}"
 POLARIS_NAMESPACE="${POLARIS_NAMESPACE:-default}"
 POLARIS_WAREHOUSE_URI="${POLARIS_WAREHOUSE_URI:-s3://datastore/iceberg}"
-POLARIS_ALLOWED_LOCATIONS="${POLARIS_ALLOWED_LOCATIONS:-${POLARIS_WAREHOUSE_URI}}"
+POLARIS_EXTRA_ALLOWED_LOCATIONS="${POLARIS_EXTRA_ALLOWED_LOCATIONS:-s3a://datastore/iceberg,s3://datastore/examples,s3a://datastore/examples}"
+POLARIS_ALLOWED_LOCATIONS="${POLARIS_ALLOWED_LOCATIONS:-${POLARIS_WAREHOUSE_URI},${POLARIS_EXTRA_ALLOWED_LOCATIONS}}"
 
 POLARIS_STORAGE_TYPE="${POLARIS_STORAGE_TYPE:-S3}"
 POLARIS_S3_REGION="${POLARIS_S3_REGION:-us-east-1}"
@@ -36,7 +37,8 @@ POLARIS_S3_ROLE_ARN="${POLARIS_S3_ROLE_ARN:-}"
 POLARIS_S3_EXTERNAL_ID="${POLARIS_S3_EXTERNAL_ID:-}"
 
 POLARIS_CATALOG_ROLE="${POLARIS_CATALOG_ROLE:-catalog_admin}"
-POLARIS_CATALOG_GRANTS="${POLARIS_CATALOG_GRANTS:-CATALOG_MANAGE_ACCESS,CATALOG_MANAGE_CONTENT,CATALOG_MANAGE_METADATA,NAMESPACE_CREATE,TABLE_CREATE,NAMESPACE_LIST,TABLE_LIST,TABLE_READ_DATA,TABLE_WRITE_DATA}"
+POLARIS_CATALOG_GRANTS="${POLARIS_CATALOG_GRANTS:-CATALOG_MANAGE_ACCESS,CATALOG_MANAGE_CONTENT,CATALOG_MANAGE_METADATA,NAMESPACE_CREATE,TABLE_CREATE,NAMESPACE_DROP,TABLE_DROP,VIEW_DROP,NAMESPACE_LIST,TABLE_LIST,TABLE_READ_DATA,TABLE_WRITE_DATA}"
+POLARIS_CATALOG_PROPERTIES="${POLARIS_CATALOG_PROPERTIES:-polaris.config.namespace-custom-location.enabled=true,polaris.config.drop-with-purge.enabled=true}"
 
 ZITADEL_TOKEN_ENDPOINT="${ZITADEL_TOKEN_ENDPOINT:-https://auth.gsingh.io/oauth/v2/token}"
 ZITADEL_CLIENT_ID="${ZITADEL_CLIENT_ID:-}"
@@ -104,6 +106,28 @@ csv_to_lines() {
       printf '%s\n' "$item"
     fi
   done
+}
+
+csv_kv_to_json_object() {
+  local raw="$1"
+  local json='{}'
+  local kv
+  local key
+  local value
+
+  while IFS= read -r kv; do
+    kv="$(trim "$kv")"
+    [[ -n "$kv" ]] || continue
+    [[ "$kv" == *=* ]] || fatal "Invalid key=value entry: $kv"
+
+    key="$(trim "${kv%%=*}")"
+    value="$(trim "${kv#*=}")"
+    [[ -n "$key" ]] || fatal "Invalid key=value entry (empty key): $kv"
+
+    json="$(jq -cn --argjson obj "$json" --arg k "$key" --arg v "$value" '$obj + {($k): $v}')"
+  done < <(csv_to_lines "$raw")
+
+  printf '%s' "$json"
 }
 
 print_api_body() {
@@ -336,11 +360,20 @@ ensure_principal_role_assignment() {
 ensure_catalog_exists() {
   local token="$1"
   local catalog_encoded
+  local path_style
+  local sts_unavailable
+  local allowed_locations_json
+  local catalog_properties_json
   catalog_encoded="$(urlencode "$POLARIS_CATALOG_NAME")"
+  path_style="$(json_bool "$POLARIS_S3_PATH_STYLE_ACCESS")"
+  sts_unavailable="$(json_bool "$POLARIS_S3_STS_UNAVAILABLE")"
+  allowed_locations_json="$(jq -cn --arg raw "$POLARIS_ALLOWED_LOCATIONS" '$raw | split(",") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0)) | unique')"
+  catalog_properties_json="$(csv_kv_to_json_object "$POLARIS_CATALOG_PROPERTIES")"
 
   request_json GET "${POLARIS_MANAGEMENT_BASE}/catalogs/${catalog_encoded}" "$token"
   if [[ "$API_STATUS" == "200" ]]; then
     info "Catalog exists: ${POLARIS_CATALOG_NAME}"
+    ensure_catalog_settings "$token" "$allowed_locations_json" "$catalog_properties_json" "$path_style" "$sts_unavailable"
     return
   fi
   if [[ "$API_STATUS" != "404" ]]; then
@@ -348,13 +381,6 @@ ensure_catalog_exists() {
     print_api_body
     fatal "Cannot continue"
   fi
-
-  local path_style
-  local sts_unavailable
-  local allowed_locations_json
-  path_style="$(json_bool "$POLARIS_S3_PATH_STYLE_ACCESS")"
-  sts_unavailable="$(json_bool "$POLARIS_S3_STS_UNAVAILABLE")"
-  allowed_locations_json="$(jq -cn --arg raw "$POLARIS_ALLOWED_LOCATIONS" '$raw | split(",") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))')"
 
   local payload
   payload="$({
@@ -367,13 +393,14 @@ ensure_catalog_exists() {
       --arg roleArn "$POLARIS_S3_ROLE_ARN" \
       --arg externalId "$POLARIS_S3_EXTERNAL_ID" \
       --argjson allowedLocations "$allowed_locations_json" \
+      --argjson catalogProperties "$catalog_properties_json" \
       --argjson pathStyle "$path_style" \
       --argjson stsUnavailable "$sts_unavailable" \
       '{
         catalog: {
           type: "INTERNAL",
           name: $name,
-          properties: {"default-base-location": $warehouse},
+          properties: ({"default-base-location": $warehouse} + $catalogProperties),
           storageConfigInfo: {
             storageType: $storageType,
             allowedLocations: $allowedLocations
@@ -399,6 +426,108 @@ ensure_catalog_exists() {
       ;;
     *)
       warn "Failed to create catalog ${POLARIS_CATALOG_NAME} (status ${API_STATUS})"
+      print_api_body
+      fatal "Cannot continue"
+      ;;
+  esac
+
+  ensure_catalog_settings "$token" "$allowed_locations_json" "$catalog_properties_json" "$path_style" "$sts_unavailable"
+}
+
+ensure_catalog_settings() {
+  local token="$1"
+  local allowed_locations_json="$2"
+  local catalog_properties_json="$3"
+  local path_style="$4"
+  local sts_unavailable="$5"
+  local catalog_encoded
+  catalog_encoded="$(urlencode "$POLARIS_CATALOG_NAME")"
+
+  request_json GET "${POLARIS_MANAGEMENT_BASE}/catalogs/${catalog_encoded}" "$token"
+  [[ "$API_STATUS" == "200" ]] || {
+    warn "Failed to load catalog ${POLARIS_CATALOG_NAME} for settings update (status ${API_STATUS})"
+    print_api_body
+    fatal "Cannot continue"
+  }
+
+  local catalog_body
+  catalog_body="$API_BODY_FILE"
+
+  local needs_update="false"
+
+  if ! jq -e --argjson wanted "$allowed_locations_json" '($wanted | all(. as $w | ((.storageConfigInfo.allowedLocations // []) | index($w) != null)))' "$catalog_body" >/dev/null 2>&1; then
+    needs_update="true"
+  fi
+
+  if ! jq -e --argjson wanted "$catalog_properties_json" '($wanted | to_entries | all(. as $kv | ((.properties // {})[$kv.key] // "") == $kv.value))' "$catalog_body" >/dev/null 2>&1; then
+    needs_update="true"
+  fi
+
+  if [[ "$POLARIS_STORAGE_TYPE" == "S3" ]]; then
+    if ! jq -e \
+      --arg region "$POLARIS_S3_REGION" \
+      --arg endpoint "$POLARIS_S3_ENDPOINT" \
+      --argjson pathStyle "$path_style" \
+      --argjson stsUnavailable "$sts_unavailable" \
+      '((.storageConfigInfo.storageType // "") == "S3")
+       and ((.storageConfigInfo.region // "") == $region)
+       and ((.storageConfigInfo.endpoint // "") == $endpoint)
+       and ((.storageConfigInfo.pathStyleAccess // false) == $pathStyle)
+       and ((.storageConfigInfo.stsUnavailable // false) == $stsUnavailable)' \
+      "$catalog_body" >/dev/null 2>&1; then
+      needs_update="true"
+    fi
+  fi
+
+  if [[ "$needs_update" != "true" ]]; then
+    info "Catalog settings already up-to-date: ${POLARIS_CATALOG_NAME}"
+    return
+  fi
+
+  local payload
+  payload="$(jq \
+    --argjson desiredAllowed "$allowed_locations_json" \
+    --argjson desiredProps "$catalog_properties_json" \
+    --arg storageType "$POLARIS_STORAGE_TYPE" \
+    --arg region "$POLARIS_S3_REGION" \
+    --arg endpoint "$POLARIS_S3_ENDPOINT" \
+    --argjson pathStyle "$path_style" \
+    --argjson stsUnavailable "$sts_unavailable" \
+    --arg roleArn "$POLARIS_S3_ROLE_ARN" \
+    --arg externalId "$POLARIS_S3_EXTERNAL_ID" \
+    '{
+      currentEntityVersion: .entityVersion,
+      properties: ((.properties // {}) + $desiredProps),
+      storageConfigInfo: (
+        (.storageConfigInfo // {})
+        + {storageType: $storageType}
+        + (if $storageType == "S3" then
+             {
+               region: $region,
+               endpoint: $endpoint,
+               pathStyleAccess: $pathStyle,
+               stsUnavailable: $stsUnavailable
+             }
+           else {} end)
+        + {
+            allowedLocations: (((.storageConfigInfo.allowedLocations // []) + $desiredAllowed)
+              | map(gsub("^\\s+|\\s+$"; ""))
+              | map(select(length > 0))
+              | unique)
+          }
+      )
+    }
+    | if $roleArn != "" then .storageConfigInfo.roleArn = $roleArn else . end
+    | if $externalId != "" then .storageConfigInfo.externalId = $externalId else . end
+    ' "$catalog_body")"
+
+  request_json PUT "${POLARIS_MANAGEMENT_BASE}/catalogs/${catalog_encoded}" "$token" "$payload"
+  case "$API_STATUS" in
+    200|201|409)
+      info "Catalog settings updated (or already present): ${POLARIS_CATALOG_NAME}"
+      ;;
+    *)
+      warn "Failed to update catalog settings for ${POLARIS_CATALOG_NAME} (status ${API_STATUS})"
       print_api_body
       fatal "Cannot continue"
       ;;
