@@ -431,11 +431,12 @@ polaris:
     # Secret name holding PostgreSQL connection details (keys: username, password, jdbcUrl)
     secret: polaris-db-credentials
   authentication:
-    # Phase 4 bootstrap: use mixed mode to allow internal bootstrapping.
-    # After bootstrap, set type=external and tokenService.type=disabled.
-    type: mixed
+    # Default to strict external auth in steady state.
+    # For breakglass operations, temporarily switch to type=mixed and
+    # tokenService.type=default, then sync Polaris.
+    type: external
     tokenService:
-      type: default
+      type: disabled
     tokenBroker:
       type: rsa-key-pair
       secret:
