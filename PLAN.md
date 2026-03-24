@@ -805,7 +805,7 @@ git branch -d feature/5-switch-trino-to-polaris
 
 ---
 
-### Phase 6: Data Migration and Validation
+### Phase 6: Data Migration and Validation ✅ COMPLETED
 
 **Objective**: Migrate existing Iceberg table metadata from the JDBC catalog to Polaris and validate that all existing tables are accessible through the new REST catalog.
 
@@ -873,11 +873,11 @@ git branch -d feature/5-switch-trino-to-polaris
    ```
 
 **Verification**:
-- [ ] All existing Iceberg tables (if any) are registered in Polaris
-- [ ] All tables are queryable through Trino via the Polaris REST catalog
-- [ ] Write operations (CREATE TABLE, INSERT, SELECT, DROP) work correctly
-- [ ] S3 data files are accessible through the new catalog path
-- [ ] Migration script is documented and reusable (if tables existed)
+- [x] All existing Iceberg tables (if any) are registered in Polaris
+- [x] All tables are queryable through Trino via the Polaris REST catalog
+- [x] Write operations (CREATE TABLE, INSERT, SELECT, DROP) work correctly
+- [x] S3 data files are accessible through the new catalog path
+- [x] Migration script is documented and reusable (if tables existed)
 
 **Completion Gate**:
 > This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done. Do not proceed to dependent phases or mark this phase as finished without user approval.
