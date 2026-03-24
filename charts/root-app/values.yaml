@@ -458,15 +458,16 @@ polaris:
     clientSecretRef:
       name: polaris-oidc-client
       key: clientSecret
-    # JWT claim used as the Polaris principal ID (Zitadel 'sub' claim)
-    idClaimPath: "sub"
-    # JWT claim used as the Polaris principal name (Zitadel 'preferred_username')
-    nameClaimPath: "preferred_username"
+    # Keep idClaimPath empty for Zitadel machine tokens where 'sub' is numeric;
+    # otherwise Polaris may treat it as principalId and look up by internal DB ID.
+    idClaimPath: ""
+    # Use Zitadel 'sub' as principal name so Polaris resolves by principal name.
+    nameClaimPath: "sub"
     # Path to the roles claim in the Zitadel JWT
     rolesClaimPath: "roles"
     # Regex filter: only include roles that look like Polaris roles (adjust if needed)
     rolesMappings:
-      - regex: "(.*)"
+      - regex: "^(.+)$"
         replacement: "PRINCIPAL_ROLE:$1"
   features:
     # Supported storage types for catalog entries
