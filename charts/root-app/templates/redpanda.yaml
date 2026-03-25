@@ -1,0 +1,50 @@
+{{- if .Values.redpanda.enabled }}
+{{- $redpanda := .Values.redpanda }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: {{ .Values.argocdNamespace | default "default" }}
+  name: redpanda
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://charts.redpanda.com/
+    chart: redpanda
+    targetRevision: {{ $redpanda.version | quote }}
+    helm:
+      values: |
+        console:
+          enabled: false
+        auth:
+          sasl:
+            enabled: false
+        tls:
+          enabled: false
+        external:
+          enabled: false
+          service:
+            enabled: false
+        tuning:
+          tune_aio_events: false
+        statefulset:
+          replicas: 1
+        listeners:
+          kafka:
+            port: 9092
+          schemaRegistry:
+            enabled: true
+            port: 8081
+          http:
+            enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ $redpanda.namespace | default "data-platform" }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}
