@@ -1,5 +1,7 @@
 {{- if .Values.redpanda.enabled }}
 {{- $redpanda := .Values.redpanda }}
+{{- $redpandaImage := $redpanda.image | default dict }}
+{{- $redpandaOperatorImage := $redpanda.operatorImage | default dict }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -15,6 +17,9 @@ spec:
     targetRevision: {{ $redpanda.version | quote }}
     helm:
       values: |
+        image:
+          repository: {{ $redpandaImage.repository | default "docker.redpanda.com/redpandadata/redpanda" }}
+          tag: {{ $redpandaImage.tag | default "v25.3.10" | quote }}
         console:
           enabled: false
         auth:
@@ -30,6 +35,10 @@ spec:
           tune_aio_events: false
         statefulset:
           replicas: 1
+          sideCars:
+            image:
+              repository: {{ $redpandaOperatorImage.repository | default "docker.redpanda.com/redpandadata/redpanda-operator" }}
+              tag: {{ $redpandaOperatorImage.tag | default "v25.3.2" | quote }}
         listeners:
           kafka:
             port: 9092

@@ -387,6 +387,12 @@ redpanda:
   enabled: true
   version: "25.3.3"
   namespace: data-platform
+  image:
+    repository: regv2.gsingh.io/core/redpandadata/redpanda
+    tag: v25.3.10
+  operatorImage:
+    repository: regv2.gsingh.io/core/redpandadata/redpanda-operator
+    tag: v25.3.2
 
 trino:
   enabled: true
