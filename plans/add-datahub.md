@@ -93,6 +93,8 @@ Add DataHub as a data catalog solution that integrates with the existing Trino a
 
 ### Phase 2: Add DataHub Prerequisites (OpenSearch)
 
+**Status**: Complete
+
 **Objective**: Deploy the `datahub-prerequisites` chart to provision OpenSearch (the required search/graph backend). Kafka is provided by Redpanda (Phase 1) so it is disabled here.
 
 **Complexity**: Low  
@@ -140,12 +142,12 @@ Add DataHub as a data catalog solution that integrates with the existing Trino a
    - OpenSearch enabled, Kafka/MySQL/PostgreSQL/Neo4j disabled
 
 **Verification**:
-- [ ] `helm lint charts/root-app/` passes
-- [ ] `just test-render datahub-prerequisites` produces valid ArgoCD Application
-- [ ] Prerequisites Application appears before DataHub Application in rendered output
+- [x] `helm lint charts/root-app/` passes
+- [x] `just test-render datahub-prerequisites` produces valid ArgoCD Application
+- [x] Prerequisites Application appears before DataHub Application in rendered output
 
 **Completion Gate**:
-> This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done.
+> Completed on 2026-03-26 after user review and explicit confirmation.
 
 **Outputs**:
 - OpenSearch deployed at `opensearch-cluster-master.data-platform.svc.cluster.local:9200`
