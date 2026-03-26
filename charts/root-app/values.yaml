@@ -400,7 +400,7 @@ redpanda:
 
 datahubPrerequisites:
   enabled: true
-  version: "0.3.2"
+  version: "0.3.0"
   namespace: data-platform
 
 trino:
