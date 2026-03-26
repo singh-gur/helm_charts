@@ -38,6 +38,8 @@ Add DataHub as a data catalog solution that integrates with the existing Trino a
 
 ### Phase 1: Add Redpanda (Kafka Alternative)
 
+**Status**: Complete
+
 **Objective**: Deploy Redpanda as a Kafka-compatible message broker for DataHub's metadata events.
 
 **Complexity**: Medium  
@@ -77,11 +79,11 @@ Add DataHub as a data catalog solution that integrates with the existing Trino a
    - Minimal Redpanda config (single broker, disable auth for internal)
 
 **Verification**:
-- [ ] `helm lint charts/root-app/` passes
-- [ ] `helm template root-app charts/root-app/ --values charts/root-app/values.yaml | grep -A50 "redpanda"` shows Redpanda resources
+- [x] `helm lint charts/root-app/` passes
+- [x] `helm template root-app charts/root-app/ --values charts/root-app/values.yaml | grep -A50 "redpanda"` shows Redpanda resources
 
 **Completion Gate**:
-> This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done.
+> Completed on 2026-03-25 after user review and explicit confirmation.
 
 **Outputs**:
 - Redpanda deployed and accessible at `redpanda.data-platform.svc.cluster.local:9092`
