@@ -5,6 +5,30 @@
 {{- $datahubGms := index $datahub "datahub-gms" | default dict }}
 {{- $datahubFrontend := index $datahub "datahub-frontend" | default dict }}
 {{- $datahubActions := index $datahub "acryl-datahub-actions" | default dict }}
+{{- $datahubGmsValues := deepCopy $datahubGms }}
+{{- if not (hasKey $datahubGmsValues "enabled") }}
+{{- $_ := set $datahubGmsValues "enabled" true }}
+{{- end }}
+{{- $datahubFrontendValues := deepCopy $datahubFrontend }}
+{{- if not (hasKey $datahubFrontendValues "enabled") }}
+{{- $_ := set $datahubFrontendValues "enabled" true }}
+{{- end }}
+{{- $frontendIngress := get $datahubFrontendValues "ingress" | default dict }}
+{{- $_ := set $frontendIngress "enabled" true }}
+{{- if not (hasKey $frontendIngress "className") }}
+{{- $_ := set $frontendIngress "className" ($datahubIngress.className | default "traefik") }}
+{{- end }}
+{{- if not (hasKey $frontendIngress "hosts") }}
+{{- $_ := set $frontendIngress "hosts" (list (dict "host" ($datahubIngress.host | default "datahub.gsingh.io") "paths" (list (dict "path" "/" "pathType" "Prefix")))) }}
+{{- end }}
+{{- if not (hasKey $frontendIngress "tls") }}
+{{- $_ := set $frontendIngress "tls" (list) }}
+{{- end }}
+{{- $_ := set $datahubFrontendValues "ingress" $frontendIngress }}
+{{- $datahubActionsValues := deepCopy $datahubActions }}
+{{- if not (hasKey $datahubActionsValues "enabled") }}
+{{- $_ := set $datahubActionsValues "enabled" true }}
+{{- end }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -23,20 +47,11 @@ spec:
         global:
 {{ toYaml $datahubGlobal | indent 10 }}
         datahub-gms:
-          enabled: {{ $datahubGms.enabled | default true }}
+{{ toYaml $datahubGmsValues | indent 10 }}
         datahub-frontend:
-          enabled: {{ $datahubFrontend.enabled | default true }}
-          ingress:
-            enabled: true
-            className: {{ $datahubIngress.className | default "traefik" }}
-            hosts:
-              - host: {{ $datahubIngress.host | default "datahub.gsingh.io" }}
-                paths:
-                  - path: /
-                    pathType: Prefix
-            tls: []
+{{ toYaml $datahubFrontendValues | indent 10 }}
         acryl-datahub-actions:
-          enabled: {{ $datahubActions.enabled | default true }}
+{{ toYaml $datahubActionsValues | indent 10 }}
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ $datahub.namespace | default "data-platform" }}
