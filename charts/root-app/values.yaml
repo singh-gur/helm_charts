@@ -387,6 +387,8 @@ redpanda:
   enabled: true
   version: "25.3.3"
   namespace: data-platform
+  imagePullSecrets:
+    - regv2-secret
   image:
     repository: regv2.gsingh.io/core/redpandadata/redpanda
     tag: v25.3.10

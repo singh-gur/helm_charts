@@ -20,6 +20,14 @@ spec:
         image:
           repository: {{ $redpandaImage.repository | default "docker.redpanda.com/redpandadata/redpanda" }}
           tag: {{ $redpandaImage.tag | default "v25.3.10" | quote }}
+        {{- if $redpanda.imagePullSecrets }}
+        podTemplate:
+          spec:
+            imagePullSecrets:
+              {{- range $redpanda.imagePullSecrets }}
+              - name: {{ . }}
+              {{- end }}
+        {{- end }}
         console:
           enabled: false
         auth:
