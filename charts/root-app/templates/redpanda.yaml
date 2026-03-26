@@ -2,6 +2,7 @@
 {{- $redpanda := .Values.redpanda }}
 {{- $redpandaImage := $redpanda.image | default dict }}
 {{- $redpandaOperatorImage := $redpanda.operatorImage | default dict }}
+{{- $redpandaConsole := $redpanda.console | default dict }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -29,7 +30,7 @@ spec:
               {{- end }}
         {{- end }}
         console:
-          enabled: false
+          enabled: {{ $redpandaConsole.enabled | default false }}
         auth:
           sasl:
             enabled: false
