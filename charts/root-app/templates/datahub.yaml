@@ -1,0 +1,49 @@
+{{- if .Values.datahub.enabled }}
+{{- $datahub := .Values.datahub }}
+{{- $datahubIngress := $datahub.ingress | default dict }}
+{{- $datahubGlobal := $datahub.global | default dict }}
+{{- $datahubGms := index $datahub "datahub-gms" | default dict }}
+{{- $datahubFrontend := index $datahub "datahub-frontend" | default dict }}
+{{- $datahubActions := index $datahub "acryl-datahub-actions" | default dict }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: {{ .Values.argocdNamespace | default "default" }}
+  name: datahub
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://helm.datahubproject.io/
+    chart: datahub
+    targetRevision: {{ $datahub.version | quote }}
+    helm:
+      values: |
+        global:
+{{ toYaml $datahubGlobal | indent 10 }}
+        datahub-gms:
+          enabled: {{ $datahubGms.enabled | default true }}
+        datahub-frontend:
+          enabled: {{ $datahubFrontend.enabled | default true }}
+          ingress:
+            enabled: true
+            className: {{ $datahubIngress.className | default "traefik" }}
+            hosts:
+              - host: {{ $datahubIngress.host | default "datahub.gsingh.io" }}
+                paths:
+                  - path: /
+                    pathType: Prefix
+            tls: []
+        acryl-datahub-actions:
+          enabled: {{ $datahubActions.enabled | default true }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ $datahub.namespace | default "data-platform" }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}

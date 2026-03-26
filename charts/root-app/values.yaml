@@ -403,6 +403,47 @@ datahubPrerequisites:
   version: "0.3.0"
   namespace: data-platform
 
+datahub:
+  enabled: true
+  version: "0.9.1"
+  namespace: data-platform
+  ingress:
+    host: datahub.gsingh.io
+    className: traefik
+  global:
+    datahub:
+      version: "v1.5.0"
+      metadata_service_authentication:
+        provisionSecrets:
+          autoGenerate: true
+    elasticsearch:
+      host: opensearch-cluster-master
+      port: "9200"
+    graph_service_impl: elasticsearch
+    kafka:
+      bootstrap:
+        server: "redpanda.data-platform.svc.cluster.local:9092"
+      schemaregistry:
+        type: INTERNAL
+    sql:
+      datasource:
+        host: "192.168.2.119"
+        hostForpostgresqlClient: "192.168.2.119"
+        port: "5432"
+        url: "jdbc:postgresql://192.168.2.119:5432/datahub"
+        driver: "org.postgresql.Driver"
+        database: "datahub"
+        username: "datahub"
+        password:
+          secretRef: datahub-postgres-credentials
+          secretKey: postgres-password
+  datahub-gms:
+    enabled: true
+  datahub-frontend:
+    enabled: true
+  acryl-datahub-actions:
+    enabled: true
+
 trino:
   enabled: true
   version: "1.42.0"
