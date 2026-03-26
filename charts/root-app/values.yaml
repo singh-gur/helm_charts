@@ -427,7 +427,7 @@ datahub:
         type: INTERNAL
     sql:
       datasource:
-        host: "192.168.2.119"
+        host: "192.168.2.119:5432"
         hostForpostgresqlClient: "192.168.2.119"
         port: "5432"
         url: "jdbc:postgresql://192.168.2.119:5432/datahub"
