@@ -5,6 +5,7 @@
 {{- $datahubGms := index $datahub "datahub-gms" | default dict }}
 {{- $datahubFrontend := index $datahub "datahub-frontend" | default dict }}
 {{- $datahubActions := index $datahub "acryl-datahub-actions" | default dict }}
+{{- $datahubSystemUpdate := $datahub.datahubSystemUpdate | default dict }}
 {{- $datahubGmsValues := deepCopy $datahubGms }}
 {{- if not (hasKey $datahubGmsValues "enabled") }}
 {{- $_ := set $datahubGmsValues "enabled" true }}
@@ -52,6 +53,10 @@ spec:
 {{ toYaml $datahubFrontendValues | indent 10 }}
         acryl-datahub-actions:
 {{ toYaml $datahubActionsValues | indent 10 }}
+{{- if $datahubSystemUpdate }}
+        datahubSystemUpdate:
+{{ toYaml $datahubSystemUpdate | indent 10 }}
+{{- end }}
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ $datahub.namespace | default "data-platform" }}
