@@ -1,0 +1,45 @@
+{{- if .Values.datahubPrerequisites.enabled }}
+{{- $prereqs := .Values.datahubPrerequisites }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: {{ .Values.argocdNamespace | default "default" }}
+  name: datahub-prerequisites
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  project: default
+  source:
+    repoURL: https://helm.datahubproject.io/
+    chart: datahub-prerequisites
+    targetRevision: {{ $prereqs.version | quote }}
+    helm:
+      values: |
+        kafka:
+          enabled: false
+        mysql:
+          enabled: false
+        postgresql:
+          enabled: false
+        neo4j:
+          enabled: false
+        opensearch:
+          enabled: true
+          singleNode: true
+          config:
+            opensearch.yml: |
+              plugins:
+                security:
+                  disabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ $prereqs.namespace | default "data-platform" }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}

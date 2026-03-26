@@ -398,6 +398,11 @@ redpanda:
     repository: regv2.gsingh.io/core/redpandadata/redpanda-operator
     tag: v25.3.2
 
+datahubPrerequisites:
+  enabled: true
+  version: "0.3.2"
+  namespace: data-platform
+
 trino:
   enabled: true
   version: "1.42.0"
