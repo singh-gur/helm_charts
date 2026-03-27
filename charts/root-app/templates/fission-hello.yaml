@@ -1,4 +1,4 @@
-{{- if .Values.fissionHello.enabled }}
+{{- if and .Values.fission.enabled .Values.fissionHello.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
