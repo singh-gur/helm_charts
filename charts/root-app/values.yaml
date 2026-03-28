@@ -444,6 +444,15 @@ datahub:
     enabled: true
   datahub-frontend:
     enabled: true
+    extraVolumes:
+      - name: datahub-users
+        secret:
+          defaultMode: 0444
+          secretName: datahub-users-secret
+    extraVolumeMounts:
+      - name: datahub-users
+        mountPath: /datahub-frontend/conf/user.props
+        subPath: user.props
   acryl-datahub-actions:
     enabled: true
   datahubSystemUpdate:
