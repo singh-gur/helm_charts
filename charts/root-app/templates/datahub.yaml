@@ -16,9 +16,6 @@
 {{- end }}
 {{- $frontendIngress := get $datahubFrontendValues "ingress" | default dict }}
 {{- $_ := set $frontendIngress "enabled" true }}
-{{- if not (hasKey $frontendIngress "className") }}
-{{- $_ := set $frontendIngress "className" ($datahubIngress.className | default "traefik") }}
-{{- end }}
 {{- if not (hasKey $frontendIngress "hosts") }}
 {{- $_ := set $frontendIngress "hosts" (list (dict "host" ($datahubIngress.host | default "datahub.gsingh.io") "paths" (list (dict "path" "/" "pathType" "Prefix")))) }}
 {{- end }}
