@@ -404,7 +404,7 @@ datahubPrerequisites:
   namespace: data-platform
 
 datahub:
-  enabled: false
+  enabled: true
   version: "0.9.1"
   namespace: data-platform
   ingress:
@@ -418,7 +418,7 @@ datahub:
           enabled: false
       metadata_service_authentication:
         provisionSecrets:
-          autoGenerate: true
+          autoGenerate: false
     elasticsearch:
       host: opensearch-cluster-master
       port: "9200"
