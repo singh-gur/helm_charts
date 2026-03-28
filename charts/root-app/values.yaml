@@ -404,7 +404,7 @@ datahubPrerequisites:
   namespace: data-platform
 
 datahub:
-  enabled: true
+  enabled: false
   version: "0.9.1"
   namespace: data-platform
   ingress:
@@ -417,6 +417,7 @@ datahub:
         scaleDown:
           enabled: false
       metadata_service_authentication:
+        enabled: true
         provisionSecrets:
           autoGenerate: true
     elasticsearch:
