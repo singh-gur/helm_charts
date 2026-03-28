@@ -448,8 +448,8 @@ datahub:
     enabled: true
   datahubSystemUpdate:
     serviceAccount:
-      create: false
-      rbac: false
+      create: true
+      rbac: true
 
 trino:
   enabled: true
