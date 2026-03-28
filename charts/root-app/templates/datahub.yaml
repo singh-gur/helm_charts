@@ -16,6 +16,7 @@
 {{- end }}
 {{- $frontendIngress := get $datahubFrontendValues "ingress" | default dict }}
 {{- $_ := set $frontendIngress "enabled" true }}
+{{- $_ := set $frontendIngress "pathType" "Prefix" }}
 {{- if not (hasKey $frontendIngress "hosts") }}
 {{- $_ := set $frontendIngress "hosts" (list (dict "host" ($datahubIngress.host | default "datahub.gsingh.io") "paths" (list "/"))) }}
 {{- end }}
