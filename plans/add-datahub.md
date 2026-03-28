@@ -289,6 +289,8 @@ global.sql.datasource:
 
 ### Phase 5: Configure Trino Ingestion Source
 
+**Status**: Complete
+
 **Objective**: Configure DataHub to ingest metadata from Trino.
 
 **Complexity**: Low  
@@ -345,11 +347,11 @@ datahub-ingestion-cron:
 Note: The `datahub.ingestion.trino.*` key structure used in the original plan does not exist in the DataHub Helm chart and will be silently ignored.
 
 **Verification**:
-- [ ] If using UI approach: DataHub running and Ingestion UI accessible at `https://datahub.gsingh.io/ingestion`
-- [ ] If using cron approach: `datahub-ingestion-cron` enabled in rendered template and recipe structure matches DataHub ingestion recipe schema
+- [x] DataHub running and Ingestion UI accessible at `https://datahub.gsingh.io/ingestion`
+- [x] Trino datasource added via UI
 
 **Completion Gate**:
-> This phase is NOT complete until the user has reviewed the work and explicitly confirmed it is done.
+> Completed on 2026-03-28 after user review and explicit confirmation.
 
 **Outputs**:
 - DataHub configured to ingest Trino metadata
