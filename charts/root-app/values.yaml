@@ -445,6 +445,22 @@ datahub:
     enabled: true
   datahub-frontend:
     enabled: true
+    extraEnvs:
+      - name: AUTH_OIDC_ENABLED
+        value: "true"
+      - name: AUTH_OIDC_CLIENT_ID
+        value: "f9db8637-04a8-4ee2-93f1-4174bfc056fd"
+      - name: AUTH_OIDC_CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: datahub-oidc-secret
+            key: client-secret
+      - name: AUTH_OIDC_DISCOVERY_URI
+        value: "https://auth2.gsingh.io/.well-known/openid-configuration"
+      - name: AUTH_OIDC_BASE_URL
+        value: "https://datahub.gsingh.io"
+      - name: AUTH_OIDC_USER_NAME_CLAIM
+        value: "preferred_username"
     extraVolumes:
       - name: datahub-users
         secret:
