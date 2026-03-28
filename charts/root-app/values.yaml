@@ -384,7 +384,7 @@ kyuubi:
       memory: 2Gi
 
 redpanda:
-  enabled: true
+  enabled: false
   version: "25.3.3"
   namespace: data-platform
   imagePullSecrets:
@@ -425,7 +425,7 @@ datahub:
     graph_service_impl: elasticsearch
     kafka:
       bootstrap:
-        server: "redpanda.data-platform.svc.cluster.local:9092"
+        server: "datahub-prerequisites-kafka.data-platform.svc.cluster.local:9092"
       schemaregistry:
         type: INTERNAL
     sql:
