@@ -404,7 +404,7 @@ datahubPrerequisites:
   namespace: data-platform
 
 datahub:
-  enabled: false
+  enabled: true
   version: "0.9.1"
   namespace: data-platform
   ingress:
