@@ -64,4 +64,15 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: datahub-gms-secret
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Secret
+      name: datahub-frontend-secret
+      jsonPointers:
+        - /data
 {{- end }}

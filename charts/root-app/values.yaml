@@ -418,7 +418,7 @@ datahub:
           enabled: false
       metadata_service_authentication:
         provisionSecrets:
-          autoGenerate: false
+          autoGenerate: true
     elasticsearch:
       host: opensearch-cluster-master
       port: "9200"
