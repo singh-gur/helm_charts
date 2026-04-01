@@ -242,7 +242,7 @@ rootapp:
 
 uptime:
   enabled: true
-  version: 2.24.0
+  version: 4.0.0
   ingress:
     host: uptime.gsingh.io
 
@@ -651,7 +651,7 @@ oauth2Proxy:
 
 prefect:
   enabled: true
-  version: "2026.3.19205444"
+  version: "2026.3.27165807"
   namespace: prefect
   ingress:
     host: prefect.gsingh.io
@@ -672,7 +672,7 @@ prefect:
 
 prefectWorker:
   enabled: true
-  version: "2026.3.19205444"
+  version: "2026.3.27165807"
   namespace: prefect
   replicaCount: 5
   workPool: "kubernetes"
