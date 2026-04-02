@@ -243,6 +243,11 @@ rootapp:
 uptime:
   enabled: true
   version: 4.0.0
+  image:
+    repository: regv2.gsingh.io/core/uptime-kuma
+    pullPolicy: IfNotPresent
+    pullSecrets:
+      - regv2-secret
   ingress:
     host: uptime.gsingh.io
 

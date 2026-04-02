@@ -14,6 +14,17 @@ spec:
     targetRevision: {{.Values.uptime.version}}
     helm:
       values: |
+        image:
+          repository: {{ .Values.uptime.image.repository }}
+          {{- if .Values.uptime.image.pullPolicy }}
+          pullPolicy: {{ .Values.uptime.image.pullPolicy }}
+          {{- end }}
+          {{- if .Values.uptime.image.pullSecrets }}
+          pullSecrets:
+            {{- range .Values.uptime.image.pullSecrets }}
+            - name: {{ . }}
+            {{- end }}
+          {{- end }}
         ingress:
           enabled: true
           hosts:
