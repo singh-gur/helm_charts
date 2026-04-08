@@ -670,10 +670,10 @@ prefect:
     existingSecret: "prefect-basic-auth"
   uiApiUrl: "https://prefect.gsingh.io/api"
   # Custom image (uncomment and set to use custom registry)
-  image:
-    repository: regv2.gsingh.io/core/prefect_ext
-    tag: "3.6.10-python3.11_0.0.1"
-    pullSecrets: ["regv2-secret"]
+  # image:
+  #   repository: regv2.gsingh.io/core/prefect_ext
+  #   tag: "3.6.10-python3.11_0.0.1"
+  #   pullSecrets: ["regv2-secret"]
 
 prefectWorker:
   enabled: true
@@ -686,10 +686,10 @@ prefectWorker:
     enabled: true
     existingSecret: "prefect-basic-auth"
   # Custom image (uncomment and set to use custom registry)
-  image:
-    repository: regv2.gsingh.io/core/prefect_ext
-    tag: "kube_worker"
-    pullSecrets: ["regv2-secret"]
+  # image:
+  #   repository: regv2.gsingh.io/core/prefect_ext
+  #   tag: "kube_worker"
+  #   pullSecrets: ["regv2-secret"]
   #   debug: false
 
   # RBAC configuration for Kubernetes worker
