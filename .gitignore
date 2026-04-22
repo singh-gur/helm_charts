@@ -6,3 +6,4 @@ charts/**/charts
 .zed/settings.json
 .crush
 .backups
+.pi-lens
