@@ -154,7 +154,7 @@ argocd:
     prune: true # Enable/disable automatic pruning of resources
 coder:
   enabled: false
-  version: 2.29.1
+  version: 2.33.0
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
@@ -170,7 +170,7 @@ ghost:
   ghostEmail: hello@gsingh.io
 langfuse:
   enabled: false
-  version: 1.5.21
+  version: 1.5.29
   ingress:
     host: langfuse.gsingh.io
   clickhouse:
@@ -189,7 +189,7 @@ rootapp:
   enabled: false
 uptime:
   enabled: false
-  version: 2.21.3
+  version: 4.1.0
   ingress:
     host: uptime.gsingh.io
 whoami:
@@ -242,7 +242,7 @@ zitadel:
 
 windmill:
   enabled: false
-  version: 4.0.21
+  version: 4.0.144
   host: windmill.gsingh.io
   postgresql:
     enabled: true
@@ -323,7 +323,7 @@ kyuubi:
 
 trino:
   enabled: false
-  version: "1.41.0"
+  version: "1.42.2"
   namespace: data-platform
   ingress:
     host: trino.gsingh.io
@@ -358,7 +358,7 @@ trino:
 
 dagster:
   enabled: false
-  version: 1.12.10
+  version: 1.13.3
   namespace: dagster
   ingress:
     host: dagster.gsingh.io
@@ -388,7 +388,7 @@ dagster:
 
 oauth2Proxy:
   enabled: false
-  version: "10.1.0"
+  version: "10.4.3"
   namespace: dagster
   existingSecret: oauth2-proxy-dagster-secret
   ingress:
@@ -407,7 +407,7 @@ oauth2Proxy:
 
 prefect:
   enabled: true
-  version: "2026.1.8195301"
+  version: "2026.5.1223020"
   namespace: default
   ingress:
     host: prefect.gsingh.io
@@ -428,7 +428,7 @@ prefect:
 
 prefectWorker:
   enabled: true
-  version: "2026.1.8195301"
+  version: "2026.5.1223020"
   namespace: default
   replicaCount: 3
   workPool: "kubernetes"
