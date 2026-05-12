@@ -33,24 +33,66 @@ spec:
                 configs:
                   - from: "2020-09-07"
                     store: boltdb-shipper
-                    object_store: s3
+                    object_store: aws
                     schema: v11
                     index:
                       prefix: loki_index_
                       period: 24h
               storage_config:
                 boltdb_shipper:
-                  shared_store: s3
+                  shared_store: aws
                   active_index_directory: /var/loki/index
                   cache_location: /var/loki/cache
                   cache_ttl: 168h
-                s3:
-                  s3: {{ .Values.lgtm.loki.s3.existingSecret }}
+                aws:
+                  endpoint: ${S3_ENDPOINT}
+                  bucketnames: ${S3_BUCKET}
+                  region: ${S3_REGION}
+                  access_key_id: ${AWS_ACCESS_KEY_ID}
+                  secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+                  s3forcepathstyle: true
+                  insecure: false
               compactor:
-                shared_store: s3
+                shared_store: aws
               table_manager:
                 retention_deletes_enabled: true
                 retention_period: {{ .Values.lgtm.loki.s3.retentionPeriod }}
+          ingester:
+            extraArgs:
+              - -config.expand-env=true
+            extraEnvFrom:
+              - secretRef:
+                  name: {{ .Values.lgtm.loki.s3.existingSecret }}
+          distributor:
+            extraArgs:
+              - -config.expand-env=true
+            extraEnvFrom:
+              - secretRef:
+                  name: {{ .Values.lgtm.loki.s3.existingSecret }}
+          querier:
+            extraArgs:
+              - -config.expand-env=true
+            extraEnvFrom:
+              - secretRef:
+                  name: {{ .Values.lgtm.loki.s3.existingSecret }}
+          queryFrontend:
+            extraArgs:
+              - -config.expand-env=true
+            extraEnvFrom:
+              - secretRef:
+                  name: {{ .Values.lgtm.loki.s3.existingSecret }}
+          compactor:
+            extraArgs:
+              - -config.expand-env=true
+            extraEnvFrom:
+              - secretRef:
+                  name: {{ .Values.lgtm.loki.s3.existingSecret }}
+          ruler:
+            extraArgs:
+              - -config.expand-env=true
+            extraEnvFrom:
+              - secretRef:
+                  name: {{ .Values.lgtm.loki.s3.existingSecret }}
           {{- end }}
           gateway:
             ingress:
