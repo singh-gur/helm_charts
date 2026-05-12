@@ -27,19 +27,30 @@ spec:
         loki:
           enabled: {{.Values.lgtm.loki.enabled}}
           {{- if .Values.lgtm.loki.s3.enabled }}
-          structuredConfig:
-            schema_config:
-              configs:
-                - from: "2020-09-07"
-                  object_store: s3
-            storage_config:
-              s3:
-                s3: {{ .Values.lgtm.loki.s3.existingSecret }}
-            compactor:
-              shared_store: s3
-            table_manager:
-              retention_deletes_enabled: true
-              retention_period: {{ .Values.lgtm.loki.s3.retentionPeriod }}
+          loki:
+            structuredConfig:
+              schema_config:
+                configs:
+                  - from: "2020-09-07"
+                    store: boltdb-shipper
+                    object_store: s3
+                    schema: v11
+                    index:
+                      prefix: loki_index_
+                      period: 24h
+              storage_config:
+                boltdb_shipper:
+                  shared_store: s3
+                  active_index_directory: /var/loki/index
+                  cache_location: /var/loki/cache
+                  cache_ttl: 168h
+                s3:
+                  s3: {{ .Values.lgtm.loki.s3.existingSecret }}
+              compactor:
+                shared_store: s3
+              table_manager:
+                retention_deletes_enabled: true
+                retention_period: {{ .Values.lgtm.loki.s3.retentionPeriod }}
           {{- end }}
           gateway:
             ingress:
