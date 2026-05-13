@@ -25,6 +25,7 @@
 #   -u, --username   Registry username (prompts if not provided)
 #   -p, --password   Registry password (prompts if not provided)
 #   -e, --email      Registry email (default: hello@gsingh.io)
+#   -k, --secret     Secret name (default: regv2-secret)
 #   -n, --namespaces Comma-separated list of namespaces (default: default)
 #   -a, --argocd     Patch ArgoCD service accounts (default: true)
 #                    Accepts: true/yes/y/1 or false/no/n/0
@@ -39,6 +40,9 @@
 #   ./create-registry-secret.sh
 #
 #   # Single namespace
+#   # Custom secret name for a different registry
+#   ./create-registry-secret.sh -s registry.example.com -k registry-example-secret -u myuser -p mypass
+#
 #   ./create-registry-secret.sh -u myuser -p mypass -n default
 #
 #   # Multiple namespaces
@@ -189,6 +193,14 @@ show_help() {
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
+        -k|--secret)
+            if [[ $# -lt 2 ]]; then
+                log_error "Option -k/--secret requires a value"
+                show_help
+            fi
+            SECRET_NAME="$2"
+            shift 2
+            ;;
         -s|--server)
             if [[ $# -lt 2 ]]; then
                 log_error "Option -s/--server requires a value"
@@ -332,6 +344,7 @@ IFS=',' read -ra NAMESPACE_ARRAY <<< "$NAMESPACES"
 echo ""
 log_step "Configuration Summary:"
 echo "  Registry Server: $REGISTRY_SERVER"
+echo "  Secret Name: $SECRET_NAME"
 echo "  Username: $USERNAME"
 echo "  Email: $EMAIL"
 echo "  Namespaces: ${NAMESPACE_ARRAY[*]}"

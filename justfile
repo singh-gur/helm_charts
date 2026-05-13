@@ -1,3 +1,7 @@
+# Default: list all available recipes
+default:
+    @just --list
+
 # Install ArgoCD CLI
 install-argocd:
     @echo "Installing ArgoCD CLI..."
