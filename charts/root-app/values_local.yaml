@@ -407,7 +407,7 @@ oauth2Proxy:
 
 prefect:
   enabled: true
-  version: "2026.5.1223020"
+  version: "2026.5.23002106"
   namespace: default
   ingress:
     host: prefect.gsingh.io
@@ -428,7 +428,7 @@ prefect:
 
 prefectWorker:
   enabled: true
-  version: "2026.5.1223020"
+  version: "2026.5.23002106"
   namespace: default
   replicaCount: 3
   workPool: "kubernetes"
