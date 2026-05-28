@@ -352,7 +352,7 @@ datahubPrerequisites:
   namespace: data-platform
 
 datahub:
-  enabled: datahub
+  enabled: false
   version: "1.0.0"
   namespace: data-platform
   ingress:
