@@ -49,6 +49,15 @@ airflow:
   fernetKeySecretName: airflow-fernet-key
   apiSecretKeySecretName: airflow-api-secret-key
   jwtSecretName: airflow-jwt-secret
+  # Initial admin user created by createUserJob on first deploy
+  adminUser:
+    role: Admin
+    username: admin
+    email: hello@gsingh.io
+    firstName: Gurbakhshish
+    lastName: Singh
+    # Password is read from a Kubernetes Secret (see samples/airflow-admin-credentials.yaml)
+    existingSecret: airflow-admin-credentials
   ingress:
     host: airflow.gsingh.io
 

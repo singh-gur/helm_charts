@@ -31,6 +31,37 @@ spec:
         # images.migrationsWaitTimeout is the correct chart key (not waitForMigrations.waitTimeoutSeconds)
         images:
           migrationsWaitTimeout: 300
+        # createUserJob also defaults to useHelmHooks: true — must disable for ArgoCD
+        createUserJob:
+          useHelmHooks: false
+          ttlSecondsAfterFinished: 3600
+          # Inject admin password from a Kubernetes Secret via env var
+          env:
+            - name: AIRFLOW_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.airflow.adminUser.existingSecret | quote }}
+                  key: password
+          # Override args to use $AIRFLOW_ADMIN_PASSWORD instead of a plaintext value
+          args:
+            - "bash"
+            - "-c"
+            - |-
+              exec \
+              airflow users create "$@"
+            - "--"
+            - "-r"
+            - {{ .Values.airflow.adminUser.role | quote }}
+            - "-u"
+            - {{ .Values.airflow.adminUser.username | quote }}
+            - "-e"
+            - {{ .Values.airflow.adminUser.email | quote }}
+            - "-f"
+            - {{ .Values.airflow.adminUser.firstName | quote }}
+            - "-l"
+            - {{ .Values.airflow.adminUser.lastName | quote }}
+            - "-p"
+            - "$(AIRFLOW_ADMIN_PASSWORD)"
         fernetKeySecretName: {{ .Values.airflow.fernetKeySecretName | quote }}
         apiSecretKeySecretName: {{ .Values.airflow.apiSecretKeySecretName | quote }}
         jwtSecretName: {{ .Values.airflow.jwtSecretName | quote }}
