@@ -34,7 +34,7 @@ lgtm:
       existingSecret: loki-s3-credentials
 
 airflow:
-  enabled: false
+  enabled: true
   version: "1.21.0"
   airflowVersion: "3.2.0"
   namespace: airflow
