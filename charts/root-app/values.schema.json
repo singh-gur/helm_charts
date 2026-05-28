@@ -34,7 +34,9 @@
                   "format": "hostname"
                 }
               },
-              "required": ["enabled"]
+              "required": [
+                "enabled"
+              ]
             },
             "admin": {
               "type": "object",
@@ -52,10 +54,16 @@
                   "minLength": 1
                 }
               },
-              "required": ["existingSecret", "userKey", "passwordKey"]
+              "required": [
+                "existingSecret",
+                "userKey",
+                "passwordKey"
+              ]
             }
           },
-          "required": ["enabled"]
+          "required": [
+            "enabled"
+          ]
         },
         "loki": {
           "type": "object",
@@ -79,16 +87,24 @@
                       "format": "hostname"
                     }
                   },
-                  "required": ["enabled"]
+                  "required": [
+                    "enabled"
+                  ]
                 }
               },
-              "required": ["ingress"]
+              "required": [
+                "ingress"
+              ]
             }
           },
-          "required": ["enabled"]
+          "required": [
+            "enabled"
+          ]
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "alloy": {
       "type": "object",
@@ -102,7 +118,9 @@
           "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "authentik": {
       "type": "object",
@@ -187,7 +205,12 @@
         },
         "log_level": {
           "type": "string",
-          "enum": ["debug", "info", "warning", "error"]
+          "enum": [
+            "debug",
+            "info",
+            "warning",
+            "error"
+          ]
         },
         "ingress": {
           "type": "object",
@@ -221,200 +244,11 @@
           }
         }
       },
-      "required": ["enabled", "version", "postgresql"]
-    },
-    "airflow": {
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "default": false
-        },
-        "version": {
-          "type": "string",
-          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
-        },
-        "namespace": {
-          "type": "string",
-          "minLength": 1
-        },
-        "global": {
-          "type": "object",
-          "properties": {
-            "security": {
-              "type": "object",
-              "properties": {
-                "allowInsecureImages": {
-                  "type": "boolean",
-                  "default": false
-                }
-              }
-            }
-          }
-        },
-        "image": {
-          "type": "object",
-          "properties": {
-            "registry": {
-              "type": "string"
-            },
-            "repository": {
-              "type": "string"
-            },
-            "tag": {
-              "type": "string"
-            }
-          }
-        },
-        "auth": {
-          "type": "object",
-          "properties": {
-            "existingSecret": {
-              "type": "string"
-            },
-            "username": {
-              "type": "string"
-            },
-            "password": {
-              "type": "string"
-            },
-            "fernetKey": {
-              "type": "string"
-            },
-            "secretKey": {
-              "type": "string"
-            }
-          }
-        },
-        "executor": {
-          "type": "string",
-          "enum": ["LocalExecutor", "CeleryExecutor", "KubernetesExecutor", "SequentialExecutor", "CeleryKubernetesExecutor", "LocalKubernetesExecutor"]
-        },
-        "loadExamples": {
-          "type": "boolean",
-          "default": false
-        },
-        "ingress": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false
-            },
-            "host": {
-              "type": "string",
-              "format": "hostname"
-            },
-            "ingressClassName": {
-              "type": "string"
-            },
-            "annotations": {
-              "type": "object"
-            },
-            "tls": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        },
-        "postgresql": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": true
-            }
-          }
-        },
-        "externalDatabase": {
-          "type": "object",
-          "properties": {
-            "host": {
-              "type": "string"
-            },
-            "port": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 65535
-            },
-            "database": {
-              "type": "string"
-            },
-            "existingSecret": {
-              "type": "string"
-            },
-            "user": {
-              "type": "string"
-            },
-            "password": {
-              "type": "string"
-            }
-          }
-        },
-        "redis": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": true
-            }
-          }
-        },
-        "dags": {
-          "type": "object",
-          "properties": {
-            "gitSync": {
-              "type": "object",
-              "properties": {
-                "enabled": {
-                  "type": "boolean",
-                  "default": false
-                },
-                "repo": {
-                  "type": "string",
-                  "anyOf": [
-                    {
-                      "format": "uri"
-                    },
-                    {
-                      "maxLength": 0
-                    }
-                  ]
-                },
-                "branch": {
-                  "type": "string"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "path": {
-                  "type": "string"
-                },
-                "sshKeySecret": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "webserverReplicaCount": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "schedulerReplicaCount": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "workerReplicas": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "usePasswordFiles": {
-          "type": "boolean",
-          "default": false
-        }
-      },
-      "required": ["enabled"]
+      "required": [
+        "enabled",
+        "version",
+        "postgresql"
+      ]
     },
     "argowf": {
       "type": "object",
@@ -435,7 +269,9 @@
               "format": "hostname"
             }
           },
-          "required": ["host"]
+          "required": [
+            "host"
+          ]
         },
         "sso": {
           "type": "object",
@@ -449,10 +285,15 @@
               "format": "uri"
             }
           },
-          "required": ["issuer", "redirectUrl"]
+          "required": [
+            "issuer",
+            "redirectUrl"
+          ]
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "argocd": {
       "type": "object",
@@ -481,10 +322,17 @@
               "description": "Enable automatic pruning of resources not in Git. Only applies when automated=true."
             }
           },
-          "required": ["automated", "selfHeal", "prune"]
+          "required": [
+            "automated",
+            "selfHeal",
+            "prune"
+          ]
         }
       },
-      "required": ["enabled", "syncPolicy"]
+      "required": [
+        "enabled",
+        "syncPolicy"
+      ]
     },
     "coder": {
       "type": "object",
@@ -505,14 +353,18 @@
               "format": "hostname"
             }
           },
-          "required": ["host"]
+          "required": [
+            "host"
+          ]
         },
         "accessUrl": {
           "type": "string",
           "format": "uri"
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "ghost": {
       "type": "object",
@@ -537,14 +389,18 @@
               "format": "hostname"
             }
           },
-          "required": ["hostname"]
+          "required": [
+            "hostname"
+          ]
         },
         "ghostEmail": {
           "type": "string",
           "format": "email"
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "langfuse": {
       "type": "object",
@@ -565,7 +421,9 @@
               "format": "hostname"
             }
           },
-          "required": ["host"]
+          "required": [
+            "host"
+          ]
         },
         "clickhouse": {
           "type": "object",
@@ -586,13 +444,19 @@
                   "default": false
                 }
               },
-              "required": ["autoMigrate"]
+              "required": [
+                "autoMigrate"
+              ]
             }
           },
-          "required": ["enabled"]
+          "required": [
+            "enabled"
+          ]
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "protonbridge": {
       "type": "object",
@@ -606,7 +470,9 @@
           "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "promtail": {
       "type": "object",
@@ -632,12 +498,16 @@
                     "format": "uri"
                   }
                 },
-                "required": ["url"]
+                "required": [
+                  "url"
+                ]
               },
               "minItems": 1
             }
           },
-          "required": ["clients"]
+          "required": [
+            "clients"
+          ]
         },
         "resources": {
           "type": "object",
@@ -671,7 +541,9 @@
           }
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "rancher": {
       "type": "object",
@@ -689,7 +561,9 @@
           "format": "hostname"
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "rootapp": {
       "type": "object",
@@ -699,7 +573,9 @@
           "default": false
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "uptime": {
       "type": "object",
@@ -720,10 +596,14 @@
               "format": "hostname"
             }
           },
-          "required": ["host"]
+          "required": [
+            "host"
+          ]
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "whoami": {
       "type": "object",
@@ -733,7 +613,9 @@
           "default": false
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "openproject": {
       "type": "object",
@@ -766,7 +648,12 @@
               "minLength": 1
             }
           },
-          "required": ["password_reset", "name", "mail", "secret"]
+          "required": [
+            "password_reset",
+            "name",
+            "mail",
+            "secret"
+          ]
         },
         "s3": {
           "type": "object",
@@ -788,7 +675,11 @@
               "format": "uri"
             }
           },
-          "required": ["enabled", "existingSecret", "bucketName"]
+          "required": [
+            "enabled",
+            "existingSecret",
+            "bucketName"
+          ]
         },
         "appInit": {
           "type": "object",
@@ -804,7 +695,9 @@
                       "pattern": "^[0-9]+(\\.[0-9]+)?(Mi|Gi|Ti)$"
                     }
                   },
-                  "required": ["memory"]
+                  "required": [
+                    "memory"
+                  ]
                 },
                 "requests": {
                   "type": "object",
@@ -814,13 +707,20 @@
                       "pattern": "^[0-9]+(\\.[0-9]+)?(Mi|Gi|Ti)$"
                     }
                   },
-                  "required": ["memory"]
+                  "required": [
+                    "memory"
+                  ]
                 }
               },
-              "required": ["limits", "requests"]
+              "required": [
+                "limits",
+                "requests"
+              ]
             }
           },
-          "required": ["resources"]
+          "required": [
+            "resources"
+          ]
         },
         "ingress": {
           "type": "object",
@@ -834,7 +734,10 @@
               "format": "hostname"
             }
           },
-          "required": ["enabled", "host"]
+          "required": [
+            "enabled",
+            "host"
+          ]
         },
         "postgresql": {
           "type": "object",
@@ -861,7 +764,9 @@
               "minLength": 1
             }
           },
-          "required": ["bundled"]
+          "required": [
+            "bundled"
+          ]
         },
         "oidc": {
           "type": "object",
@@ -903,10 +808,14 @@
               "format": "uri"
             }
           },
-          "required": ["enabled"]
+          "required": [
+            "enabled"
+          ]
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "zitadel": {
       "type": "object",
@@ -931,10 +840,14 @@
               "format": "hostname"
             }
           },
-          "required": ["host"]
+          "required": [
+            "host"
+          ]
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "windmill": {
       "type": "object",
@@ -959,7 +872,9 @@
               "format": "hostname"
             }
           },
-          "required": ["host"]
+          "required": [
+            "host"
+          ]
         },
         "databaseUrlSecretName": {
           "type": "string",
@@ -977,10 +892,14 @@
               "default": false
             }
           },
-          "required": ["enabled"]
+          "required": [
+            "enabled"
+          ]
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "trino": {
       "type": "object",
@@ -1018,10 +937,14 @@
                   "type": "string"
                 }
               },
-              "required": ["enabled"]
+              "required": [
+                "enabled"
+              ]
             }
           },
-          "required": ["host"]
+          "required": [
+            "host"
+          ]
         },
         "server": {
           "type": "object",
@@ -1066,18 +989,25 @@
                       "default": false
                     }
                   },
-                  "required": ["endpoint", "region"]
+                  "required": [
+                    "endpoint",
+                    "region"
+                  ]
                 },
                 "credentialsSecret": {
                   "type": "string"
                 }
               },
-              "required": ["enabled"]
+              "required": [
+                "enabled"
+              ]
             }
           }
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "dagster": {
       "type": "object",
@@ -1113,7 +1043,9 @@
               }
             }
           },
-          "required": ["host"]
+          "required": [
+            "host"
+          ]
         },
         "postgresql": {
           "type": "object",
@@ -1143,7 +1075,9 @@
               "description": "Name of secret containing postgresql-password key"
             }
           },
-          "required": ["enabled"]
+          "required": [
+            "enabled"
+          ]
         },
         "userDeployments": {
           "type": "object",
@@ -1187,12 +1121,19 @@
                       },
                       "pullPolicy": {
                         "type": "string",
-                        "enum": ["Always", "IfNotPresent", "Never"],
+                        "enum": [
+                          "Always",
+                          "IfNotPresent",
+                          "Never"
+                        ],
                         "default": "Always",
                         "description": "Image pull policy"
                       }
                     },
-                    "required": ["repository", "tag"]
+                    "required": [
+                      "repository",
+                      "tag"
+                    ]
                   },
                   "imagePullSecrets": {
                     "type": "array",
@@ -1210,23 +1151,35 @@
                     "description": "Path to Python file for legacy Dagster projects (e.g., '/app/main.py'). Use this OR moduleName, not both."
                   }
                 },
-                "required": ["name", "image"],
+                "required": [
+                  "name",
+                  "image"
+                ],
                 "oneOf": [
                   {
-                    "required": ["moduleName"]
+                    "required": [
+                      "moduleName"
+                    ]
                   },
                   {
-                    "required": ["codeFile"]
+                    "required": [
+                      "codeFile"
+                    ]
                   }
                 ]
               },
               "minItems": 1
             }
           },
-          "required": ["enabled", "deployments"]
+          "required": [
+            "enabled",
+            "deployments"
+          ]
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "oauth2Proxy": {
       "type": "object",
@@ -1269,7 +1222,9 @@
               }
             }
           },
-          "required": ["host"]
+          "required": [
+            "host"
+          ]
         },
         "extraArgs": {
           "type": "object",
@@ -1278,7 +1233,13 @@
           }
         }
       },
-      "required": ["enabled", "version", "namespace", "existingSecret", "ingress"]
+      "required": [
+        "enabled",
+        "version",
+        "namespace",
+        "existingSecret",
+        "ingress"
+      ]
     },
     "prefect": {
       "type": "object",
@@ -1307,7 +1268,9 @@
               "default": false
             }
           },
-          "required": ["host"]
+          "required": [
+            "host"
+          ]
         },
         "postgresql": {
           "type": "object",
@@ -1322,7 +1285,9 @@
               "minLength": 1
             }
           },
-          "required": ["useEmbedded"]
+          "required": [
+            "useEmbedded"
+          ]
         },
         "basicAuth": {
           "type": "object",
@@ -1336,7 +1301,10 @@
               "minLength": 1
             }
           },
-          "required": ["enabled", "existingSecret"]
+          "required": [
+            "enabled",
+            "existingSecret"
+          ]
         },
         "uiApiUrl": {
           "type": "string",
@@ -1363,7 +1331,9 @@
           }
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
     },
     "prefectWorker": {
       "type": "object",
@@ -1405,7 +1375,10 @@
               "minLength": 1
             }
           },
-          "required": ["enabled", "existingSecret"]
+          "required": [
+            "enabled",
+            "existingSecret"
+          ]
         },
         "image": {
           "type": "object",
@@ -1461,19 +1434,38 @@
                     "description": "Allowed operations (e.g., get, list, watch, create, update, patch, delete)",
                     "items": {
                       "type": "string",
-                      "enum": ["get", "list", "watch", "create", "update", "patch", "delete", "deletecollection"]
+                      "enum": [
+                        "get",
+                        "list",
+                        "watch",
+                        "create",
+                        "update",
+                        "patch",
+                        "delete",
+                        "deletecollection"
+                      ]
                     },
                     "minItems": 1
                   }
                 },
-                "required": ["apiGroups", "resources", "verbs"]
+                "required": [
+                  "apiGroups",
+                  "resources",
+                  "verbs"
+                ]
               }
             }
           }
         }
       },
-      "required": ["enabled", "version", "replicaCount", "workPool", "apiUrl", "basicAuth"]
+      "required": [
+        "enabled",
+        "version",
+        "replicaCount",
+        "workPool",
+        "apiUrl",
+        "basicAuth"
+      ]
     }
   }
 }
-
