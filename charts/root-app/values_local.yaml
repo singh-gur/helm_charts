@@ -170,7 +170,7 @@ ghost:
   ghostEmail: hello@gsingh.io
 langfuse:
   enabled: false
-  version: 1.5.29
+  version: 1.5.31
   ingress:
     host: langfuse.gsingh.io
   clickhouse:
