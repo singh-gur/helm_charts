@@ -35,7 +35,7 @@ lgtm:
 
 alloy:
   enabled: false
-  version: 1.0.3
+  version: 1.8.2
 
 authentik:
   enabled: false
@@ -154,7 +154,7 @@ argocd:
     prune: true # Enable/disable automatic pruning of resources
 coder:
   enabled: false
-  version: 2.33.0
+  version: 2.33.6
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
@@ -242,7 +242,7 @@ zitadel:
 
 windmill:
   enabled: false
-  version: 4.0.144
+  version: 4.0.165
   host: windmill.gsingh.io
   postgresql:
     enabled: true
@@ -358,7 +358,7 @@ trino:
 
 dagster:
   enabled: false
-  version: 1.13.3
+  version: 1.13.6
   namespace: dagster
   ingress:
     host: dagster.gsingh.io

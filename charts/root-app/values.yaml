@@ -35,7 +35,7 @@ lgtm:
 
 alloy:
   enabled: true
-  version: 1.7.0
+  version: 1.8.2
 
 authentik:
   enabled: false
@@ -156,7 +156,7 @@ argocd:
 
 coder:
   enabled: true
-  version: 2.33.0
+  version: 2.33.6
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
@@ -306,7 +306,7 @@ zitadel:
 
 windmill:
   enabled: true
-  version: 4.0.144
+  version: 4.0.165
   host: windmill.gsingh.io
   postgresql:
     enabled: false
@@ -410,14 +410,14 @@ datahubPrerequisites:
 
 datahub:
   enabled: datahub
-  version: "0.9.10"
+  version: "1.0.0"
   namespace: data-platform
   ingress:
     host: datahub.gsingh.io
     className: traefik
   global:
     datahub:
-      version: "v1.5.0"
+      version: "v1.6.0"
       systemUpdate:
         scaleDown:
           enabled: false
@@ -426,6 +426,7 @@ datahub:
         provisionSecrets:
           autoGenerate: true
     elasticsearch:
+      implementation: opensearch
       host: opensearch-cluster-master
       port: "9200"
     graph_service_impl: elasticsearch
@@ -530,7 +531,7 @@ trino:
 #   - polaris-token-keys      (keys: public.pem, private.pem)         -- created in Phase 4
 polaris:
   enabled: true
-  version: "1.4.1"
+  version: "1.5.0"
   namespace: data-platform
   ingress:
     enabled: true
@@ -591,7 +592,7 @@ polaris:
 
 dagster:
   enabled: true
-  version: 1.13.3
+  version: 1.13.6
   namespace: dagster
   ingress:
     host: dagster.gsingh.io
