@@ -20,6 +20,8 @@ spec:
           enabled: false
         data:
           metadataSecretName: {{ .Values.airflow.metadataSecretName | quote }}
+          # brokerUrl secret is not auto-created by helm upgrade/ArgoCD; must reference a pre-created secret
+          brokerUrlSecretName: {{ .Values.airflow.brokerUrlSecretName | quote }}
         # Explicitly enable the DB migration init job (runs airflow db migrate before pods start)
         migrateDatabaseJob:
           enabled: true

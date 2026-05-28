@@ -46,6 +46,7 @@ airflow:
     username: airflow
   # Kubernetes secret names — create these before first sync (see samples/)
   metadataSecretName: airflow-metadata
+  brokerUrlSecretName: airflow-broker-url
   fernetKeySecretName: airflow-fernet-key
   apiSecretKeySecretName: airflow-api-secret-key
   jwtSecretName: airflow-jwt-secret
