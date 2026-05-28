@@ -33,6 +33,25 @@ lgtm:
       enabled: false
       existingSecret: loki-s3-credentials
 
+airflow:
+  enabled: true
+  version: "1.21.0"
+  airflowVersion: "3.2.0"
+  namespace: airflow
+  # External PostgreSQL configuration (bundled PostgreSQL is disabled)
+  postgresql:
+    host: 192.168.2.119
+    port: 5432
+    database: airflow
+    username: airflow
+  # Kubernetes secret names — create these before first sync (see samples/)
+  metadataSecretName: airflow-metadata
+  fernetKeySecretName: airflow-fernet-key
+  apiSecretKeySecretName: airflow-api-secret-key
+  jwtSecretName: airflow-jwt-secret
+  ingress:
+    host: airflow.gsingh.io
+
 alloy:
   enabled: true
   version: 1.8.2

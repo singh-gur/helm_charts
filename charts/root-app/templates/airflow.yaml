@@ -1,0 +1,45 @@
+{{- if .Values.airflow.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: airflow
+  namespace: {{ .Values.argocdNamespace | default "default" }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://airflow.apache.org
+    chart: airflow
+    targetRevision: {{ .Values.airflow.version }}
+    helm:
+      values: |
+        airflowVersion: {{ .Values.airflow.airflowVersion | quote }}
+        # Disable bundled PostgreSQL; use external database via secret
+        postgresql:
+          enabled: false
+        data:
+          metadataSecretName: {{ .Values.airflow.metadataSecretName | quote }}
+        fernetKeySecretName: {{ .Values.airflow.fernetKeySecretName | quote }}
+        apiSecretKeySecretName: {{ .Values.airflow.apiSecretKeySecretName | quote }}
+        jwtSecretName: {{ .Values.airflow.jwtSecretName | quote }}
+        # Airflow 3.x exposes the UI through the API server ingress
+        ingress:
+          apiServer:
+            enabled: true
+            ingressClassName: traefik
+            hosts:
+              - name: {{ .Values.airflow.ingress.host | quote }}
+                tls:
+                  enabled: true
+                  secretName: airflow-tls
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.airflow.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}
