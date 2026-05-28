@@ -18,8 +18,12 @@ spec:
         # Disable bundled PostgreSQL; use external database via secret
         postgresql:
           enabled: false
+        # Airflow 3.x requires psycopg (v3); ensure the connection secret uses postgresql+psycopg://
         data:
           metadataSecretName: {{ .Values.airflow.metadataSecretName | quote }}
+        # Explicitly enable the DB migration init job (runs airflow db migrate before pods start)
+        migrateDatabaseJob:
+          enabled: true
         fernetKeySecretName: {{ .Values.airflow.fernetKeySecretName | quote }}
         apiSecretKeySecretName: {{ .Values.airflow.apiSecretKeySecretName | quote }}
         jwtSecretName: {{ .Values.airflow.jwtSecretName | quote }}
