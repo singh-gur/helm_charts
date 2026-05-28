@@ -23,9 +23,11 @@ spec:
         # Explicitly enable the DB migration init job (runs airflow db migrate before pods start)
         migrateDatabaseJob:
           enabled: true
-        # Fresh DB migrations can take >60 s; raise the default 60 s wait timeout
-        waitForMigrations:
-          waitTimeoutSeconds: 300
+          # Increase TTL so the Job pod stays around long enough to inspect logs
+          ttlSecondsAfterFinished: 3600
+        # images.migrationsWaitTimeout is the correct chart key (not waitForMigrations.waitTimeoutSeconds)
+        images:
+          migrationsWaitTimeout: 300
         fernetKeySecretName: {{ .Values.airflow.fernetKeySecretName | quote }}
         apiSecretKeySecretName: {{ .Values.airflow.apiSecretKeySecretName | quote }}
         jwtSecretName: {{ .Values.airflow.jwtSecretName | quote }}
