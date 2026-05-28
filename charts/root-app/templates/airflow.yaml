@@ -23,6 +23,9 @@ spec:
         # Explicitly enable the DB migration init job (runs airflow db migrate before pods start)
         migrateDatabaseJob:
           enabled: true
+          # useHelmHooks: true (default) annotates the Job as a helm hook, which ArgoCD never fires.
+          # Setting false makes it a plain Job that ArgoCD creates and manages directly.
+          useHelmHooks: false
           # Increase TTL so the Job pod stays around long enough to inspect logs
           ttlSecondsAfterFinished: 3600
         # images.migrationsWaitTimeout is the correct chart key (not waitForMigrations.waitTimeoutSeconds)
