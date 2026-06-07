@@ -61,6 +61,19 @@ airflow:
     existingSecret: airflow-admin-credentials
   ingress:
     host: airflow.gsingh.io
+  dags:
+    gitSync:
+      enabled: true
+      repo: https://git.gsingh.io/gurbakhshish/dags_repo.git
+      branch: main
+      ref: main
+      rev: HEAD
+      depth: 1
+      # Set to "dags" if DAG files live in a dags/ subdirectory.
+      subPath: "dags"
+      period: 30s
+      credentialsSecret: airflow-dags-git-credentials
+      recommendedProbeSetting: true
 
 alloy:
   enabled: true

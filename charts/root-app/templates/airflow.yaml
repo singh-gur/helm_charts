@@ -15,6 +15,10 @@ spec:
     helm:
       values: |
         airflowVersion: {{ .Values.airflow.airflowVersion | quote }}
+{{ with .Values.airflow.dags }}
+        dags:
+{{ toYaml . | nindent 10 }}
+{{ end }}
         # Disable bundled PostgreSQL; use external database via secret
         postgresql:
           enabled: false
