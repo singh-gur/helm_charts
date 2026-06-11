@@ -15,6 +15,9 @@ spec:
     helm:
       values: |
         airflowVersion: {{ .Values.airflow.airflowVersion | quote }}
+        env:
+          - name: AIRFLOW__CORE__HOSTNAME_CALLABLE
+            value: {{ .Values.airflow.hostnameCallable | quote }}
 {{ with .Values.airflow.dags }}
         dags:
 {{ toYaml . | nindent 10 }}

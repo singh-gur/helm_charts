@@ -37,6 +37,8 @@ airflow:
   enabled: true
   version: "1.21.0"
   airflowVersion: "3.2.0"
+  # Ensures task instances store a usable host in Kubernetes so logs do not resolve to http://:8793/...
+  hostnameCallable: airflow.utils.net.get_host_ip_address
   namespace: airflow
   # External PostgreSQL configuration (bundled PostgreSQL is disabled)
   postgresql:
