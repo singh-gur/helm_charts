@@ -15,6 +15,9 @@ spec:
     helm:
       values: |
         airflowVersion: {{ .Values.airflow.airflowVersion | quote }}
+        config:
+          core:
+            hostname_callable: {{ .Values.airflow.hostnameCallable | quote }}
         env:
           - name: AIRFLOW__CORE__HOSTNAME_CALLABLE
             value: {{ .Values.airflow.hostnameCallable | quote }}
