@@ -49,6 +49,9 @@ airflow:
   # Kubernetes secret names — create these before first sync (see samples/)
   metadataSecretName: airflow-metadata
   brokerUrlSecretName: airflow-broker-url
+  # Pre-created secret with key "password"; must match the password embedded in the broker URL secret.
+  # Prevents the chart from auto-generating airflow-redis-password as a helm hook (which ArgoCD never runs).
+  redisPasswordSecretName: airflow-redis-credentials
   fernetKeySecretName: airflow-fernet-key
   apiSecretKeySecretName: airflow-api-secret-key
   jwtSecretName: airflow-jwt-secret

@@ -29,6 +29,10 @@ spec:
           metadataSecretName: {{ .Values.airflow.metadataSecretName | quote }}
           # brokerUrl secret is not auto-created by helm upgrade/ArgoCD; must reference a pre-created secret
           brokerUrlSecretName: {{ .Values.airflow.brokerUrlSecretName | quote }}
+        # Use a pre-created redis password secret (key: password) instead of the chart's
+        # auto-generated helm-hook secret, which ArgoCD never creates.
+        redis:
+          passwordSecretName: {{ .Values.airflow.redisPasswordSecretName | quote }}
         # Explicitly enable the DB migration init job (runs airflow db migrate before pods start)
         migrateDatabaseJob:
           enabled: true
