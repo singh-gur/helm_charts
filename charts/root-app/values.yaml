@@ -209,7 +209,7 @@ ghost:
 
 langfuse:
   enabled: true
-  version: 1.5.31
+  version: 1.5.35
   ingress:
     host: langfuse.gsingh.io
   clickhouse:
