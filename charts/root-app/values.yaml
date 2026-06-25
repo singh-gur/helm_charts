@@ -493,6 +493,7 @@ trino:
       enabled: true
       catalogName: iceberg
       catalogType: rest
+      addFilesProcedureEnabled: true
       # Polaris REST catalog configuration for Iceberg metadata.
       rest:
         uri: http://polaris.data-platform.svc.cluster.local:8181/api/catalog

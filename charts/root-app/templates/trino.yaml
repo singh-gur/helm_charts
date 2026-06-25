@@ -43,6 +43,7 @@ spec:
           {{- if and $iceberg $iceberg.enabled }}
           {{ default "iceberg" $iceberg.catalogName }}: |
             connector.name=iceberg
+            iceberg.add-files-procedure.enabled={{ ternary "true" "false" (default false $iceberg.addFilesProcedureEnabled) }}
             {{- if eq $icebergCatalogType "rest" }}
             iceberg.catalog.type=rest
             iceberg.rest-catalog.uri={{ $icebergRest.uri }}
