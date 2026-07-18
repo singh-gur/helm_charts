@@ -38,10 +38,28 @@ spec:
                 pathType: Prefix
             annotations: []
         clickhouse:
-          clusterEnable: {{.Values.langfuse.clickhouse.enabled}}
           deploy: {{.Values.langfuse.clickhouse.deploy}}
+          clusterEnabled: {{.Values.langfuse.clickhouse.enabled}}
+          replicaCount: 1
+          persistence:
+            size: 20Gi
           migration:
             autoMigrate: {{.Values.langfuse.clickhouse.migration.autoMigrate}}
+          auth:
+            existingSecret: langfuse-secrets
+            existingSecretKey: clickhouse-password
+          extraOverrides: |
+            <clickhouse>
+              <query_log>
+                <engine>ENGINE = MergeTree PARTITION BY toYYYYMM(event_date) ORDER BY (event_date, event_time) TTL event_date + INTERVAL 7 DAY DELETE</engine>
+              </query_log>
+              <trace_log>
+                <engine>ENGINE = MergeTree PARTITION BY toYYYYMM(event_date) ORDER BY (event_date, event_time) TTL event_date + INTERVAL 7 DAY DELETE</engine>
+              </trace_log>
+              <text_log>
+                <engine>ENGINE = MergeTree PARTITION BY toYYYYMM(event_date) ORDER BY (event_date, event_time) TTL event_date + INTERVAL 7 DAY DELETE</engine>
+              </text_log>
+            </clickhouse>
         postgresql:
           deploy: false
           host: 192.168.2.119
@@ -51,11 +69,6 @@ spec:
             existingSecret: langfuse-secrets
             secretKeys:
               userPasswordKey: postgres-password
-
-        clickhouse:
-          auth:
-            existingSecret: langfuse-secrets
-            existingSecretKey: clickhouse-password
 
         redis:
           auth:
