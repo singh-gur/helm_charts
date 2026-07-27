@@ -46,7 +46,12 @@ spec:
           ttlSecondsAfterFinished: 3600
         # images.migrationsWaitTimeout is the correct chart key (not waitForMigrations.waitTimeoutSeconds)
         images:
+          airflow:
+            repository: {{ .Values.airflow.image.repository }}
+            tag: {{ .Values.airflow.image.tag | quote }}
           migrationsWaitTimeout: 300
+        imagePullSecrets:
+{{ toYaml .Values.airflow.imagePullSecrets | nindent 10 }}
         # createUserJob also defaults to useHelmHooks: true — must disable for ArgoCD
         createUserJob:
           useHelmHooks: false
