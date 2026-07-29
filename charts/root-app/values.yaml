@@ -39,7 +39,7 @@ airflow:
   airflowVersion: "3.2.0"
   image:
     repository: git.gsingh.io/gurbakhshish/airflow-custom
-    tag: "3.2.0_main"
+    tag: "3.2.0_v0.1.3"
   imagePullSecrets:
     - name: fg-registry-secret
   # Ensures task instances store a usable host in Kubernetes so logs do not resolve to http://:8793/...
