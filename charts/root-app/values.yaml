@@ -44,6 +44,8 @@ airflow:
     - name: fg-registry-secret
   # Ensures task instances store a usable host in Kubernetes so logs do not resolve to http://:8793/...
   hostnameCallable: airflow.utils.net.get_host_ip_address
+  # Keep the worker's database demand below the external PostgreSQL connection limit.
+  celeryWorkerConcurrency: 8
   namespace: airflow
   # External PostgreSQL configuration (bundled PostgreSQL is disabled)
   postgresql:

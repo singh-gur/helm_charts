@@ -18,6 +18,8 @@ spec:
         config:
           core:
             hostname_callable: {{ .Values.airflow.hostnameCallable | quote }}
+          celery:
+            worker_concurrency: {{ .Values.airflow.celeryWorkerConcurrency }}
         env:
           - name: AIRFLOW__CORE__HOSTNAME_CALLABLE
             value: {{ .Values.airflow.hostnameCallable | quote }}
