@@ -42,8 +42,8 @@ spec:
           # useHelmHooks: true (default) annotates the Job as a helm hook, which ArgoCD never fires.
           # Setting false makes it a plain Job that ArgoCD creates and manages directly.
           useHelmHooks: false
-          # Increase TTL so the Job pod stays around long enough to inspect logs
-          ttlSecondsAfterFinished: 3600
+          # Keep the completed Job so ArgoCD can track it.
+          ttlSecondsAfterFinished: null
         # images.migrationsWaitTimeout is the correct chart key (not waitForMigrations.waitTimeoutSeconds)
         images:
           airflow:
@@ -52,10 +52,11 @@ spec:
           migrationsWaitTimeout: 300
         imagePullSecrets:
 {{ toYaml .Values.airflow.imagePullSecrets | nindent 10 }}
-        # createUserJob also defaults to useHelmHooks: true — must disable for ArgoCD
+        # The initial administrator already exists; do not recreate it on every sync.
         createUserJob:
+          enabled: false
           useHelmHooks: false
-          ttlSecondsAfterFinished: 3600
+          ttlSecondsAfterFinished: null
           # Inject admin password from a Kubernetes Secret via env var
           env:
             - name: AIRFLOW_ADMIN_PASSWORD
