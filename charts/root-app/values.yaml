@@ -487,7 +487,7 @@ trino:
   ingress:
     host: trino.gsingh.io
   server:
-    workers: 4
+    workers: 6
   auth:
     enabled: true
     passwordAuthSecret: "trino-password-auth"
