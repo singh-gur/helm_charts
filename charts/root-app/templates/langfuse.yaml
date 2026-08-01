@@ -51,12 +51,18 @@ spec:
           extraOverrides: |
             <clickhouse>
               <query_log>
+                <partition_by remove="1"/>
+                <ttl remove="1"/>
                 <engine>ENGINE = MergeTree PARTITION BY toYYYYMM(event_date) ORDER BY (event_date, event_time) TTL event_date + INTERVAL 7 DAY DELETE</engine>
               </query_log>
               <trace_log>
+                <partition_by remove="1"/>
+                <ttl remove="1"/>
                 <engine>ENGINE = MergeTree PARTITION BY toYYYYMM(event_date) ORDER BY (event_date, event_time) TTL event_date + INTERVAL 7 DAY DELETE</engine>
               </trace_log>
               <text_log>
+                <partition_by remove="1"/>
+                <ttl remove="1"/>
                 <engine>ENGINE = MergeTree PARTITION BY toYYYYMM(event_date) ORDER BY (event_date, event_time) TTL event_date + INTERVAL 7 DAY DELETE</engine>
               </text_log>
             </clickhouse>
