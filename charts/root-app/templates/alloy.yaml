@@ -167,7 +167,7 @@ spec:
 
               prometheus.remote_write "mimir" {
                 endpoint {
-                  url = "http://lgtm-mimir.default.svc.cluster.local:9009/api/v1/push"
+                  url = "http://lgtm-mimir-nginx.default.svc.cluster.local:80/api/v1/push"
                 }
               }
 
