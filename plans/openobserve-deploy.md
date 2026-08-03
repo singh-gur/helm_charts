@@ -90,7 +90,7 @@ User confirms UI login + healthy pods.
 ### Phase 2 — Dual-shipping via Alloy (logs + metrics)
 
 - **Objective**: New Alloy instance ships pod logs and cluster metrics to OpenObserve; LGTM ingestion unchanged and verified intact.
-- **Status**: In Progress
+- **Status**: Complete
 - **Complexity**: Medium
 - **Estimated Time**: 60–90 min
 - **Prerequisites**: Phase 1 complete
@@ -123,8 +123,8 @@ The existing `alloy` Application has no inline values, so add helm values there 
 
 #### Verification
 
-- [ ] Log stream appears in OpenObserve UI within minutes (Alloy side verified clean — awaiting UI confirmation)
-- [ ] Metrics queryable in OpenObserve UI
+- [x] Log stream appears in OpenObserve UI within minutes (user-confirmed)
+- [x] Metrics queryable in OpenObserve UI (user-confirmed)
 - [x] Grafana/Loki still receiving (promtail untouched); Mimir now receives node/kubelet metrics — no errors
 
 #### Completion Gate
