@@ -58,9 +58,9 @@ Model the Application CRD on `charts/root-app/templates/lgtm.yaml` (external hel
 
 #### Implementation Tasks
 
-- [ ] Create bucket `openobserve` + access credentials on `s3v2.gsingh.io`
-- [ ] Create `openobserve` database + user on external PG; note DSN
-- [ ] Create secret in `default` namespace: `openobserve-credentials` (keys `ZO_ROOT_USER_EMAIL`, `ZO_ROOT_USER_PASSWORD`, `ZO_META_POSTGRES_DSN`, `ZO_S3_ACCESS_KEY`, `ZO_S3_SECRET_KEY`) — chart mounts one externalSecret, so S3 keys merged into the same secret (plan deviation)
+- [x] Create bucket `openobserve` + access credentials on `s3v2.gsingh.io`
+- [x] Create `openobserve` database + user on external PG; note DSN
+- [x] Create secret in `default` namespace: `openobserve-credentials` (keys `ZO_ROOT_USER_EMAIL`, `ZO_ROOT_USER_PASSWORD`, `ZO_META_POSTGRES_DSN`, `OPENFGA_DATASTORE_URI`, `ZO_S3_ACCESS_KEY`, `ZO_S3_SECRET_KEY`) — chart mounts one externalSecret, so all keys merged into the same secret (plan deviation)
 - [x] Add `charts/root-app/templates/openobserve.yaml` — Application CRD per repo standard (finalizer, selfHeal, prune), repoURL `https://charts.openobserve.ai`, chart `openobserve`, pinned chart version `0.91.2`
 - [x] Add `openobserve:` values section: `enabled`, `version`, `ingress.host: openobserve.gsingh.io`, secret name, bucket, endpoint
 - [x] Inline helm values: `externalSecret.enabled: true` + secret name; `postgres.enabled: false`; `minio.enabled: false`; `nats` PVC 10Gi; persistence sizes 10Gi (ingester/querier/alertmanager); `replicaCount.o2ai: 0`; `ingress.enabled`, `className: traefik`, nginx annotations stripped; `config` overrides: `ZO_S3_PROVIDER: "s3"`, `ZO_S3_SERVER_URL: https://s3v2.gsingh.io`, `ZO_S3_BUCKET_NAME`, region, `ZO_WEB_URL`
