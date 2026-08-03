@@ -39,7 +39,7 @@ Two phases, commit-as-we-go (`just push`). Phase 2 depends on Phase 1 completion
 ### Phase 1 — Deploy OpenObserve core
 
 - **Objective**: OpenObserve running, UI login works with secret-supplied credentials, S3 + Postgres connected.
-- **Status**: In Progress
+- **Status**: Complete
 - **Complexity**: Medium
 - **Estimated Time**: 60–90 min
 - **Prerequisites**: none
@@ -90,7 +90,7 @@ User confirms UI login + healthy pods.
 ### Phase 2 — Dual-shipping via Alloy (logs + metrics)
 
 - **Objective**: New Alloy instance ships pod logs and cluster metrics to OpenObserve; LGTM ingestion unchanged and verified intact.
-- **Status**: Not Started
+- **Status**: In Progress
 - **Complexity**: Medium
 - **Estimated Time**: 60–90 min
 - **Prerequisites**: Phase 1 complete

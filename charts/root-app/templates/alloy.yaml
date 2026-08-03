@@ -12,6 +12,171 @@ spec:
     repoURL: https://grafana.github.io/helm-charts
     chart: alloy
     targetRevision: {{.Values.alloy.version}}
+    helm:
+      values: |
+        alloy:
+          # Root user creds for OpenObserve ingestion (logs OTLP + metrics remote write)
+          envFrom:
+            - secretRef:
+                name: {{ .Values.openobserve.existingSecret }}
+          extraEnv:
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          mounts:
+            varlog: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          configMap:
+            content: |
+              logging {
+                level  = "info"
+                format = "logfmt"
+              }
+
+              // ---------- OpenObserve auth ----------
+              otelcol.auth.basic "openobserve" {
+                username = env("ZO_ROOT_USER_EMAIL")
+                password = env("ZO_ROOT_USER_PASSWORD")
+              }
+
+              // ---------- Logs: pod logs -> OpenObserve (OTLP) ----------
+              otelcol.receiver.filelog "pods" {
+                include           = ["/var/log/pods/*/*/*.log"]
+                include_file_path = true
+                operators = [
+                  {
+                    type       = "regex_parser",
+                    regex      = "^.*\\/(?P<namespace>[^_]+)_(?P<pod_name>[^_]+)_(?P<uid>[a-f0-9-]{36})\\/(?P<container_name>[^\\/]+)\\/[^\\/]*\\.log$",
+                    parse_from = "attributes[\"log.file.path\"]",
+                    cache      = { size = 128 },
+                  },
+                  { type = "move", from = "attributes.namespace", to = "resource[\"k8s.namespace.name\"]" },
+                  { type = "move", from = "attributes.pod_name", to = "resource[\"k8s.pod.name\"]" },
+                  { type = "move", from = "attributes.container_name", to = "resource[\"k8s.container.name\"]" },
+                  { type = "container", parse_from = "body" },
+                ]
+                output {
+                  logs = [otelcol.exporter.otlphttp.openobserve.input]
+                }
+              }
+
+              otelcol.exporter.otlphttp "openobserve" {
+                client {
+                  logs_endpoint = "http://openobserve-router.default.svc.cluster.local:5080/api/default/v1/logs"
+                  auth          = otelcol.auth.basic.openobserve.handler
+                }
+              }
+
+              // ---------- Metrics: node + kubelet/cadvisor -> Mimir and OpenObserve ----------
+              prometheus.exporter.unix "node" {}
+
+              discovery.relabel "unix" {
+                targets = prometheus.exporter.unix.node.targets
+                rule {
+                  target_label = "instance"
+                  replacement  = env("K8S_NODE_NAME")
+                }
+              }
+
+              prometheus.scrape "node" {
+                targets         = discovery.relabel.unix.output
+                scrape_interval = "30s"
+                forward_to      = [prometheus.remote_write.mimir.receiver, prometheus.remote_write.openobserve.receiver]
+              }
+
+              discovery.kubernetes "nodes" {
+                role = "node"
+              }
+
+              discovery.relabel "kubelet" {
+                targets = discovery.kubernetes.nodes.targets
+                rule {
+                  // Each alloy pod only scrapes its own node (daemonset runs on all 7)
+                  action       = "keep"
+                  source_keys  = ["__meta_kubernetes_node_name"]
+                  regex        = env("K8S_NODE_NAME")
+                }
+                rule {
+                  source_keys  = ["__meta_kubernetes_node_name"]
+                  target_label = "node"
+                }
+                rule {
+                  source_keys  = ["__address__"]
+                  regex        = "(.+)"
+                  replacement  = "$1:10250"
+                  target_label = "__address__"
+                }
+                rule {
+                  replacement  = "/metrics"
+                  target_label = "__metrics_path__"
+                }
+              }
+
+              discovery.relabel "cadvisor" {
+                targets = discovery.kubernetes.nodes.targets
+                rule {
+                  action       = "keep"
+                  source_keys  = ["__meta_kubernetes_node_name"]
+                  regex        = env("K8S_NODE_NAME")
+                }
+                rule {
+                  source_keys  = ["__meta_kubernetes_node_name"]
+                  target_label = "node"
+                }
+                rule {
+                  source_keys  = ["__address__"]
+                  regex        = "(.+)"
+                  replacement  = "$1:10250"
+                  target_label = "__address__"
+                }
+                rule {
+                  replacement  = "/metrics/cadvisor"
+                  target_label = "__metrics_path__"
+                }
+              }
+
+              prometheus.scrape "kubelet" {
+                targets           = discovery.relabel.kubelet.output
+                scheme            = "https"
+                bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+                tls_config {
+                  insecure_skip_verify = true
+                }
+                forward_to = [prometheus.remote_write.mimir.receiver, prometheus.remote_write.openobserve.receiver]
+              }
+
+              prometheus.scrape "cadvisor" {
+                targets           = discovery.relabel.cadvisor.output
+                scheme            = "https"
+                bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+                tls_config {
+                  insecure_skip_verify = true
+                }
+                forward_to = [prometheus.remote_write.mimir.receiver, prometheus.remote_write.openobserve.receiver]
+              }
+
+              prometheus.remote_write "mimir" {
+                endpoint {
+                  url = "http://lgtm-mimir.default.svc.cluster.local:9009/api/v1/push"
+                }
+              }
+
+              prometheus.remote_write "openobserve" {
+                endpoint {
+                  url = "http://openobserve-router.default.svc.cluster.local:5080/api/default/prometheus/api/v1/write"
+                  basic_auth {
+                    username = env("ZO_ROOT_USER_EMAIL")
+                    password = env("ZO_ROOT_USER_PASSWORD")
+                  }
+                }
+              }
   destination:
     server: https://kubernetes.default.svc
     namespace: default
