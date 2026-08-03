@@ -231,7 +231,7 @@ protonbridge:
 
 rancher:
   enabled: true
-  version: 2.11.2
+  version: 2.15.0
   hostname: rancher.gsingh.io
 
 rootapp:
