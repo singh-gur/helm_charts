@@ -70,9 +70,10 @@ spec:
               }
 
               otelcol.exporter.otlphttp "openobserve" {
+                logs_endpoint = "http://openobserve-router.default.svc.cluster.local:5080/api/default/v1/logs"
                 client {
-                  logs_endpoint = "http://openobserve-router.default.svc.cluster.local:5080/api/default/v1/logs"
-                  auth          = otelcol.auth.basic.openobserve.handler
+                  endpoint = "http://openobserve-router.default.svc.cluster.local:5080/api/default"
+                  auth     = otelcol.auth.basic.openobserve.handler
                 }
               }
 
@@ -102,15 +103,15 @@ spec:
                 rule {
                   // Each alloy pod only scrapes its own node (daemonset runs on all 7)
                   action       = "keep"
-                  source_keys  = ["__meta_kubernetes_node_name"]
+                  source_labels = ["__meta_kubernetes_node_name"]
                   regex        = env("K8S_NODE_NAME")
                 }
                 rule {
-                  source_keys  = ["__meta_kubernetes_node_name"]
+                  source_labels = ["__meta_kubernetes_node_name"]
                   target_label = "node"
                 }
                 rule {
-                  source_keys  = ["__address__"]
+                  source_labels = ["__address__"]
                   regex        = "(.+)"
                   replacement  = "$1:10250"
                   target_label = "__address__"
@@ -125,15 +126,15 @@ spec:
                 targets = discovery.kubernetes.nodes.targets
                 rule {
                   action       = "keep"
-                  source_keys  = ["__meta_kubernetes_node_name"]
+                  source_labels = ["__meta_kubernetes_node_name"]
                   regex        = env("K8S_NODE_NAME")
                 }
                 rule {
-                  source_keys  = ["__meta_kubernetes_node_name"]
+                  source_labels = ["__meta_kubernetes_node_name"]
                   target_label = "node"
                 }
                 rule {
-                  source_keys  = ["__address__"]
+                  source_labels = ["__address__"]
                   regex        = "(.+)"
                   replacement  = "$1:10250"
                   target_label = "__address__"
