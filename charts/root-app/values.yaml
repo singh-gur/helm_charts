@@ -255,7 +255,7 @@ fissionHello:
   enabled: true
 
 openobserve:
-  enabled: true
+  enabled: false
   version: 2.0.2
   namespace: default
   # One secret keyed by env var names: ZO_ROOT_USER_EMAIL, ZO_ROOT_USER_PASSWORD,
@@ -264,7 +264,7 @@ openobserve:
   s3:
     provider: s3
     endpoint: https://s3v2.gsingh.io
-    bucketName: gsingh19-openobserve
+    bucketName: openobserve
     region: us-east-1
   persistence:
     size: 10Gi

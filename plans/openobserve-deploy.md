@@ -17,7 +17,7 @@ Deploy OpenObserve alongside the existing LGTM stack via the ArgoCD app-of-apps 
 | Decision | Choice | Rationale |
 |---|---|---|
 | Metadata store | External Postgres `192.168.2.119` via `ZO_META_POSTGRES_DSN`, chart `postgres.enabled: false` | Avoids installing the CNPG operator; same pattern as Authentik |
-| Object storage | New bucket `gsingh19-openobserve` on `s3v2.gsingh.io`, dedicated secret `openobserve-s3-credentials` (`ZO_S3_ACCESS_KEY`/`ZO_S3_SECRET_KEY`) | Isolated creds, matches existing `gsingh19-*` naming |
+| Object storage | New bucket `openobserve` on `s3v2.gsingh.io`, dedicated secret `openobserve-s3-credentials` (`ZO_S3_ACCESS_KEY`/`ZO_S3_SECRET_KEY`) | Isolated creds, dedicated bucket |
 | Web UI auth | Basic auth (root email/password) via external secret `openobserve-credentials` | Per user decision; OIDC deferred |
 | Ingestion | New Alloy instance ships logs+metrics to OpenObserve only; LGTM paths unchanged | True dual-stack data without touching working pipelines; avoids Loki-API incompatibility (OO has no Loki push API — Alloy uses OTLP/Prom-remote-write to OO) |
 | Footprint | 10Gi PVCs, `o2ai` disabled, defaults otherwise | Home-cluster sizing; chart defaults are 100Gi×3 |
@@ -58,7 +58,7 @@ Model the Application CRD on `charts/root-app/templates/lgtm.yaml` (external hel
 
 #### Implementation Tasks
 
-- [ ] Create bucket `gsingh19-openobserve` + access credentials on `s3v2.gsingh.io`
+- [ ] Create bucket `openobserve` + access credentials on `s3v2.gsingh.io`
 - [ ] Create `openobserve` database + user on external PG; note DSN
 - [ ] Create secret in `default` namespace: `openobserve-credentials` (keys `ZO_ROOT_USER_EMAIL`, `ZO_ROOT_USER_PASSWORD`, `ZO_META_POSTGRES_DSN`, `ZO_S3_ACCESS_KEY`, `ZO_S3_SECRET_KEY`) — chart mounts one externalSecret, so S3 keys merged into the same secret (plan deviation)
 - [x] Add `charts/root-app/templates/openobserve.yaml` — Application CRD per repo standard (finalizer, selfHeal, prune), repoURL `https://charts.openobserve.ai`, chart `openobserve`, pinned chart version `2.0.2`
