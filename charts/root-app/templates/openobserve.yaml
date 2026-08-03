@@ -32,6 +32,9 @@ spec:
         minio:
           enabled: false
         nats:
+          # No podmonitors CRD in this cluster
+          promExporter:
+            enabled: false
           config:
             jetstream:
               fileStore:
