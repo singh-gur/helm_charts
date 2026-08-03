@@ -331,7 +331,7 @@ windmill:
     enabled: true
 
 promtail:
-  enabled: true
+  enabled: false
   version: 6.17.0
   config:
     clients:

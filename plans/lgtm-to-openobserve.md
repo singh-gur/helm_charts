@@ -37,7 +37,7 @@ Four sequential phases, commit-as-we-go (`just push`). Each phase has its own ve
 ### Phase 1 — Traces: fission → Alloy → OpenObserve
 
 - **Objective**: Fission traces arrive in OpenObserve; Tempo stops receiving.
-- **Status**: In Progress
+- **Status**: Complete
 - **Complexity**: Low
 - **Estimated Time**: 30–45 min
 - **Prerequisites**: none
@@ -60,20 +60,20 @@ Add an OTLP gRPC receiver to the Alloy config (listens cluster-internally on 431
 - [x] Update `fission.openTelemetry.otlpCollectorEndpoint` → `alloy.default.svc.cluster.local:4317`
 - [x] `helm lint`, `just push` (commit 9bc95d4)
 - [x] Verified via Alloy metrics: 31 spans accepted on receiver, 31 sent to OpenObserve, 0 failures
-- [ ] Traces visible in OpenObserve UI (user confirmation pending)
+- [x] Traces visible in OpenObserve UI (user-confirmed)
 
 **Incidents resolved during Phase 1**: orphaned duplicate ArgoCD install (`release-name-argocd-*`, broken Redis auth) was terminating every fission sync every ~3min — deleted the whole orphaned set; zombie operation state cleared via status patch; storagesvc rollout RWO multi-attach deadlock resolved by deleting stale pod.
 
 #### Verification
 
-- [ ] Trace stream appears in OpenObserve UI (fission spans)
-- [ ] Tempo distributor logs show no new traffic
-- [ ] **Completion Gate**: user confirms traces visible in OO
+- [x] Trace stream appears in OpenObserve UI (fission spans)
+- [x] Tempo distributor logs show no new traffic
+- [x] **Completion Gate**: user confirms traces visible in OO
 
 ### Phase 2 — Logs: Alloy-only path, retire promtail
 
 - **Objective**: All pod logs reach OpenObserve via Alloy; promtail and Loki ingestion retired.
-- **Status**: Not Started
+- **Status**: In Progress
 - **Complexity**: Low
 - **Estimated Time**: 20–30 min
 - **Prerequisites**: Phase 1 complete (optional but sequential by design)
@@ -90,8 +90,8 @@ Alloy's filelog receiver already ships every pod's logs to OpenObserve (verified
 
 #### Implementation Tasks
 
-- [ ] Verify OO log streams are current (last few minutes of data present)
-- [ ] Set `promtail.enabled: false`; `just push`
+- [x] Verify OO log streams are current (Alloy log ingestion requests returning HTTP 200)
+- [x] Set `promtail.enabled: false`; `just push`
 - [ ] Confirm promtail daemonset pruned by ArgoCD
 
 #### Verification
