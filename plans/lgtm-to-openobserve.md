@@ -121,8 +121,8 @@ Alloy's filelog receiver already ships every pod's logs to OpenObserve (verified
 
 #### Verification
 
-- [ ] OO metrics queries return fresh data (e.g. `node_cpu_seconds_total`, `container_cpu_usage_seconds_total`)
-- [ ] No remote_write errors in Alloy logs
+- [ ] OO metrics queries return fresh data (HTTP ingestion verified; UI query pending)
+- [x] No remote_write errors in Alloy logs
 - [ ] **Completion Gate**: user confirms metrics queryable in OO
 
 ### Phase 4 — Decommission LGTM entirely (Grafana included)
