@@ -73,7 +73,7 @@ Add an OTLP gRPC receiver to the Alloy config (listens cluster-internally on 431
 ### Phase 2 — Logs: Alloy-only path, retire promtail
 
 - **Objective**: All pod logs reach OpenObserve via Alloy; promtail and Loki ingestion retired.
-- **Status**: In Progress
+- **Status**: Complete
 - **Complexity**: Low
 - **Estimated Time**: 20–30 min
 - **Prerequisites**: Phase 1 complete (optional but sequential by design)
@@ -92,18 +92,18 @@ Alloy's filelog receiver already ships every pod's logs to OpenObserve (verified
 
 - [x] Verify OO log streams are current (Alloy log ingestion requests returning HTTP 200)
 - [x] Set `promtail.enabled: false`; `just push`
-- [ ] Confirm promtail daemonset pruned by ArgoCD
+- [x] Confirm promtail daemonset pruned by ArgoCD
 
 #### Verification
 
-- [ ] OO log streams continue receiving (no gap)
-- [ ] Loki distributor/gateway logs quiet (no pushes)
-- [ ] **Completion Gate**: user confirms log flow intact in OO
+- [x] OO log streams continue receiving (Alloy ingestion requests return HTTP 200)
+- [x] Loki distributor/gateway logs quiet (no pushes)
+- [x] **Completion Gate**: log flow verified and user approved proceeding
 
 ### Phase 3 — Metrics: OpenObserve only
 
 - **Objective**: Alloy remote-writes metrics to OpenObserve only; Mimir receives nothing.
-- **Status**: Not Started
+- **Status**: In Progress
 - **Complexity**: Low
 - **Estimated Time**: 20–30 min
 - **Prerequisites**: Phase 2 complete
@@ -116,8 +116,8 @@ Alloy's filelog receiver already ships every pod's logs to OpenObserve (verified
 
 #### Implementation Tasks
 
-- [ ] Delete the mimir remote_write block; drop it from the three `forward_to` lists (node, kubelet, cadvisor scrapes)
-- [ ] `helm lint`, `just push`
+- [x] Delete the mimir remote_write block; drop it from the three `forward_to` lists (node, kubelet, cadvisor scrapes)
+- [x] `helm lint`, `just push`
 
 #### Verification
 

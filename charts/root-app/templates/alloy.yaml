@@ -93,7 +93,7 @@ spec:
                 }
               }
 
-              // ---------- Metrics: node + kubelet/cadvisor -> Mimir and OpenObserve ----------
+              // ---------- Metrics: node + kubelet/cadvisor -> OpenObserve ----------
               prometheus.exporter.unix "node" {}
 
               discovery.relabel "unix" {
@@ -107,7 +107,7 @@ spec:
               prometheus.scrape "node" {
                 targets         = discovery.relabel.unix.output
                 scrape_interval = "30s"
-                forward_to      = [prometheus.remote_write.mimir.receiver, prometheus.remote_write.openobserve.receiver]
+                forward_to      = [prometheus.remote_write.openobserve.receiver]
               }
 
               discovery.kubernetes "nodes" {
@@ -168,7 +168,7 @@ spec:
                 tls_config {
                   insecure_skip_verify = true
                 }
-                forward_to = [prometheus.remote_write.mimir.receiver, prometheus.remote_write.openobserve.receiver]
+                forward_to = [prometheus.remote_write.openobserve.receiver]
               }
 
               prometheus.scrape "cadvisor" {
@@ -178,13 +178,7 @@ spec:
                 tls_config {
                   insecure_skip_verify = true
                 }
-                forward_to = [prometheus.remote_write.mimir.receiver, prometheus.remote_write.openobserve.receiver]
-              }
-
-              prometheus.remote_write "mimir" {
-                endpoint {
-                  url = "http://lgtm-mimir-nginx.default.svc.cluster.local:80/api/v1/push"
-                }
+                forward_to = [prometheus.remote_write.openobserve.receiver]
               }
 
               prometheus.remote_write "openobserve" {
