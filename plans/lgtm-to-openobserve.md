@@ -103,7 +103,7 @@ Alloy's filelog receiver already ships every pod's logs to OpenObserve (verified
 ### Phase 3 — Metrics: OpenObserve only
 
 - **Objective**: Alloy remote-writes metrics to OpenObserve only; Mimir receives nothing.
-- **Status**: In Progress
+- **Status**: Complete
 - **Complexity**: Low
 - **Estimated Time**: 20–30 min
 - **Prerequisites**: Phase 2 complete
@@ -121,14 +121,14 @@ Alloy's filelog receiver already ships every pod's logs to OpenObserve (verified
 
 #### Verification
 
-- [ ] OO metrics queries return fresh data (HTTP ingestion verified; UI query pending)
+- [x] OO metrics queries return fresh data (user-confirmed)
 - [x] No remote_write errors in Alloy logs
-- [ ] **Completion Gate**: user confirms metrics queryable in OO
+- [x] **Completion Gate**: user confirms metrics queryable in OO
 
 ### Phase 4 — Decommission LGTM entirely (Grafana included)
 
 - **Objective**: Entire LGTM stack including Grafana removed; OpenObserve is the only observability UI; cluster footprint reduced.
-- **Status**: Not Started
+- **Status**: In Progress
 - **Complexity**: Low
 - **Estimated Time**: 20–30 min
 - **Prerequisites**: Phase 3 complete
@@ -141,8 +141,8 @@ Alloy's filelog receiver already ships every pod's logs to OpenObserve (verified
 
 #### Implementation Tasks
 
-- [ ] (Optional) Recreate any ad-hoc Grafana dashboards as OpenObserve dashboards before deletion
-- [ ] Set `lgtm.enabled: false`; `just push`
+- [x] ~~(Optional) Recreate any ad-hoc Grafana dashboards as OpenObserve dashboards before deletion~~ (skipped; none provisioned)
+- [x] Set `lgtm.enabled: false`; `just push`
 - [ ] Watch cascade deletion (ArgoCD finalizer removes Application → Helm uninstall removes Grafana + ~20 LGTM pods, PVCs, services)
 - [ ] Verify no orphaned LGTM resources remain (`kubectl get all -n default | grep lgtm`)
 - [ ] Optional cleanup: delete `loki-s3` bucket and `grafana-admin-credentials` secret once comfortable (hard cut-over approved)
