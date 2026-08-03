@@ -24,6 +24,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+          # otelcol.receiver.filelog is public-preview
+          stabilityLevel: "public-preview"
           mounts:
             varlog: true
           resources:
