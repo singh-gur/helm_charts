@@ -1,0 +1,68 @@
+{{- if .Values.openobserve.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: {{ .Values.argocdNamespace | default "default" }}
+  name: openobserve
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://charts.openobserve.ai
+    chart: openobserve
+    targetRevision: {{ .Values.openobserve.version }}
+    helm:
+      values: |
+        # Credentials come from one external secret keyed by env var names:
+        # ZO_ROOT_USER_EMAIL, ZO_ROOT_USER_PASSWORD, ZO_META_POSTGRES_DSN,
+        # ZO_S3_ACCESS_KEY, ZO_S3_SECRET_KEY
+        externalSecret:
+          enabled: true
+          name: {{ .Values.openobserve.existingSecret }}
+        config:
+          ZO_WEB_URL: https://{{ .Values.openobserve.ingress.host }}
+          ZO_S3_PROVIDER: {{ .Values.openobserve.s3.provider }}
+          ZO_S3_SERVER_URL: {{ .Values.openobserve.s3.endpoint }}
+          ZO_S3_BUCKET_NAME: {{ .Values.openobserve.s3.bucketName }}
+          ZO_S3_REGION_NAME: {{ .Values.openobserve.s3.region }}
+        # Metadata lives in external Postgres (DSN in the secret above)
+        postgres:
+          enabled: false
+        minio:
+          enabled: false
+        nats:
+          config:
+            jetstream:
+              fileStore:
+                pvc:
+                  size: {{ .Values.openobserve.persistence.natsSize }}
+        replicaCount:
+          o2ai: 0
+        ingester:
+          persistence:
+            size: {{ .Values.openobserve.persistence.size }}
+        querier:
+          persistence:
+            size: {{ .Values.openobserve.persistence.size }}
+        alertmanager:
+          persistence:
+            size: {{ .Values.openobserve.persistence.size }}
+        ingress:
+          enabled: true
+          className: traefik
+          annotations: {}
+          hosts:
+            - host: {{ .Values.openobserve.ingress.host }}
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls: []
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.openobserve.namespace }}
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+{{- end }}

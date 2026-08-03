@@ -254,6 +254,24 @@ whoami:
 fissionHello:
   enabled: true
 
+openobserve:
+  enabled: true
+  version: 2.0.2
+  namespace: default
+  # One secret keyed by env var names: ZO_ROOT_USER_EMAIL, ZO_ROOT_USER_PASSWORD,
+  # ZO_META_POSTGRES_DSN, ZO_S3_ACCESS_KEY, ZO_S3_SECRET_KEY (chart supports one externalSecret)
+  existingSecret: openobserve-credentials
+  s3:
+    provider: s3
+    endpoint: https://s3v2.gsingh.io
+    bucketName: gsingh19-openobserve
+    region: us-east-1
+  persistence:
+    size: 10Gi
+    natsSize: 10Gi
+  ingress:
+    host: openobserve.gsingh.io
+
 openproject:
   enabled: false
   admin_user:
