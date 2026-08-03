@@ -37,7 +37,7 @@ Four sequential phases, commit-as-we-go (`just push`). Each phase has its own ve
 ### Phase 1 — Traces: fission → Alloy → OpenObserve
 
 - **Objective**: Fission traces arrive in OpenObserve; Tempo stops receiving.
-- **Status**: Not Started
+- **Status**: In Progress
 - **Complexity**: Low
 - **Estimated Time**: 30–45 min
 - **Prerequisites**: none
@@ -55,11 +55,14 @@ Add an OTLP gRPC receiver to the Alloy config (listens cluster-internally on 431
 
 #### Implementation Tasks
 
-- [ ] Add to Alloy config: `otelcol.receiver.otlp "traces" { grpc { endpoint = "0.0.0.0:4317" } output { traces = [otelcol.exporter.otlphttp.openobserve.input] } }`
-- [ ] Add `traces_endpoint = "http://openobserve-router.default.svc.cluster.local:5080/api/default/v1/traces"` to the otlphttp exporter
-- [ ] Expose 4317 on Alloy via chart `alloy.extraPorts` (grpc) and note the service DNS
-- [ ] Update `fission.openTelemetry.otlpCollectorEndpoint` in `values.yaml` to the Alloy service address (keep `otlpInsecure: true`)
-- [ ] `helm lint`, `just push`
+- [x] Add to Alloy config: `otelcol.receiver.otlp "traces"` → otlphttp exporter; `traces_endpoint` added
+- [x] Expose 4317 on Alloy service via `extraPorts` (svc `alloy`)
+- [x] Update `fission.openTelemetry.otlpCollectorEndpoint` → `alloy.default.svc.cluster.local:4317`
+- [x] `helm lint`, `just push` (commit 9bc95d4)
+- [x] Verified via Alloy metrics: 31 spans accepted on receiver, 31 sent to OpenObserve, 0 failures
+- [ ] Traces visible in OpenObserve UI (user confirmation pending)
+
+**Incidents resolved during Phase 1**: orphaned duplicate ArgoCD install (`release-name-argocd-*`, broken Redis auth) was terminating every fission sync every ~3min — deleted the whole orphaned set; zombie operation state cleared via status patch; storagesvc rollout RWO multi-attach deadlock resolved by deleting stale pod.
 
 #### Verification
 
