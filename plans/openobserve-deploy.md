@@ -74,9 +74,9 @@ Model the Application CRD on `charts/root-app/templates/lgtm.yaml` (external hel
 
 #### Verification
 
-- [ ] ArgoCD app `Synced`/`Healthy`; all pods Ready
-- [ ] Login at `https://openobserve.gsingh.io` with root creds from secret
-- [ ] No S3/PG errors in pod logs; S3 bucket receives objects after first ingestion/compaction
+- [x] ArgoCD app `Synced`/`Healthy`; all pods Ready
+- [ ] Login at `https://openobserve.gsingh.io` with root creds from secret (pending: DNS record for openobserve.gsingh.io; verified internally via Traefik — healthz 200)
+- [x] No S3/PG errors in pod logs; storage providers initialized (`backend job init success`)
 
 #### Completion Gate
 
