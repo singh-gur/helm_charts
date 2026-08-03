@@ -171,7 +171,7 @@ fission:
     enabled: false
   # OpenTelemetry tracing -- sends traces to Tempo via OTLP gRPC
   openTelemetry:
-    otlpCollectorEndpoint: "lgtm-tempo.default.svc.cluster.local:4317"
+    otlpCollectorEndpoint: "alloy.default.svc.cluster.local:4317"
     otlpInsecure: true
     tracesSampler: "parentbased_traceidratio"
     tracesSamplingRate: "0.1"

@@ -28,6 +28,11 @@ spec:
           stabilityLevel: "public-preview"
           mounts:
             varlog: true
+          extraPorts:
+            - name: otlp-grpc
+              port: 4317
+              targetPort: 4317
+              protocol: TCP
           resources:
             requests:
               cpu: 100m
@@ -70,10 +75,21 @@ spec:
               }
 
               otelcol.exporter.otlphttp "openobserve" {
-                logs_endpoint = "http://openobserve-router.default.svc.cluster.local:5080/api/default/v1/logs"
+                logs_endpoint   = "http://openobserve-router.default.svc.cluster.local:5080/api/default/v1/logs"
+                traces_endpoint = "http://openobserve-router.default.svc.cluster.local:5080/api/default/v1/traces"
                 client {
                   endpoint = "http://openobserve-router.default.svc.cluster.local:5080/api/default"
                   auth     = otelcol.auth.basic.openobserve.handler
+                }
+              }
+
+              // ---------- Traces: fission -> Alloy (adds auth) -> OpenObserve ----------
+              otelcol.receiver.otlp "traces" {
+                grpc {
+                  endpoint = "0.0.0.0:4317"
+                }
+                output {
+                  traces = [otelcol.exporter.otlphttp.openobserve.input]
                 }
               }
 
