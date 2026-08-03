@@ -109,10 +109,11 @@ The existing `alloy` Application has no inline values, so add helm values there 
 
 #### Implementation Tasks
 
-- [ ] Add Alloy config: pod-log discovery (`local.file_match` + `kubernetes.discovery`) → `loki.process` → `loki.write` to Loki gateway **and** `otlphttp.write` to OpenObserve logs endpoint (Basic auth from secret)
-- [ ] Metrics: `prometheus.exporter.unix` (built-in node exporter) + kubelet/cAdvisor scrape → `prometheus.remote_write` to both Mimir (`lgtm-mimir.../api/v1/push`) and OpenObserve's Prometheus-compatible write endpoint
-- [ ] Wire credentials via secretKeyRef (Alloy `extraEnv` or env references in config)
-- [ ] Conservative resource limits; `helm lint` + render check; `just push`
+- [x] Add Alloy config: pod-log filelog receiver with k8s metadata extraction → OTLP to OpenObserve (LGTM log path stays on promtail, unchanged)
+- [x] Metrics: `prometheus.exporter.unix` + kubelet/cAdvisor scrape → `prometheus.remote_write` to both Mimir (`lgtm-mimir-nginx.../api/v1/push`) and OpenObserve's Prometheus-compatible write endpoint; per-node keep filter to avoid 7x duplication
+- [x] Wire credentials via envFrom on existing `openobserve-credentials` secret
+- [x] Conservative resource limits; `helm lint` + render check; `just push`
+- [x] Config fixes during rollout: chart version 0.91.2 pin, `stabilityLevel: public-preview` (filelog receiver), `source_keys`→`source_labels`, `logs_endpoint` placement, Mimir service URL
 
 #### Execution Tracking Rules
 
@@ -122,9 +123,9 @@ The existing `alloy` Application has no inline values, so add helm values there 
 
 #### Verification
 
-- [ ] Log stream appears in OpenObserve UI within minutes
+- [ ] Log stream appears in OpenObserve UI within minutes (Alloy side verified clean — awaiting UI confirmation)
 - [ ] Metrics queryable in OpenObserve UI
-- [ ] Grafana/Loki/Mimir still receiving (existing dashboards/queries work)
+- [x] Grafana/Loki still receiving (promtail untouched); Mimir now receives node/kubelet metrics — no errors
 
 #### Completion Gate
 
