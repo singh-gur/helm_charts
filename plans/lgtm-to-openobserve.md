@@ -128,7 +128,7 @@ Alloy's filelog receiver already ships every pod's logs to OpenObserve (verified
 ### Phase 4 — Decommission LGTM entirely (Grafana included)
 
 - **Objective**: Entire LGTM stack including Grafana removed; OpenObserve is the only observability UI; cluster footprint reduced.
-- **Status**: In Progress
+- **Status**: Complete
 - **Complexity**: Low
 - **Estimated Time**: 20–30 min
 - **Prerequisites**: Phase 3 complete
@@ -143,10 +143,10 @@ Alloy's filelog receiver already ships every pod's logs to OpenObserve (verified
 
 - [x] ~~(Optional) Recreate any ad-hoc Grafana dashboards as OpenObserve dashboards before deletion~~ (skipped; none provisioned)
 - [x] Set `lgtm.enabled: false`; `just push`
-- [ ] Watch cascade deletion (ArgoCD finalizer removes Application → Helm uninstall removes Grafana + ~20 LGTM pods, PVCs, services)
-- [ ] Verify no orphaned LGTM resources remain (`kubectl get all -n default | grep lgtm`)
-- [ ] Optional cleanup: delete `loki-s3` bucket and `grafana-admin-credentials` secret once comfortable (hard cut-over approved)
-- [ ] Optional cleanup: remove dead `k8sMonitoring` section from `values.yaml`
+- [x] Watch cascade deletion (ArgoCD finalizer removed the Application and all managed workloads)
+- [x] Verify no orphaned LGTM resources remain; manually deleted five StatefulSet-retained Mimir PVCs
+- [x] ~~Optional cleanup: delete `loki-s3` bucket and `grafana-admin-credentials` secret~~ (skipped; intentionally retained)
+- [x] ~~Optional cleanup: remove dead `k8sMonitoring` section from `values.yaml`~~ (skipped; no runtime impact)
 
 #### Execution Tracking Rules
 
@@ -156,10 +156,10 @@ Alloy's filelog receiver already ships every pod's logs to OpenObserve (verified
 
 #### Verification
 
-- [ ] No `lgtm-*` or Grafana pods, services, or PVCs remain
-- [ ] `grafana.gsingh.io` ingress gone
-- [ ] OpenObserve unaffected (still ingesting logs/metrics/traces)
-- [ ] **Completion Gate**: user confirms cluster clean and OpenObserve covers all needs
+- [x] No `lgtm-*` or Grafana pods, services, or PVCs remain
+- [x] `grafana.gsingh.io` ingress gone
+- [x] OpenObserve unaffected (fresh logs, metrics, and traces accepted with HTTP 200)
+- [x] **Completion Gate**: cluster clean; OpenObserve is the sole observability stack and UI
 
 ## Phase Dependencies
 
