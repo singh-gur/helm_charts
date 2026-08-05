@@ -270,7 +270,7 @@ openobserve:
     size: 10Gi
     natsSize: 10Gi
   ingress:
-    host: openobserve.gsingh.io
+    host: otel.gsingh.io
 
 openproject:
   enabled: false
