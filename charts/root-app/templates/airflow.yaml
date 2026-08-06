@@ -20,6 +20,13 @@ spec:
             hostname_callable: {{ .Values.airflow.hostnameCallable | quote }}
           celery:
             worker_concurrency: {{ .Values.airflow.celeryWorkerConcurrency }}
+          database:
+            # Default pool (5+10) is too small for the API server: every JWT request
+            # runs a RevokedToken lookup in middleware, exhausting the pool under load.
+            sql_alchemy_pool_size: {{ .Values.airflow.database.poolSize | quote }}
+            sql_alchemy_max_overflow: {{ .Values.airflow.database.maxOverflow | quote }}
+            # Drop stale connections to the external PostgreSQL instead of erroring on use.
+            sql_alchemy_pool_pre_ping: {{ .Values.airflow.database.poolPrePing | quote }}
         env:
           - name: AIRFLOW__CORE__HOSTNAME_CALLABLE
             value: {{ .Values.airflow.hostnameCallable | quote }}

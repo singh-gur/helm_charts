@@ -46,6 +46,12 @@ airflow:
   hostnameCallable: airflow.utils.net.get_host_ip_address
   # Keep the worker's database demand below the external PostgreSQL connection limit.
   celeryWorkerConcurrency: 8
+  # SQLAlchemy pool per airflow process. Defaults (5+10) starve the API server, which
+  # runs a RevokedToken lookup per JWT request. Database is shared; keep totals modest.
+  database:
+    poolSize: "10"
+    maxOverflow: "10"
+    poolPrePing: "True"
   namespace: airflow
   # External PostgreSQL configuration (bundled PostgreSQL is disabled)
   postgresql:
