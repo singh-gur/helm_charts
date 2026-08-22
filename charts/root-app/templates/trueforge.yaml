@@ -1,0 +1,77 @@
+{{- if .Values.trueforge.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: trueforge
+  namespace: {{ .Values.argocdNamespace | default "default" }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # OCI registry, anonymously pullable — no scheme prefix, ArgoCD detects OCI
+    repoURL: tfy.jfrog.io/tfy-helm
+    chart: trueforge
+    targetRevision: {{ .Values.trueforge.version }}
+    helm:
+      values: |
+        server:
+          publicBaseUrl: https://{{ .Values.trueforge.ingress.host }}
+        configs:
+          oidc:
+            enabled: true
+            issuerUrl: {{ .Values.trueforge.oidc.issuerUrl | quote }}
+            clientId: {{ .Values.trueforge.oidc.clientId | quote }}
+            clientSecret:
+              valueFrom:
+                secretKeyRef:
+                  name: trueforge-secrets
+                  key: oidc-client-secret
+        {{- if .Values.trueforge.postgres.external }}
+        postgresql:
+          enabled: false
+        externalPostgres:
+          host: {{ .Values.trueforge.postgres.host }}
+          port: {{ .Values.trueforge.postgres.port }}
+          database: {{ .Values.trueforge.postgres.database }}
+          user: {{ .Values.trueforge.postgres.user }}
+          password:
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.trueforge.postgres.existingSecret }}
+                key: {{ .Values.trueforge.postgres.passwordKey }}
+        {{- else }}
+        postgresql:
+          auth:
+            existingSecret: {{ .Values.trueforge.postgres.existingSecret }}
+            secretKeys:
+              adminPasswordKey: {{ .Values.trueforge.postgres.passwordKey }}
+              userPasswordKey: {{ .Values.trueforge.postgres.passwordKey }}
+        {{- end }}
+        # Chart ships no ingress — traefik Ingress via extraObjects (tpl-rendered)
+        extraObjects:
+          - apiVersion: networking.k8s.io/v1
+            kind: Ingress
+            metadata:
+              name: '{{"{{"}} include "trueforge.fullname" . {{"}}"}}'
+            spec:
+              ingressClassName: traefik
+              rules:
+                - host: {{ .Values.trueforge.ingress.host }}
+                  http:
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        backend:
+                          service:
+                            name: '{{"{{"}} include "trueforge.fullname" . {{"}}"}}'
+                            port:
+                              number: {{ .Values.trueforge.servicePort | default 8790 }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+{{- end }}

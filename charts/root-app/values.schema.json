@@ -577,6 +577,81 @@
         "enabled"
       ]
     },
+    "trueforge": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "host": {
+              "type": "string",
+              "format": "hostname"
+            }
+          },
+          "required": [
+            "host"
+          ]
+        },
+        "oidc": {
+          "type": "object",
+          "properties": {
+            "issuerUrl": {
+              "type": "string",
+              "format": "uri"
+            },
+            "clientId": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "issuerUrl"
+          ]
+        },
+        "postgres": {
+          "type": "object",
+          "properties": {
+            "external": {
+              "type": "boolean",
+              "default": false
+            },
+            "existingSecret": {
+              "type": "string"
+            },
+            "passwordKey": {
+              "type": "string"
+            },
+            "host": {
+              "type": "string"
+            },
+            "port": {
+              "type": "integer",
+              "default": 5432
+            },
+            "database": {
+              "type": "string"
+            },
+            "user": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "existingSecret",
+            "passwordKey"
+          ]
+        }
+      },
+      "required": [
+        "enabled"
+      ]
+    },
     "uptime": {
       "type": "object",
       "properties": {

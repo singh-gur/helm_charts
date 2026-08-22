@@ -243,6 +243,25 @@ rancher:
 rootapp:
   enabled: true
 
+trueforge:
+  enabled: false
+  version: 0.1.5
+  ingress:
+    host: trueforge.gsingh.io
+  oidc:
+    issuerUrl: https://auth2.gsingh.io
+    clientId: ""  # Pocket ID client id, set after creating the client
+  postgres:
+    external: false
+    # one secret serves both modes: bundled (Bitnami existingSecret) and external (secretKeyRef)
+    existingSecret: trueforge-secrets
+    passwordKey: postgres-password
+    # external instance (used when external: true)
+    host: ""
+    port: 5432
+    database: trueforge
+    user: trueforge
+
 uptime:
   enabled: true
   version: 4.1.0
