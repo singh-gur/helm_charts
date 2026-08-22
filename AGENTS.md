@@ -6,13 +6,35 @@
 
 | Task | Command |
 |------|---------|
-| **Lint chart** | `helm lint charts/root-app/`, `helm lint charts/argo-cd/`, `helm lint charts/whoami/` |
-| **Render full template** | `helm template root-app charts/root-app/ --values charts/root-app/values.yaml` |
-| **Test single template** | `just test-render <app_name>` (e.g., `just test-render authentik`) |
-| **Expand to manifests** | `just expand-app <app_name>` or `./scripts/expand-app.sh <app_name>` |
-| **Dry-run install** | `helm install --dry-run root-app charts/root-app/` |
-| **Install ArgoCD CLI** | `just install-argocd` |
-| **Push changes** | `just push "message"` |
+| List all recipes | `just` (default task) |
+| Lint chart | `helm lint charts/root-app/`, `helm lint charts/argo-cd/`, `helm lint charts/whoami/` |
+| Render full template | `helm template root-app charts/root-app/ --values charts/root-app/values.yaml` |
+| Test single template | `just test-render <app_name>` (e.g., `just test-render authentik`) |
+| Expand to manifests | `just expand-app <app_name>` or `./scripts/expand-app.sh <app_name>` |
+| Dry-run install | `helm install --dry-run root-app charts/root-app/` |
+| Install ArgoCD CLI | `just install-argocd` |
+| Push changes | `just push "message"` |
+| Generate DB user/database SQL | `just generate-db-sql <username> <dbname>` |
+
+### ArgoCD Lifecycle
+
+| Task | Command |
+|------|---------|
+| Validate deployment | `just validate-argocd` |
+| Upgrade chart version | `just upgrade-argocd <version>` |
+| Rollback chart version | `just rollback-argocd <version>` |
+| List available chart versions | `just list-argocd-versions` |
+| Backup ArgoCD state | `just backup-argocd` |
+| Backup all apps (all namespaces) | `just backup-all-apps` |
+| Sync backups to S3 | `just sync-backups-to-s3 <profile> <bucket> [prefix]` |
+
+### Data Platform
+
+| Task | Command |
+|------|---------|
+| Init Polaris catalog/roles/grants | `just init-polaris` |
+| Get Zitadel token for Polaris/Trino | `just get-zitadel-token` |
+| Register existing Iceberg tables in Polaris | `just migrate-iceberg-to-polaris <args>` |
 
 ## Code Style Standards
 
@@ -61,11 +83,13 @@ The `root-app` chart manages all child applications via ArgoCD Application CRDs.
 |------|----------|-------------|
 | **Root** | `charts/root-app/` | ArgoCD Application CRDs that reference children |
 | **External** | `charts/argo-cd/` | Dependencies on external Helm repos (e.g., argo-helm) |
-| **Local** | `charts/whoami/` | Custom applications with local templates |
+| **Local** | `charts/whoami/`, `charts/fission-hello/` | Custom applications with local templates |
+
+Most `root-app` templates do not reference local charts — they point ArgoCD directly at external Helm repos (e.g., `charts.redpanda.com`, `grafana.github.io/helm-charts`) with inline `helm.values` overrides.
 
 ### Data Platform Flow
-- Trino queries Iceberg metadata through Polaris REST Catalog, not direct JDBC.
-- Polaris manages Iceberg catalog metadata and authorization.
+- Trino queries Iceberg via `trino.catalogs.iceberg.catalogType`: `rest` (Polaris, default) or `jdbc` (PostgreSQL-backed).
+- Polaris manages Iceberg catalog metadata and authorization; Zitadel provides OIDC tokens.
 - Table data and metadata files remain in S3-compatible object storage.
 
 ### Directory Structure
@@ -73,23 +97,22 @@ The `root-app` chart manages all child applications via ArgoCD Application CRDs.
 charts/
   root-app/
     Chart.yaml          # Root app metadata
-    values.yaml         # App configurations
+    values.yaml         # App configurations (source of truth for all versions)
     values_local.yaml   # Local overrides (gitignored)
-    templates/          # ArgoCD Application CRDs
+    values.schema.json
+    templates/          # ArgoCD Application CRDs, one per app
+      airflow.yaml
       authentik.yaml
-      grafana.yaml
+      trino.yaml
       whoami.yaml
       ...
   argo-cd/
     Chart.yaml          # External dependency reference
     values.yaml         # ArgoCD overrides
-  whoami/
-    Chart.yaml          # Local chart metadata
-    values.yaml         # Empty (all defaults)
-    templates/          # K8s manifests
-      deployment.yaml
-      service.yaml
-      ingress.yaml
+  whoami/               # Local chart
+  fission-hello/        # Local chart (sample Fission function)
+scripts/                # expand-app.sh, Polaris/Trino/Zitadel helpers, secret creators
+docs/                   # App-specific notes (e.g., dagster-authentication.md)
 ```
 
 ### Testing Workflow
@@ -100,66 +123,84 @@ charts/
 
 ## ArgoCD Application CRD Standards
 
-Every ArgoCD Application template must include:
+Every ArgoCD Application template follows this pattern (see `charts/root-app/templates/whoami.yaml`):
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: {{ .Values.appname.name }}
-  namespace: argocd
+  namespace: {{ .Values.argocdNamespace | default "default" }}
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    repoURL: https://github.com/gsingh/helm_charts.git
+    # Local chart: repoURL + path
+    repoURL: https://github.com/singh-gur/helm_charts.git
     targetRevision: HEAD
     path: charts/{{ .Values.appname.path }}
+    # OR external chart: repoURL + chart + targetRevision + helm.values overrides
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ .Values.appname.namespace }}
   syncPolicy:
     automated:
       selfHeal: true
-      prune: true
+      prune: true            # on templates that manage orphaned resources
+    syncOptions:
+      - CreateNamespace=true # when the app needs its own namespace
 ```
 
 **Required fields**:
 - `automated.selfHeal: true` - Auto-heal on drift
 - `resources-finalizer.argocd.argoproj.io` - Cascading delete
-- `prune: true` - Remove orphaned resources
+- `{{ .Values.argocdNamespace | default "default" }}` - Never hardcode `argocd` as the Application namespace
 
 ## Available Applications
 
+App versions drift constantly — `charts/root-app/values.yaml` is the source of truth for every `version:`. Enable/disable per app via `enabled: bool`.
+
 ### Observability
-- **lgtm** - Grafana, Loki, Tempo, Mimir stack (v3.0.1)
-- **alloy** - Grafana Alloy agent (v1.0.3)
+- **lgtm** - Grafana, Loki, Tempo, Mimir stack
+- **alloy** - Grafana Alloy agent
 - **promtail** - Log scraping (Bitnami)
+- **k8s-monitoring** - Grafana Kubernetes monitoring
+- **openobserve** - OpenObserve log/metrics platform
+- **uptime** - Uptime monitoring
 
 ### CI/CD & Orchestration
-- **argo-cd** - GitOps controller (v7.3.6)
-- **argo-wf** - Argo Workflows
-- **airflow** - Apache Airflow (v25.0.2)
+- **argocd** - GitOps controller (external chart via `charts/argo-cd/`)
+- **argowf** - Argo Workflows
+- **airflow** - Apache Airflow (external PostgreSQL, custom image)
 
 ### Development & Platform
-- **authentik** - Identity provider (v2025.10.3)
+- **authentik** - Identity provider
+- **zitadel** - Identity solution (OIDC provider for Polaris/Trino)
+- **oauth2-proxy** - OAuth2 proxy for ingress auth
 - **coder** - Self-hosted dev environments
-- **dagster** - Data orchestrator
-- **prefect** - Workflow orchestration
+- **dagster** - Data orchestrator (see `docs/dagster-authentication.md`)
+- **prefect** + **prefect-worker** - Workflow orchestration
 - **windmill** - Dev tool platform
+- **openproject** - Project management
+- **rancher** - Kubernetes management
+- **fission** + **fissionauth** - Fission serverless functions
+- **whoami** - Local sample chart
+- **fission-hello** - Local sample Fission function chart
 
 ### Data & Analytics
-- **trino** - Distributed SQL query engine (via Polaris REST catalog)
-- **polaris** - Apache Iceberg REST Catalog (v1.3.0-incubating)
+- **trino** - Distributed SQL query engine (Iceberg via Polaris REST or JDBC catalog, configurable)
+- **polaris** - Apache Iceberg REST Catalog
 - **kyuubi** - Thrift JDBC/ODBC server
+- **datahub** (+ **datahub-prerequisites**) - Data metadata platform
+- **redpanda** - Kafka-compatible streaming
+
+### LLM/Observability Tooling
+- **langfuse** - LLM tracing/observability
 
 ### Other
 - **ghost** - CMS platform
-- **openproject** - Project management
-- **proton-bridge** - Email bridge
-- **uptime** - Monitoring
-- **rancher** - Kubernetes management
-- **zitadel** - Identity solution
+- **protonbridge** - Email bridge
+- **rootapp** - Self-referencing root Application
 
 ## Secrets Management
 
@@ -182,11 +223,11 @@ helm template root-app charts/root-app/ --debug
 
 ### ArgoCD App Not Syncing
 ```bash
-# Verify repo URL and path
-kubectl get application <app> -n argocd -o yaml | grep -A5 source
+# Applications live in the namespace set by argocdNamespace (values.yaml, currently default)
+kubectl get application <app> -n default -o yaml | grep -A5 source
 
 # Check for finalizer issues
-kubectl get application <app> -n argocd -o jsonpath='{.metadata.finalizers}'
+kubectl get application <app> -n default -o jsonpath='{.metadata.finalizers}'
 ```
 
 ### Values Not Applying
