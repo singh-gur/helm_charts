@@ -25,12 +25,19 @@ elif grep -q "chart:" .test/${APP_NAME}-app.yaml; then
     CHART_VERSION=$(grep "targetRevision:" .test/${APP_NAME}-app.yaml | awk '{print $2}')
     echo "Rendering external chart: $CHART_NAME from $REPO_URL version $CHART_VERSION"
     
-    # Handle helm values if they exist in the ArgoCD Application
-    if grep -q "helm:" .test/${APP_NAME}-app.yaml; then
+    # Handle inline Helm values if they exist in the ArgoCD Application.
+    if grep -q "values: |" .test/${APP_NAME}-app.yaml; then
         echo "Extracting helm values..."
-        # Extract the values section and save to temp file
-        sed -n '/values: |/,/^[[:space:]]*[^[:space:]]/p' .test/${APP_NAME}-app.yaml | \
-        sed '1d;$d' | sed 's/^        //' > .test/${APP_NAME}-values.yaml
+        # Extract the indented values block, preserving blank lines.
+        awk '
+            /values: \|/ { in_values = 1; next }
+            in_values && (/^        / || /^$/) { sub(/^        /, ""); print; next }
+            in_values { exit }
+        ' .test/${APP_NAME}-app.yaml > .test/${APP_NAME}-values.yaml
+        if [ ! -s .test/${APP_NAME}-values.yaml ]; then
+            echo "Failed to extract Helm values for ${APP_NAME}"
+            exit 1
+        fi
         helm template ${APP_NAME} ${CHART_NAME} --repo ${REPO_URL} --version ${CHART_VERSION} -f .test/${APP_NAME}-values.yaml > .test/${APP_NAME}-full-manifests.yaml
     else
         helm template ${APP_NAME} ${CHART_NAME} --repo ${REPO_URL} --version ${CHART_VERSION} > .test/${APP_NAME}-full-manifests.yaml

@@ -66,9 +66,93 @@ spec:
                   },
                   { type = "move", from = "attributes.namespace", to = "resource[\"k8s.namespace.name\"]" },
                   { type = "move", from = "attributes.pod_name", to = "resource[\"k8s.pod.name\"]" },
+                  { type = "move", from = "attributes.uid", to = "resource[\"k8s.pod.uid\"]" },
                   { type = "move", from = "attributes.container_name", to = "resource[\"k8s.container.name\"]" },
                   { type = "container", parse_from = "body" },
                 ]
+                output {
+                  logs = [otelcol.processor.k8sattributes.pods.input]
+                }
+              }
+
+              otelcol.processor.k8sattributes "pods" {
+                filter {
+                  node = env("K8S_NODE_NAME")
+                }
+                pod_association {
+                  source {
+                    from = "resource_attribute"
+                    name = "k8s.pod.uid"
+                  }
+                }
+                extract {
+                  metadata = [
+                    "container.image.name",
+                    "container.image.tag",
+                    "k8s.container.name",
+                    "k8s.cronjob.name",
+                    "k8s.daemonset.name",
+                    "k8s.deployment.name",
+                    "k8s.job.name",
+                    "k8s.namespace.name",
+                    "k8s.node.name",
+                    "k8s.pod.name",
+                    "k8s.pod.start_time",
+                    "k8s.pod.uid",
+                    "k8s.replicaset.name",
+                    "k8s.statefulset.name",
+                  ]
+                  label {
+                    from     = "pod"
+                    key      = "app.kubernetes.io/instance"
+                    tag_name = "k8s.app.instance"
+                  }
+                  label {
+                    from     = "pod"
+                    key      = "argocd.argoproj.io/instance"
+                    tag_name = "argocd.application.name"
+                  }
+                  label {
+                    from     = "deployment"
+                    key      = "argocd.argoproj.io/instance"
+                    tag_name = "argocd.application.name"
+                  }
+                  label {
+                    from     = "statefulset"
+                    key      = "argocd.argoproj.io/instance"
+                    tag_name = "argocd.application.name"
+                  }
+                  label {
+                    from     = "daemonset"
+                    key      = "argocd.argoproj.io/instance"
+                    tag_name = "argocd.application.name"
+                  }
+                  label {
+                    from     = "job"
+                    key      = "argocd.argoproj.io/instance"
+                    tag_name = "argocd.application.name"
+                  }
+                  label {
+                    from     = "pod"
+                    key      = "app.kubernetes.io/name"
+                    tag_name = "k8s.app.name"
+                  }
+                  label {
+                    from     = "pod"
+                    key      = "app.kubernetes.io/component"
+                    tag_name = "k8s.app.component"
+                  }
+                  label {
+                    from     = "pod"
+                    key      = "app.kubernetes.io/part-of"
+                    tag_name = "k8s.app.part_of"
+                  }
+                  label {
+                    from     = "pod"
+                    key      = "app.kubernetes.io/version"
+                    tag_name = "k8s.app.version"
+                  }
+                }
                 output {
                   logs = [otelcol.exporter.otlphttp.openobserve.input]
                 }
@@ -190,6 +274,30 @@ spec:
                   }
                 }
               }
+        extraObjects:
+          - apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRole
+            metadata:
+              name: alloy-k8sattributes-workloads
+            rules:
+              - apiGroups: ["apps"]
+                resources: ["daemonsets", "deployments", "statefulsets"]
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["batch"]
+                resources: ["jobs"]
+                verbs: ["get", "list", "watch"]
+          - apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata:
+              name: alloy-k8sattributes-workloads
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: ClusterRole
+              name: alloy-k8sattributes-workloads
+            subjects:
+              - kind: ServiceAccount
+                name: alloy
+                namespace: default
   destination:
     server: https://kubernetes.default.svc
     namespace: default
