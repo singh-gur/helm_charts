@@ -244,7 +244,7 @@ rootapp:
   enabled: true
 
 trueforge:
-  enabled: false
+  enabled: true
   version: 0.1.5
   ingress:
     host: trueforge.gsingh.io
@@ -252,7 +252,7 @@ trueforge:
     issuerUrl: https://auth2.gsingh.io
     clientId: "9121113f-68da-4beb-8ac7-f98bbbe5ad79" # Pocket ID client id, set after creating the client
   postgres:
-    external: true
+    external: false
     # dedicated DB secret — the trueforge server hardcodes key 'password' when postgres is bundled
     existingSecret: trueforge-db-secret
     passwordKey: password
