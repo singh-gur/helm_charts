@@ -251,6 +251,7 @@ trueforge:
   oidc:
     issuerUrl: https://auth2.gsingh.io
     clientId: "9121113f-68da-4beb-8ac7-f98bbbe5ad79" # Pocket ID client id, set after creating the client
+    adminRoleValue: admin
   postgres:
     external: false
     # dedicated DB secret — the trueforge server hardcodes key 'password' when postgres is bundled

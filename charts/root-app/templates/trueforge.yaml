@@ -22,6 +22,8 @@ spec:
             enabled: true
             issuerUrl: {{ .Values.trueforge.oidc.issuerUrl | quote }}
             clientId: {{ .Values.trueforge.oidc.clientId | quote }}
+            adminRoleValue: {{ .Values.trueforge.oidc.adminRoleValue | quote }}
+            scopes: "openid,profile,email,groups"
             clientSecret:
               valueFrom:
                 secretKeyRef:
