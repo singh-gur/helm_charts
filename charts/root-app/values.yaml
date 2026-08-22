@@ -253,9 +253,9 @@ trueforge:
     clientId: "9121113f-68da-4beb-8ac7-f98bbbe5ad79" # Pocket ID client id, set after creating the client
   postgres:
     external: false
-    # one secret serves both modes: bundled (Bitnami existingSecret) and external (secretKeyRef)
-    existingSecret: trueforge-secrets
-    passwordKey: postgres-password
+    # dedicated DB secret — the trueforge server hardcodes key 'password' when postgres is bundled
+    existingSecret: trueforge-db-secret
+    passwordKey: password
     # external instance (used when external: true)
     host: ""
     port: 5432
