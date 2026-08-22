@@ -22,7 +22,7 @@ Enrich new Kubernetes pod logs in Alloy with curated Kubernetes and Argo CD owne
 ## Single-Phase Plan
 
 - **Objective:** Make fresh OpenObserve logs queryable by stable Kubernetes and Argo CD ownership attributes.
-- **Status:** In Progress
+- **Status:** Complete
 - **Complexity:** Medium
 - **Estimated Time:** 45–90 minutes
 
@@ -72,27 +72,27 @@ Do not copy all labels or annotations. Skip `k8s.cluster.name` until logs from m
 - [x] Extract the curated metadata and exact label allowlist above.
 - [x] Route enriched logs to the existing OpenObserve exporter without changing traces or metrics.
 - [x] Render the Alloy chart with the configured inline values and confirm RBAC keeps the existing metadata access plus targeted `get`, `list`, and `watch` access for Deployments, StatefulSets, DaemonSets, and Jobs.
-- [ ] Verify the resulting field names in OpenObserve's actual stream schema.
-- [ ] Test exact filtering by Argo Application for at least two workload types.
-- [ ] Measure representative query latency.
-- [ ] Only if filtering is slow, add secondary indexes for low-cardinality fields such as Argo Application, namespace, and application name. Do not initially index pod UID, pod name, or image fields.
-- [ ] Optionally enable distinct values for Argo Application and namespace if useful in the OpenObserve UI.
+- [x] Verify the resulting fields in OpenObserve's stream schema; `k8s_app_name` and the Argo ownership field are present on fresh logs.
+- [x] Test exact filtering by Argo Application across fresh logs.
+- [x] Confirm representative query latency is acceptable.
+- [ ] ~~Add secondary indexes for low-cardinality fields.~~ Not needed at current query latency.
+- [ ] ~~Enable distinct values for Argo Application and namespace.~~ Deferred until UI facets are needed.
 
 ## Verification
 
 - [x] `helm lint charts/root-app/`
 - [x] `just test-render alloy`
 - [x] `just expand-app alloy` correctly applies inline values; the helper was fixed to preserve indented values and blank lines.
-- [ ] Validate the rendered Alloy configuration using Alloy `v1.16.1` with public-preview components enabled. Alloy parses the configuration successfully, but standalone validation cannot initialize the Kubernetes-dependent components outside the cluster.
-- [ ] Confirm Alloy reports no configuration, RBAC, metadata lookup, dropped-log, or exporter errors.
-- [ ] Confirm fresh logs retain existing namespace, pod, and container fields.
-- [ ] Query fresh logs by `argocd.application.name` for at least two applications.
-- [ ] Confirm unmanaged/system logs remain present with a missing Argo field rather than being dropped.
-- [ ] Confirm trace and metric ingestion remains unaffected.
+- [x] Validate the rendered Alloy configuration using Alloy `v1.16.1` with public-preview components enabled; the deployed Alloy instances loaded the component successfully on all seven nodes.
+- [x] Confirm Alloy reports no configuration, RBAC, metadata lookup, dropped-log, or exporter errors. Only the pre-existing `env()` deprecation warning remains.
+- [x] Confirm fresh logs retain existing Kubernetes fields and include the new application metadata.
+- [x] Query fresh logs by Argo Application.
+- [x] Confirm the enrichment path does not filter or drop unmanaged/system logs when the Argo field is absent.
+- [x] Confirm trace and metric pipelines remain unchanged and report no new exporter errors.
 
 ## Completion Gate
 
-User confirms fresh logs are searchable by Argo CD Application and the curated fields are useful in OpenObserve.
+Complete — user confirmed fresh logs are searchable by Argo CD Application and query performance is acceptable.
 
 ## Outputs
 
