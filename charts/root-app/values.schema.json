@@ -892,6 +892,42 @@
         "enabled"
       ]
     },
+    "opensandbox": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^helm/opensandbox/[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "namespace": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workloadNamespace": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "host": {
+              "type": "string",
+              "format": "hostname"
+            }
+          },
+          "required": [
+            "host"
+          ]
+        }
+      },
+      "required": [
+        "enabled"
+      ]
+    },
     "zitadel": {
       "type": "object",
       "properties": {

@@ -332,6 +332,14 @@ openproject:
     host: "auth.gsingh.io"
     scope: "[openid profile email]"
 
+opensandbox:
+  enabled: false
+  version: helm/opensandbox/0.2.2 # git tag of the all-in-one chart (controller + server); charts are only published as GitHub release tags
+  namespace: opensandbox-system # controller + lifecycle server
+  workloadNamespace: opensandbox # sandbox workload namespace (configToml [kubernetes].namespace), created by root-app template
+  ingress:
+    host: opensandbox.gsingh.io
+
 zitadel:
   enabled: true
   version: 9.34.0

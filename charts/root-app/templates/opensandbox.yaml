@@ -1,0 +1,94 @@
+{{- if .Values.opensandbox.enabled }}
+---
+# Sandbox workload namespace — the chart does not create it (configToml [kubernetes].namespace must pre-exist)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.opensandbox.workloadNamespace }}
+---
+# Chart ships no Ingress — traefik Ingress managed by root-app
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: opensandbox-server
+  namespace: {{ .Values.opensandbox.namespace }}
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: {{ .Values.opensandbox.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: opensandbox-server
+                port:
+                  number: 80
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: opensandbox
+  namespace: {{ .Values.argocdNamespace | default "default" }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # Charts are only published as GitHub release tags — source the git repo at the chart tag
+    repoURL: https://github.com/opensandbox-group/OpenSandbox.git
+    targetRevision: {{ .Values.opensandbox.version }}
+    path: kubernetes/charts/opensandbox
+    helm:
+      values: |
+        opensandbox-server:
+          server:
+            env:
+              - name: OPENSANDBOX_SERVER_API_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: opensandbox-api-key
+                    key: api-key
+          # configToml replaces the chart default entirely — keep in sync with the upstream values.yaml
+          configToml: |
+            [server]
+            host = "0.0.0.0"
+            port = 80
+            api_key = ""
+
+            [log]
+            level = "INFO"
+
+            [runtime]
+            type = "kubernetes"
+            execd_image = "sandbox-registry.cn-zhangjiakou.cr.aliyuncs.com/opensandbox/execd:v1.0.22"
+
+            [kubernetes]
+            kubeconfig_path = ""
+            namespace = {{ .Values.opensandbox.workloadNamespace | quote }}
+            informer_enabled = true
+            informer_resync_seconds = 300
+            informer_watch_timeout_seconds = 60
+            snapshot_create_timeout_seconds = 900
+            workload_provider = "batchsandbox"
+            batchsandbox_template_file = "/etc/opensandbox/example.batchsandbox-template.yaml"
+
+            [egress]
+            image = "sandbox-registry.cn-zhangjiakou.cr.aliyuncs.com/opensandbox/egress:v1.1.6"
+            mode = "dns+nft"
+
+            # All sandboxes run as Kata microVMs (RuntimeClass kata -> kata-qemu handler)
+            [secure_runtime]
+            type = "kata"
+            k8s_runtime_class = "kata"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.opensandbox.namespace }}
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}

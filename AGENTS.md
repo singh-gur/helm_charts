@@ -196,6 +196,7 @@ App versions drift constantly — `charts/root-app/values.yaml` is the source of
 
 ### LLM/Observability Tooling
 - **langfuse** - LLM tracing/observability
+- **opensandbox** - AI agent sandbox platform (controller + lifecycle server; Kata microVM sandboxes in the `opensandbox` namespace, control plane in `opensandbox-system`)
 
 ### Other
 - **ghost** - CMS platform
