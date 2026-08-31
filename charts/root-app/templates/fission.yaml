@@ -9,37 +9,46 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    repoURL: https://fission.github.io/fission-charts/
-    chart: fission-all
-    targetRevision: {{ $fission.version }}
-    helm:
-      values: |
-        routerServiceType: {{ $fission.routerServiceType | default "ClusterIP" }}
-        defaultNamespace: {{ $fission.namespace | default "fission" }}
-        functionNamespace: {{ $fission.namespace | default "fission" }}
-        builderNamespace: {{ $fission.namespace | default "fission" }}
-        {{- if $fission.canaryDeployment }}
-        canaryDeployment:
-          enabled: {{ $fission.canaryDeployment.enabled | default false }}
-        {{- end }}
-        {{- if $fission.openTelemetry }}
-        openTelemetry:
-          otlpCollectorEndpoint: {{ $fission.openTelemetry.otlpCollectorEndpoint | quote }}
-          otlpInsecure: {{ $fission.openTelemetry.otlpInsecure | default true }}
-          {{- if $fission.openTelemetry.otlpHeaders }}
-          otlpHeaders: {{ $fission.openTelemetry.otlpHeaders | quote }}
+  sources:
+    # Fission CRDs are not shipped in the fission-all chart and must be applied
+    # BEFORE the chart upgrade (the pre-upgrade-checks job fails otherwise).
+    # Vendored from https://github.com/fission/fission/tree/v1.27.0/crds/v1 —
+    # re-vendor these when bumping .Values.fission.version.
+    # ArgoCD syncs CustomResourceDefinition kind before Jobs, so a single sync
+    # applies CRDs first and the pre-upgrade job second.
+    - repoURL: https://github.com/singh-gur/helm_charts.git
+      targetRevision: HEAD
+      path: charts/fission-crds
+    - repoURL: https://fission.github.io/fission-charts/
+      chart: fission-all
+      targetRevision: {{ $fission.version }}
+      helm:
+        values: |
+          routerServiceType: {{ $fission.routerServiceType | default "ClusterIP" }}
+          defaultNamespace: {{ $fission.namespace | default "fission" }}
+          functionNamespace: {{ $fission.namespace | default "fission" }}
+          builderNamespace: {{ $fission.namespace | default "fission" }}
+          {{- if $fission.canaryDeployment }}
+          canaryDeployment:
+            enabled: {{ $fission.canaryDeployment.enabled | default false }}
           {{- end }}
-          tracesSampler: {{ $fission.openTelemetry.tracesSampler | default "parentbased_traceidratio" | quote }}
-          tracesSamplingRate: {{ $fission.openTelemetry.tracesSamplingRate | default "0.1" | quote }}
-        {{- end }}
-        {{- if $fission.serviceMonitor }}
-        serviceMonitor:
-          enabled: {{ $fission.serviceMonitor.enabled | default false }}
-          {{- if $fission.serviceMonitor.namespace }}
-          namespace: {{ $fission.serviceMonitor.namespace }}
+          {{- if $fission.openTelemetry }}
+          openTelemetry:
+            otlpCollectorEndpoint: {{ $fission.openTelemetry.otlpCollectorEndpoint | quote }}
+            otlpInsecure: {{ $fission.openTelemetry.otlpInsecure | default true }}
+            {{- if $fission.openTelemetry.otlpHeaders }}
+            otlpHeaders: {{ $fission.openTelemetry.otlpHeaders | quote }}
+            {{- end }}
+            tracesSampler: {{ $fission.openTelemetry.tracesSampler | default "parentbased_traceidratio" | quote }}
+            tracesSamplingRate: {{ $fission.openTelemetry.tracesSamplingRate | default "0.1" | quote }}
           {{- end }}
-        {{- end }}
+          {{- if $fission.serviceMonitor }}
+          serviceMonitor:
+            enabled: {{ $fission.serviceMonitor.enabled | default false }}
+            {{- if $fission.serviceMonitor.namespace }}
+            namespace: {{ $fission.serviceMonitor.namespace }}
+            {{- end }}
+          {{- end }}
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ $fission.namespace | default "fission" }}
