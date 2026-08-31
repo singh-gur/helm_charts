@@ -22,12 +22,12 @@ spec:
           {{- if .Values.uptime.image.pullPolicy }}
           pullPolicy: {{ .Values.uptime.image.pullPolicy }}
           {{- end }}
-          {{- if .Values.uptime.image.pullSecrets }}
-          pullSecrets:
-            {{- range .Values.uptime.image.pullSecrets }}
-            - name: {{ . }}
-            {{- end }}
+        {{- if .Values.uptime.image.pullSecrets }}
+        imagePullSecrets:
+          {{- range .Values.uptime.image.pullSecrets }}
+          - name: {{ . }}
           {{- end }}
+        {{- end }}
         ingress:
           enabled: true
           hosts:
