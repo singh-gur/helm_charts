@@ -19,6 +19,11 @@ spec:
     - repoURL: https://github.com/singh-gur/helm_charts.git
       targetRevision: HEAD
       path: charts/fission-crds
+      syncPolicy:
+        syncOptions:
+          # CRDs are too large for client-side apply (last-applied annotation
+          # exceeds the 256KB metadata.annotations limit).
+          - ServerSideApply=true
     - repoURL: https://fission.github.io/fission-charts/
       chart: fission-all
       targetRevision: {{ $fission.version }}
