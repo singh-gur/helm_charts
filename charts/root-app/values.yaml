@@ -95,7 +95,7 @@ airflow:
 
 alloy:
   enabled: true
-  version: 1.8.2
+  version: 1.12.1
 
 authentik:
   enabled: false
@@ -159,7 +159,7 @@ argocd:
 
 coder:
   enabled: true
-  version: 2.34.3
+  version: 2.36.3
   ingress:
     host: ide.gsingh.io
   accessUrl: https://ide.gsingh.io
@@ -169,7 +169,7 @@ coder:
 
 fission:
   enabled: true
-  version: "1.22.1"
+  version: "1.27.0"
   namespace: fission
   routerServiceType: ClusterIP
   # Canary deployments (requires prometheus.serviceEndpoint)
@@ -193,7 +193,7 @@ fission:
   # Supports both browser (session) and programmatic (JWT bearer token) access
 fissionauth:
   enabled: true
-  version: "10.4.3"
+  version: "10.7.0"
   namespace: fission
   existingSecret: oauth2-proxy-fission-secret
   ingress:
@@ -237,7 +237,7 @@ protonbridge:
 
 rancher:
   enabled: true
-  version: 2.15.0
+  version: 2.15.1
   hostname: rancher.gsingh.io
 
 rootapp:
@@ -265,7 +265,7 @@ trueforge:
 
 uptime:
   enabled: true
-  version: 4.1.0
+  version: 4.2.0
   image:
     repository: regv2.gsingh.io/core/uptime-kuma
     pullPolicy: IfNotPresent
@@ -282,7 +282,7 @@ fissionHello:
 
 openobserve:
   enabled: true
-  version: 0.91.2
+  version: 0.92.2
   namespace: default
   # One secret keyed by env var names: ZO_ROOT_USER_EMAIL, ZO_ROOT_USER_PASSWORD,
   # ZO_META_POSTGRES_DSN, ZO_S3_ACCESS_KEY, ZO_S3_SECRET_KEY (chart supports one externalSecret)
@@ -342,7 +342,7 @@ opensandbox:
 
 zitadel:
   enabled: true
-  version: 9.34.0
+  version: 10.0.4
   externalDomain: auth.gsingh.io
   ingress:
     host: auth.gsingh.io
@@ -581,7 +581,7 @@ trino:
 #   - polaris-token-keys      (keys: public.pem, private.pem)         -- created in Phase 4
 polaris:
   enabled: true
-  version: "1.5.0"
+  version: "1.7.0"
   namespace: data-platform
   ingress:
     enabled: true
@@ -642,7 +642,7 @@ polaris:
 
 dagster:
   enabled: true
-  version: 1.13.6
+  version: 1.13.20
   namespace: dagster
   ingress:
     host: dagster.gsingh.io
@@ -688,7 +688,7 @@ dagster:
 
 oauth2Proxy:
   enabled: true
-  version: "10.4.3"
+  version: "10.7.0"
   namespace: dagster
   existingSecret: oauth2-proxy-dagster-secret
   ingress:
@@ -707,7 +707,7 @@ oauth2Proxy:
 
 prefect:
   enabled: true
-  version: "2026.7.15163855"
+  version: "2026.8.25171537"
   namespace: prefect
   ingress:
     host: prefect.gsingh.io
@@ -728,7 +728,7 @@ prefect:
 
 prefectWorker:
   enabled: true
-  version: "2026.7.15163855"
+  version: "2026.8.25171537"
   namespace: prefect
   replicaCount: 5
   workPool: "kubernetes"
