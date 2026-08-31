@@ -168,7 +168,7 @@ coder:
     signInText: "SSO Login"
 
 fission:
-  enabled: true
+  enabled: false
   version: "1.27.0"
   namespace: fission
   routerServiceType: ClusterIP
@@ -192,7 +192,7 @@ fission:
   # OAuth2 Proxy for Fission (reverse proxy mode)
   # Supports both browser (session) and programmatic (JWT bearer token) access
 fissionauth:
-  enabled: true
+  enabled: false
   version: "10.7.0"
   namespace: fission
   existingSecret: oauth2-proxy-fission-secret
@@ -279,7 +279,7 @@ whoami:
   enabled: false
 
 fissionHello:
-  enabled: true
+  enabled: false
 
 openobserve:
   enabled: true
