@@ -16,6 +16,9 @@ spec:
       values: |
         image:
           repository: {{ .Values.uptime.image.repository }}
+          {{- if .Values.uptime.image.tag }}
+          tag: {{ .Values.uptime.image.tag | quote }}
+          {{- end }}
           {{- if .Values.uptime.image.pullPolicy }}
           pullPolicy: {{ .Values.uptime.image.pullPolicy }}
           {{- end }}
