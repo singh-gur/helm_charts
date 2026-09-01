@@ -231,6 +231,28 @@ langfuse:
     migration:
       autoMigrate: true
 
+# v2 chart (2.x) - fresh install, separate DB/S3 bucket, external ClickHouse. Prereqs before enabling:
+#   1. ClickHouse server reachable from cluster (see langfuseV2.clickhouse.host); create a
+#      'langfuse' database + user with password, listening on 0.0.0.0 with 8123/9000 open
+#   2. Create langfuse-v2-secrets with keys: encryption-key, salt, nextauth-secret,
+#      clickhouse-password, postgres-password, s3-access-key, s3-secret-key
+#   3. Create DB user/database on 192.168.2.119 (just generate-db-sql lfdbuser2 langfuse_v2)
+#   4. Create S3 bucket gsingh19-langfuse-v2
+langfuseV2:
+  enabled: false
+  version: 2.0.3
+  ingress:
+    host: langfuse-v2.gsingh.io
+  postgres:
+    host: 192.168.2.119
+    username: lfdbuser2
+    database: langfuse_v2
+  s3:
+    bucket: gsingh19-langfuse-v2
+  clickhouse:
+    host: CHANGE-ME   # e.g. 192.168.2.x or ch.internal.gsingh.io
+    database: langfuse
+
 protonbridge:
   enabled: false
   version: 5.4.2

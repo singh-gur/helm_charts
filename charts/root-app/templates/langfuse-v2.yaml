@@ -1,0 +1,86 @@
+{{- if .Values.langfuseV2.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: {{ .Values.argocdNamespace | default "default" }}
+  name: langfuse-v2
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://langfuse.github.io/langfuse-k8s
+    chart: langfuse
+    targetRevision: {{.Values.langfuseV2.version}}
+    helm:
+      values: |
+        langfuse:
+          encryptionKey:
+            secretKeyRef:
+              name: langfuse-v2-secrets
+              key: encryption-key
+          salt:
+            secretKeyRef:
+              name: langfuse-v2-secrets
+              key: salt
+          nextauth:
+            url: https://{{.Values.langfuseV2.ingress.host}}
+            secret:
+              secretKeyRef:
+                name: langfuse-v2-secrets
+                key: nextauth-secret
+          ingress:
+            enabled: true
+            hosts:
+            - host: {{.Values.langfuseV2.ingress.host}}
+              paths:
+              - path: /
+                pathType: Prefix
+            annotations: []
+        clickhouse:
+          # External (non-k8s) ClickHouse server
+          deploy: false
+          host: {{.Values.langfuseV2.clickhouse.host}}
+          database: {{.Values.langfuseV2.clickhouse.database}}
+          cluster:
+            enabled: false
+          migration:
+            autoMigrate: true
+          auth:
+            existingSecret: langfuse-v2-secrets
+            existingSecretKey: clickhouse-password
+        postgresql:
+          deploy: false
+          host: {{.Values.langfuseV2.postgres.host}}
+          auth:
+            username: {{.Values.langfuseV2.postgres.username}}
+            database: {{.Values.langfuseV2.postgres.database}}
+            existingSecret: langfuse-v2-secrets
+            secretKeys:
+              userPasswordKey: postgres-password
+        s3:
+          deploy: false
+          region: us-east-1
+          bucket: {{.Values.langfuseV2.s3.bucket}}
+          eventUpload:
+            prefix: "events/"
+          batchExport:
+            prefix: "exports/"
+          mediaUpload:
+            prefix: "media/"
+          accessKeyId:
+            secretKeyRef:
+              name: langfuse-v2-secrets
+              key: s3-access-key
+          secretAccessKey:
+            secretKeyRef:
+              name: langfuse-v2-secrets
+              key: s3-secret-key
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+{{- end }}
