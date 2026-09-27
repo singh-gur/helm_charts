@@ -36,17 +36,20 @@ spec:
               paths:
               - path: /
                 pathType: Prefix
-            annotations: []
+            annotations: {}
         clickhouse:
           # External (non-k8s) ClickHouse server
           deploy: false
           host: {{.Values.langfuseV2.clickhouse.host}}
+          httpPort: {{.Values.langfuseV2.clickhouse.httpPort}}
+          nativePort: {{.Values.langfuseV2.clickhouse.nativePort}}
           database: {{.Values.langfuseV2.clickhouse.database}}
           cluster:
             enabled: false
           migration:
             autoMigrate: true
           auth:
+            username: {{.Values.langfuseV2.clickhouse.username}}
             existingSecret: langfuse-v2-secrets
             existingSecretKey: clickhouse-password
         postgresql:
@@ -58,10 +61,15 @@ spec:
             existingSecret: langfuse-v2-secrets
             secretKeys:
               userPasswordKey: postgres-password
+        redis:
+          dataStorage:
+            className: longhorn
         s3:
           deploy: false
           region: us-east-1
           bucket: {{.Values.langfuseV2.s3.bucket}}
+          endpoint: {{.Values.langfuseV2.s3.endpoint}}
+          forcePathStyle: true
           eventUpload:
             prefix: "events/"
           batchExport:

@@ -501,7 +501,20 @@
             "host": {
               "type": "string"
             },
+            "httpPort": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            "nativePort": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
             "database": {
+              "type": "string"
+            },
+            "username": {
               "type": "string"
             }
           }
@@ -510,6 +523,9 @@
           "type": "object",
           "properties": {
             "bucket": {
+              "type": "string"
+            },
+            "endpoint": {
               "type": "string"
             }
           }
