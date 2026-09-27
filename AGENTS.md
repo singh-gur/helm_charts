@@ -214,6 +214,14 @@ passwordKey: admin-password
 
 **Never commit actual secrets** - Use `values_local.yaml` for local overrides.
 
+**Pin chart-generated passwords.** A chart that generates a password with `randAlphaNum`
+inside a `lookup` guard mints a new value on every ArgoCD render, because `lookup` returns
+empty under `helm template`. Point `existingSecret` at a secret created out-of-band instead.
+Otherwise the regenerated value desyncs from anything written at pod start — the langfuse
+chart's valkey password is one such case (see `samples/langfuse-v2-redis-auth.yaml`), where
+the next pod restart produces `WRONGPASS`, a crash-looping worker, and silently dropped
+traces.
+
 ## Common Issues & Debugging
 
 ### Template Rendering Fails

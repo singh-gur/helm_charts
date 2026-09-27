@@ -84,6 +84,16 @@ spec:
         redis:
           dataStorage:
             className: longhorn
+          # Pin the valkey password. The chart generates it with randAlphaNum inside a
+          # `lookup` guard, which returns empty under ArgoCD (helm template has no cluster
+          # access), so every render mints a new password. Valkey only rewrites its ACL
+          # from this secret when the pod starts, so a regenerated password desyncs the
+          # running valkey from the langfuse pods -> WRONGPASS, crash-looping worker, and
+          # silently dropped traces.
+          auth:
+            existingSecret: langfuse-v2-redis-auth
+            existingSecretPasswordKey: default
+            usersExistingSecret: langfuse-v2-redis-auth
         s3:
           deploy: false
           region: us-east-1

@@ -1,0 +1,17 @@
+# Sample only. Copy outside this repository, replace the placeholder, then apply
+# the private copy: kubectl apply -f /private/path/langfuse-v2-redis-auth.yaml
+# Never commit actual credentials. Generate with `openssl rand -hex 32`.
+#
+# Required by charts/root-app/templates/langfuse-v2.yaml (redis.auth.existingSecret).
+# The password must be pinned: the langfuse chart generates it with randAlphaNum inside a
+# `lookup` guard, which returns empty under ArgoCD, so every render mints a new value.
+# Valkey only rewrites its ACL from key `default` when its pod starts, so a regenerated
+# password desyncs the running valkey from the langfuse pods.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: langfuse-v2-redis-auth
+  namespace: default
+type: Opaque
+stringData:
+  default: "REPLACE_WITH_RANDOM_REDIS_PASSWORD"
