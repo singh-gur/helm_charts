@@ -31,6 +31,24 @@ spec:
               secretKeyRef:
                 name: langfuse-v2-secrets
                 key: nextauth-secret
+          {{- if .Values.langfuseV2.oidc.clientId }}
+          # Generic OIDC provider (Pocket ID). Callback: https://<host>/api/auth/callback/custom
+          additionalEnv:
+            - name: AUTH_CUSTOM_CLIENT_ID
+              value: {{ .Values.langfuseV2.oidc.clientId | quote }}
+            - name: AUTH_CUSTOM_ISSUER
+              value: {{ .Values.langfuseV2.oidc.issuerUrl | quote }}
+            - name: AUTH_CUSTOM_NAME
+              value: "Pocket ID"
+            # Link Pocket ID logins to existing local accounts when emails match
+            - name: AUTH_CUSTOM_ALLOW_ACCOUNT_LINKING
+              value: "true"
+            - name: AUTH_CUSTOM_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: langfuse-v2-secrets
+                  key: oidc-client-secret
+          {{- end }}
           ingress:
             enabled: true
             hosts:

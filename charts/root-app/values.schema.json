@@ -481,6 +481,17 @@
             "host"
           ]
         },
+        "oidc": {
+          "type": "object",
+          "properties": {
+            "issuerUrl": {
+              "type": "string"
+            },
+            "clientId": {
+              "type": "string"
+            }
+          }
+        },
         "postgres": {
           "type": "object",
           "properties": {

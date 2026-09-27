@@ -242,6 +242,9 @@ langfuseV2:
   version: 2.1.2
   ingress:
     host: aiobs.gsingh.io
+  oidc:
+    issuerUrl: https://auth2.gsingh.io
+    clientId: "4279dd90-f516-4297-aa83-867a81822877" # Pocket ID client id; also add oidc-client-secret key to langfuse-v2-secrets
   postgres:
     host: 192.168.2.119
     username: lfdbuser2
