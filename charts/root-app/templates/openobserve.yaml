@@ -22,11 +22,15 @@ spec:
           name: {{ .Values.openobserve.existingSecret }}
         config:
           ZO_WEB_URL: https://{{ .Values.openobserve.ingress.host }}
-          ZO_META_CONNECTION_POOL_MAX_SIZE: {{ .Values.openobserve.dbConnectionPoolMaxSize }}
           ZO_S3_PROVIDER: {{ .Values.openobserve.s3.provider }}
           ZO_S3_SERVER_URL: {{ .Values.openobserve.s3.endpoint }}
           ZO_S3_BUCKET_NAME: {{ .Values.openobserve.s3.bucketName }}
           ZO_S3_REGION_NAME: {{ .Values.openobserve.s3.region }}
+        # Chart's configmap only renders a fixed key list, so non-listed ZO_* vars must go via extraEnv.
+        # Limit is per pool; each pod opens 3 pools (rw, ro, ddl).
+        extraEnv:
+          - name: ZO_META_CONNECTION_POOL_MAX_SIZE
+            value: {{ .Values.openobserve.dbConnectionPoolMaxSize | quote }}
         # Metadata lives in external Postgres (DSN in the secret above)
         postgres:
           enabled: false
