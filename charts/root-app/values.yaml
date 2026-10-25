@@ -310,7 +310,7 @@ fissionHello:
   enabled: false
 
 openobserve:
-  enabled: false
+  enabled: true
   version: 0.92.2
   namespace: default
   # One secret keyed by env var names: ZO_ROOT_USER_EMAIL, ZO_ROOT_USER_PASSWORD,
