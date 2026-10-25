@@ -31,6 +31,9 @@ spec:
         extraEnv:
           - name: ZO_META_CONNECTION_POOL_MAX_SIZE
             value: {{ .Values.openobserve.dbConnectionPoolMaxSize | quote }}
+        # Chart defaults to the enterprise image + OpenFGA; run the AGPL open-source edition instead
+        enterprise:
+          enabled: false
         # Metadata lives in external Postgres (DSN in the secret above)
         postgres:
           enabled: false

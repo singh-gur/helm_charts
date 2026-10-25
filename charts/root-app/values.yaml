@@ -316,7 +316,7 @@ openobserve:
   # One secret keyed by env var names: ZO_ROOT_USER_EMAIL, ZO_ROOT_USER_PASSWORD,
   # ZO_META_POSTGRES_DSN, ZO_S3_ACCESS_KEY, ZO_S3_SECRET_KEY (chart supports one externalSecret)
   existingSecret: openobserve-credentials
-  # Per pool, 3 pools (rw/ro/ddl) per pod, min 4. 6 keeps 5 pods + OpenFGA (default 30) under max_connections=100.
+  # Per pool, 3 pools (rw/ro/ddl) per pod, min 4. 6 keeps 5 pods (max 90) under max_connections=100.
   dbConnectionPoolMaxSize: "6"
   s3:
     provider: s3
